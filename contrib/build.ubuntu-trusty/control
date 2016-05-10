@@ -1,0 +1,9 @@
+Package: emercoin
+Version: 0.3.7
+Maintainer: Aspanta Limited <info@aspanta.com>
+Architecture: amd64
+Section: net
+Priority: optional
+Description: Emercoin Service for Ubuntu 14.04 LTS
+Depends: pwgen, openssl, libqt4-dev, libboost-dev, libboost-system-dev, libboost-filesystem-dev, libboost-program-options-dev, libboost-thread-dev, libssl-dev, libdb++-dev, libminiupnpc-dev
+Build-Depends: qt4-qmake, libqt4-dev, build-essential, libboost-dev, libboost-system-dev, libboost-filesystem-dev, libboost-program-options-dev, libboost-thread-dev, libssl-dev, libdb++-dev, libminiupnpc-dev

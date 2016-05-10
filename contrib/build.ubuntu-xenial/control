@@ -4,6 +4,6 @@ Maintainer: Aspanta Limited <info@aspanta.com>
 Architecture: amd64
 Section: net
 Priority: optional
-Description: Emercoin Service
+Description: Emercoin Service for Ubuntu 16.04 LTS
 Depends: pwgen, openssl, libqt4-dev, libboost-dev, libboost-system-dev, libboost-filesystem-dev, libboost-program-options-dev, libboost-thread-dev, libssl-dev, libdb++-dev, libminiupnpc-dev
 Build-Depends: qt4-qmake, libqt4-dev, build-essential, libboost-dev, libboost-system-dev, libboost-filesystem-dev, libboost-program-options-dev, libboost-thread-dev, libssl-dev, libdb++-dev, libminiupnpc-dev
