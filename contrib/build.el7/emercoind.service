@@ -1,0 +1,11 @@
+[Unit]
+Description=Emercoin Wallet
+
+[Service]
+ExecStart=/usr/bin/emercoind -daemon
+ExecStop=/usr/bin/emercoind -daemon stop
+PIDFile=/var/lib/emc/.emercoin/emercoin.pid
+User=emc
+
+[Install]
+WantedBy=multi-user.target
