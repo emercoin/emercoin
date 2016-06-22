@@ -33,7 +33,7 @@ cd src
 %{__rm} -rf $RPM_BUILD_ROOT
 
 %pretrans
-getent passwd emc >/dev/null || useradd -r -M -d /var/lib/emc -s /bin/false emc
+getent passwd emc >/dev/null && { echo "Looks like user 'emc' already exists and have to be deleted before continue."; exit 1; } || useradd -r -M -d /var/lib/emc -s /bin/false emc
 
 %post
 [ $1 == 1 ] && {
@@ -42,6 +42,7 @@ getent passwd emc >/dev/null || useradd -r -M -d /var/lib/emc -s /bin/false emc
   ln -sf /var/lib/emc/.emercoin/emercoin.conf /etc/emercoin/emercoin.conf
   ln -sf /etc/ssl/emc /etc/emercoin/certs
   chown emc.emc /etc/ssl/emc/emercoin.key /etc/ssl/emc/emercoin.crt
+  chmod 600 /etc/ssl/emc/emercoin.key
 } || exit 0
 
 %posttrans
@@ -52,6 +53,8 @@ systemctl status emercoind >/dev/null && systemctl restart emercoind || exit 0
 [ $1 == 0 ] && {
   systemctl is-enabled emercoind >/dev/null && systemctl disable emercoind >/dev/null || true
   systemctl status emercoind >/dev/null && systemctl stop emercoind >/dev/null || true
+  getent passwd emc >/dev/null && userdel -r emc >/dev/null || true
+  rm -f /etc/ssl/emc/emercoin.key /etc/ssl/emc/emercoin.crt /etc/emercoin/emercoin.conf /etc/emercoin/certs
 } || exit 0
 
 %files
