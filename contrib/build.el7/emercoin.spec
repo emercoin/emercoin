@@ -33,7 +33,7 @@ cd src
 %{__rm} -rf $RPM_BUILD_ROOT
 
 %pretrans
-getent passwd emc >/dev/null && { echo "Looks like user 'emc' already exists and have to be deleted before continue."; exit 1; } || useradd -r -M -d /var/lib/emc -s /bin/false emc
+getent passwd emc >/dev/null && { [ -f /usr/bin/emercoind ] || { echo "Looks like user 'emc' already exists and have to be deleted before continue."; exit 1; }; } || useradd -r -M -d /var/lib/emc -s /bin/false emc
 
 %post
 [ $1 == 1 ] && {
