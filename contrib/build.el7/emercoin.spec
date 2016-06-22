@@ -53,7 +53,7 @@ systemctl status emercoind >/dev/null && systemctl restart emercoind || exit 0
 [ $1 == 0 ] && {
   systemctl is-enabled emercoind >/dev/null && systemctl disable emercoind >/dev/null || true
   systemctl status emercoind >/dev/null && systemctl stop emercoind >/dev/null || true
-  getent passwd emc >/dev/null && userdel -r emc >/dev/null || true
+  getent passwd emc >/dev/null && userdel emc >/dev/null 2>&1 || true
   rm -f /etc/ssl/emc/emercoin.key /etc/ssl/emc/emercoin.crt /etc/emercoin/emercoin.conf /etc/emercoin/certs
 } || exit 0
 
