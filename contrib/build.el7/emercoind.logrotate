@@ -1,0 +1,9 @@
+/var/lib/emc/.emercoin/*.log
+{
+  weekly
+  rotate 6
+  compress
+  delaycompress
+  missingok
+  create 0644 emc emc
+}
