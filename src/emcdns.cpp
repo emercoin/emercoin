@@ -1,5 +1,5 @@
 /*
- * Simple DNS server for EmerCoin project
+ * Simple DNS server for Emercoin project
  *
  * Lookup for names like "dns:some-nake" in the local nameindex database.
  * Database is updates from blockchain, and keeps NMC-transactions.

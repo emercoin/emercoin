@@ -31,7 +31,7 @@ fi
 grep -v '^#' $FNAME | gzip -c -9 | openssl enc -aes-256-cbc -salt -out $OUTF -pass pass:$PASSW
 
 echo
-echo "Please, deposit into EmerCoin NVS pair:"
+echo "Please, deposit into Emercoin NVS pair:"
 echo "  Key:   info:$INDEX"
 
 echo "  Value: body of the file: $OUTF"

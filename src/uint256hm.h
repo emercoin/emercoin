@@ -1,6 +1,6 @@
 /*
  * HashMap container for uint256 index -> value
- * Part of EmerCoin project.
+ * Part of Emercoin project.
  *
  */
 

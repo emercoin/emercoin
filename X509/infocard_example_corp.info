@@ -1,5 +1,5 @@
 #
-# This is example of corp InfoCard for EmerCoin Info system
+# This is example of corp InfoCard for Emercoin Info system
 # This card will be retrieved by reference to NVS from EMCSSL subsystem,
 # or imported by another card.
 #

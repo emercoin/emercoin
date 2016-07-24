@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2011-2012 The PPCoin developers
-// Copyright (c) 2013-2014 The EmerCoin developers
+// Copyright (c) 2013-2014 The Emercoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -854,12 +854,12 @@ boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
 
-    // Windows: C:\Documents and Settings\username\Application Data\EmerCoin
-    // Mac: ~/Library/Application Support/EmerCoin
+    // Windows: C:\Documents and Settings\username\Application Data\Emercoin
+    // Mac: ~/Library/Application Support/Emercoin
     // Unix: ~/.emercoin
 #ifdef WIN32
     // Windows
-    return MyGetSpecialFolderPath(CSIDL_APPDATA, true) / "EmerCoin";
+    return MyGetSpecialFolderPath(CSIDL_APPDATA, true) / "Emercoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -871,7 +871,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     fs::create_directory(pathRet);
-    return pathRet / "EmerCoin";
+    return pathRet / "Emercoin";
 #else
     // Unix
     return pathRet / ".emercoin";
@@ -1073,10 +1073,10 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct.  If your clock is wrong EmerCoin will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct.  If your clock is wrong Emercoin will not work properly.");
                     strMiscWarning = strMessage;
                     printf("*** %s\n", strMessage.c_str());
-                    ThreadSafeMessageBox(strMessage+" ", string("EmerCoin"), wxOK | wxICON_EXCLAMATION);
+                    ThreadSafeMessageBox(strMessage+" ", string("Emercoin"), wxOK | wxICON_EXCLAMATION);
                 }
             }
         }
@@ -1124,7 +1124,7 @@ std::string FormatSubVersion(const std::string& name, int nClientVersion, const 
 #ifdef WIN32
 boost::filesystem::path static StartupShortcutPath()
 {
-    return MyGetSpecialFolderPath(CSIDL_STARTUP, true) / "EmerCoin.lnk";
+    return MyGetSpecialFolderPath(CSIDL_STARTUP, true) / "Emercoin.lnk";
 }
 
 bool GetStartOnSystemStartup()
@@ -1246,7 +1246,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         // Write a emercoin.desktop file to the autostart directory:
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
-        optionFile << "Name=EmerCoin\n";
+        optionFile << "Name=Emercoin\n";
         optionFile << "Exec=" << pszExePath << " -min\n";
         optionFile << "Terminal=false\n";
         optionFile << "Hidden=false\n";

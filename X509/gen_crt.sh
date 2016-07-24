@@ -44,7 +44,7 @@ SHA256=${SHA256#'sha256 fingerprint='}
 echo $SHA256 >>$FNAME
 
 echo
-echo "Please, deposit into EmerCoin NVS pair:"
+echo "Please, deposit into Emercoin NVS pair:"
 echo "  Key:   ssl:$SERIAL"
 echo "  Value: sha256=$SHA256"
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "   New EmerCoin WWW PKI Certificate generation"
+echo "   New Emercoin WWW PKI Certificate generation"
 echo 
 echo 
 echo " Please, answer to following questions."

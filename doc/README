@@ -1,6 +1,6 @@
-EmerCoin 0.3.7 BETA
+Emercoin 0.3.7 BETA
 
-Copyright (c) 2013-2015 EmerCoin Developers
+Copyright (c) 2013-2015 Emercoin Developers
 Distributed under the MIT/X11 software license, see the accompanying
 file license.txt or http://www.opensource.org/licenses/mit-license.php.
 This product includes software developed by the OpenSSL Project for use in
@@ -10,7 +10,7 @@ cryptographic software written by Eric Young (eay@cryptsoft.com).
 
 Intro
 -----
-EmerCoin is a free open source project derived from Emercoin, with
+Emercoin is a free open source project derived from Emercoin, with
 the goal of providing a long-term energy-efficient crypto-currency.
 Built on the foundation of Emercoin, innovations such as proof-of-stake
 help further advance the field of crypto-currency.
@@ -27,8 +27,8 @@ Unpack the files into a directory and run:
 The software automatically finds other nodes to connect to.  You can
 enable Universal Plug and Play (UPnP) with your router/firewall
 or forward port 6661 (TCP) to your computer so you can receive
-incoming connections.  EmerCoin works without incoming connections,
-but allowing incoming connections helps the EmerCoin network.
+incoming connections.  Emercoin works without incoming connections,
+but allowing incoming connections helps the Emercoin network.
 
 
 See the documentation/wiki at the emercoin website:

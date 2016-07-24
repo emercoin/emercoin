@@ -172,12 +172,12 @@ int main(int argc, char *argv[])
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
-    app.setOrganizationName("EmerCoin");
+    app.setOrganizationName("Emercoin");
     app.setOrganizationDomain("emercoin.com");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        app.setApplicationName("EmerCoin-Qt-testnet");
+        app.setApplicationName("Emercoin-Qt-testnet");
     else
-        app.setApplicationName("EmerCoin-Qt");
+        app.setApplicationName("Emercoin-Qt");
 
     // ... then GUI settings:
     OptionsModel optionsModel;
