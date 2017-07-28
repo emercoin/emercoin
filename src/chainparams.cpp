@@ -105,7 +105,7 @@ public:
         pchMessageStart[1] = 0xe8;
         pchMessageStart[2] = 0xe9;
         pchMessageStart[3] = 0xe5;
-        nDefaultPort = 6661;
+        nDefaultPort = 5551;
         bnProofOfWorkLimit = ~uint256(0) >> 32;
         bnInitialHashTarget = ~uint256(0) >> 32;
         nEnforceBlockUpgradeMajority = 750;
@@ -198,7 +198,7 @@ public:
         pchMessageStart[1] = 0xf2;
         pchMessageStart[2] = 0xc0;
         pchMessageStart[3] = 0xef;
-        nDefaultPort = 6663;
+        nDefaultPort = 5553;
         bnProofOfWorkLimit = ~uint256(0) >> 28;
         bnInitialHashTarget = ~uint256(0) >> 29;
         nEnforceBlockUpgradeMajority = 51;
