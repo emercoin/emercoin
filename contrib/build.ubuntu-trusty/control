@@ -1,9 +1,9 @@
 Package: emercoin
-Version: 0.6.2
+Version: 0.6.2.1
 Maintainer: Aspanta Limited <info@aspanta.com>
 Architecture: amd64
 Section: net
 Priority: optional
 Description: Emercoin Client
-Depends: pwgen, openssl, libdb4.8, libdb4.8++, miniupnpc, libboost-system-dev, libboost-filesystem-dev, libboost-chrono-dev, libboost-program-options-dev, libboost-test-dev, libboost-thread-dev, logrotate
+Depends: openssl, libdb4.8, libdb4.8++, miniupnpc, libboost-system-dev, libboost-filesystem-dev, libboost-chrono-dev, libboost-program-options-dev, libboost-test-dev, libboost-thread-dev, logrotate
 Build-Depends: build-essential, autoconf, automake, libtool, pkg-config, libboost-all-dev, libaudit-dev, libssl-dev, libdb4.8-dev, libdb4.8++-dev, libminiupnpc-dev

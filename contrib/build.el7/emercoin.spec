@@ -1,5 +1,5 @@
 Name:           emercoin
-Version:        0.6.2
+Version:        0.6.2.1
 Release:        1%{dist}
 Summary:        Emercoin Wallet
 Group:          Applications/Internet
@@ -9,7 +9,7 @@ URL:            http://www.emercoin.com
 Source0:        %{name}.tar.gz
 BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:  autoconf automake libtool gcc-c++ openssl-devel >= 1:1.0.2d libdb4-devel libdb4-cxx-devel miniupnpc-devel boost-devel boost-static
-Requires:       pwgen openssl >= 1:1.0.2d libdb4 libdb4-cxx miniupnpc logrotate
+Requires:       openssl >= 1:1.0.2d libdb4 libdb4-cxx miniupnpc logrotate
 
 %description
 Emercoin Wallet
@@ -40,7 +40,7 @@ getent passwd emc >/dev/null && { [ -f /usr/bin/emercoind ] || { echo "Looks lik
 
 %post
 [ $1 == 1 ] && {
-  sed -i -e "s/\(^rpcpassword=MySuperPassword\)\(.*\)/rpcpassword=$(pwgen 64 1)/" /var/lib/emc/.emercoin/emercoin.conf
+  sed -i -e "s/\(^rpcpassword=MySuperPassword\)\(.*\)/rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)/" /var/lib/emc/.emercoin/emercoin.conf
   openssl req -nodes -x509 -newkey rsa:4096 -keyout /etc/ssl/emc/emercoin.key -out /etc/ssl/emc/emercoin.crt -days 3560 -subj /C=US/ST=Oregon/L=Portland/O=IT/CN=emercoin.emc
   ln -sf /var/lib/emc/.emercoin/emercoin.conf /etc/emercoin/emercoin.conf
   ln -sf /etc/ssl/emc /etc/emercoin/certs
@@ -70,7 +70,7 @@ systemctl status emercoind >/dev/null && systemctl restart emercoind || exit 0
 %attr(700,emc,emc) %dir /var/lib/emc
 %attr(700,emc,emc) %dir /var/lib/emc/.emercoin
 %attr(600,emc,emc) %config(noreplace) /var/lib/emc/.emercoin/emercoin.conf
-%attr(4755,emc,emc) %{_bindir}/emercoin-cli
+%attr(4750,emc,emc) %{_bindir}/emercoin-cli
 %defattr(-,root,root)
 %config(noreplace) /etc/logrotate.d/emercoind
 %{_bindir}/emercoind

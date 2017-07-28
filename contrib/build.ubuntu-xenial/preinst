@@ -6,10 +6,7 @@ set -e
 case "$1" in
   install)
     getent passwd emc >/dev/null || {
-      mkdir /tmp/emcskel
-      groupadd emc
-      useradd -m -d /var/lib/emc -k /tmp/emcskel -s /bin/false -g emc emc
-      rmdir /tmp/emcskel
+      groupadd -r emc && useradd -r -m -d /var/lib/emc -k /dev/null -s /bin/false -g emc emc
     }
     [ ! -f /etc/ssl/emc/emercoin.key ] || [ ! -f /etc/ssl/emc/emercoin.crt ] && {
       mkdir -p /etc/ssl/emc

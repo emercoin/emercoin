@@ -222,6 +222,7 @@ string ExchCoinReform::Send(const string &to, double amount) {
     Req.push_back(Pair("withdrawal", to));
     Req.push_back(Pair("pair", m_pair));
     Req.push_back(Pair("refund_address", m_retAddr));
+    // The public disclosure for RefID usage: https://bitcointalk.org/index.php?topic=362513
     Req.push_back(Pair("ref_id", "2f77783d"));
 
     UniValue Resp(httpsFetch("/api/sendamount", &Req));
