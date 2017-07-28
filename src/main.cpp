@@ -568,7 +568,7 @@ bool AddOrphanTx(const CTransaction& tx, NodeId peer)
         return false;
 
     // Ignore big transactions, to avoid a
-    // send-big-orphans memory exhaustion attack. If a peer has a legitimate
+    // send-big-orphans memory exhaustion attack. If a peer has a legitimateS
     // large transaction with a missing parent then we assume
     // it will rebroadcast it later, after the parent transaction(s)
     // have been mined or received.

@@ -6,7 +6,7 @@ SetCompressor /SOLID lzma
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
 !define VERSION @EMERCOIN_VERSION_MAJOR@.@EMERCOIN_VERSION_MINOR@.@EMERCOIN_VERSION_REVISION@
-!define COMPANY "Emercoin Core project"
+!define COMPANY "iTecoCoin Core project"
 !define URL http://www.emercoin.com/
 
 # MUI Symbol Definitions
@@ -59,7 +59,7 @@ XPStyle on
 BrandingText " "
 ShowInstDetails show
 VIProductVersion ${VERSION}.@CLIENT_VERSION_BUILD@
-VIAddVersionKey ProductName "Emercoin Core"
+VIAddVersionKey ProductName "iTecoCoin Core"
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
 VIAddVersionKey CompanyWebsite "${URL}"
