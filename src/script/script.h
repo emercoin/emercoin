@@ -8,12 +8,14 @@
 
 #include <assert.h>
 #include <climits>
-#include <limits>
-#include <stdexcept>
+//#include <limits>
+//#include <stdexcept>
 #include <stdint.h>
 #include <string.h>
 #include <string>
-#include <vector>
+//#include <vector>
+
+#include "bignum.h"
 
 typedef std::vector<unsigned char> valtype;
 static const unsigned int MAX_SCRIPT_ELEMENT_SIZE = 520; // bytes
@@ -355,7 +357,7 @@ private:
 class CScript : public std::vector<unsigned char>
 {
 protected:
-    CScript& push_int64(int64_t n)
+    /*CScript& push_int64(int64_t n)
     {
         if (n == -1 || (n >= 1 && n <= 16))
         {
@@ -370,7 +372,36 @@ protected:
             *this << CScriptNum::serialize(n);
         }
         return *this;
+    }*/
+
+    CScript& push_int64(int64_t n)
+    {
+        if (n == -1 || (n >= 1 && n <= 16))
+        {
+            push_back(n + (OP_1 - 1));
+        }
+        else
+        {
+            CBigNum bn(n);
+            *this << bn.getvch();
+        }
+        return *this;
     }
+
+    /*CScript& push_uint64(uint64 n)
+    {
+        if (n >= 1 && n <= 16)
+        {
+            push_back(n + (OP_1 - 1));
+        }
+        else
+        {
+            CBigNum bn(n);
+            *this << bn.getvch();
+        }
+        return *this;
+    }*/
+
 public:
     CScript() { }
     CScript(const CScript& b) : std::vector<unsigned char>(b.begin(), b.end()) { }
@@ -392,9 +423,10 @@ public:
 
     CScript(int64_t b)        { operator<<(b); }
 
-    explicit CScript(opcodetype b)     { operator<<(b); }
-    explicit CScript(const CScriptNum& b) { operator<<(b); }
-    explicit CScript(const std::vector<unsigned char>& b) { operator<<(b); }
+    explicit CScript(opcodetype b)                          { operator<<(b); }
+    explicit CScript(const CScriptNum& b)                   { operator<<(b); }
+    explicit CScript(const CBigNum& b)                      { operator<<(b); }
+    explicit CScript(const std::vector<unsigned char>& b)   { operator<<(b); }
 
 
     CScript& operator<<(int64_t b) { return push_int64(b); }
@@ -408,6 +440,12 @@ public:
     }
 
     CScript& operator<<(const CScriptNum& b)
+    {
+        *this << b.getvch();
+        return *this;
+    }
+
+    CScript& operator<<(const CBigNum& b)
     {
         *this << b.getvch();
         return *this;

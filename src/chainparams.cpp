@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2017 The iTecoCoin developers
 // Distributed under the GPL3 software license, see the accompanying
 // file COPYING or http://www.gnu.org/licenses/gpl.html.
 
@@ -54,19 +55,14 @@ static void convertSeed6(std::vector<CAddress> &vSeedsOut, const SeedSpec6 *data
  */
 static Checkpoints::MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-        ( 0,     uint256("0x00000000bcccd459d036a588d1008fce8da3754b205736f32ddfd35350e84c2d"))
-        ( 25000, uint256("0x20cc6639e9593e4e9344e1d40a234c552da81cb90b991aed6200ff0f72a69719"))
-        ( 50000, uint256("0x4c3d02a982bcb47ed9e076f754870606a6892d258720dc13863e10badbfd0e78"))
-        (100000, uint256("0x0000000000000071c614fefb88072459cced7b9d9a9cffd04064d3c3d539ecaf"))
-        (150000, uint256("0x5d317133f36b13ba3cd335c142e51d7e7007c0e72fd8a0fef48d0f4f63f7827a"))
-        (200000, uint256("0x7af70a03354a9ae3f9bf7f6a1dd3da6b03dcc14f8d6ad237095d73dbeaf5184c"))
+        ( 0,     uint256("0x0000002f2ca49c400733113779857b7bfc73135831bcf452b539f9d270eec5dd"))
         ;
 static const Checkpoints::CCheckpointData data = {
         &mapCheckpoints,
-        1455207714, // * UNIX timestamp of last checkpoint block
-        365081,     // * total number of transactions between genesis and last checkpoint
-                    //   (the tx=... number in the SetBestChain debug.log lines)
-        500.0       // * estimated number of transactions per day after checkpoint
+        1501588800,     // * UNIX timestamp of last checkpoint block
+        0,              // * total number of transactions between genesis and last checkpoint
+                        //   (the tx=... number in the SetBestChain debug.log lines)
+        500.0             // * estimated number of transactions per day after checkpoint
     };
 
 static Checkpoints::MapCheckpoints mapCheckpointsTestnet =
@@ -96,7 +92,7 @@ public:
     CMainParams() {
         networkID = CBaseChainParams::MAIN;
         strNetworkID = "main";
-        /** 
+        /**
          * The message start string is designed to be unlikely to occur in normal data.
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
          * a large 4-byte int at any alignment.
@@ -105,8 +101,8 @@ public:
         pchMessageStart[1] = 0xe8;
         pchMessageStart[2] = 0xe9;
         pchMessageStart[3] = 0xe5;
-        nDefaultPort = 6661;
-        bnProofOfWorkLimit = ~uint256(0) >> 32;
+        nDefaultPort = 5551;
+        bnProofOfWorkLimit = ~uint256(0) >> 26;
         bnInitialHashTarget = ~uint256(0) >> 32;
         nEnforceBlockUpgradeMajority = 750;
         nRejectBlockOutdatedMajority = 950;
@@ -128,38 +124,71 @@ public:
         /**
          * Build the genesis block. Note that the output of the genesis coinbase cannot
          * be spent as it did not originally exist in the database.
-         * 
+         *
          * CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
          *   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
          *     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
          *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
          *   vMerkleTree: 4a5e1e
          */
-        const char* pszTimestamp = "2013: Emergence is inevitable! heideg.livejournal.com/313676.html";
+        const char* pszTimestamp = "1 aug 2017 Guardian: Russia cuts US diplomatic presence in retaliation for sanctions";
         std::vector<CTxIn> vin;
         vin.resize(1);
-        vin[0].scriptSig = CScript() << 486604799 << CScriptNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         std::vector<CTxOut> vout;
         vout.resize(1);
         vout[0].nValue = 0;
         vout[0].scriptPubKey.clear();
-        CMutableTransaction txNew(1, 1386627289, vin, vout, 0);
+        CMutableTransaction txNew(1, 1501770417, vin, vout, 0);
         genesis.vtx.push_back(txNew);
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1386628033;
+        genesis.nTime    = 1501588800;
         genesis.nBits    = bnProofOfWorkLimit.GetCompact();
-        genesis.nNonce   = 139946546u;
+        genesis.nNonce   = 35701051u;
 
-        hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x00000000bcccd459d036a588d1008fce8da3754b205736f32ddfd35350e84c2d"));
-        assert(genesis.hashMerkleRoot == uint256("0xd8eee032f95716d0cf14231dc7a238b96bbf827e349e75344c9a88e849262ee0"));
+        printf("block.GetHash() == %s\n", genesis.GetHash().ToString().c_str());
+        printf("block.hashMerkleRoot == %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        printf("block.nTime = %u \n", genesis.nTime);
+        printf("block.nNonce = %u \n", genesis.nNonce);
+        printf("block.nBits = %u \n", genesis.nBits);
+        assert(genesis.hashMerkleRoot == uint256("0x5c2072780e4aefad7e12aae41cd12288b43ec60be3a31e97c7128c18baf547b9"));
 
-        vSeeds.push_back(CDNSSeedData("emercoin.com", "seed.emercoin.com"));
-        vSeeds.push_back(CDNSSeedData("emercoin.net", "seed.emercoin.net"));
-        vSeeds.push_back(CDNSSeedData("emergate.net", "seed.emergate.net"));
-        vSeeds.push_back(CDNSSeedData("emcdns", "seed.emc"));
+        hashGenesisBlock = uint256("0x0000002f2ca49c400733113779857b7bfc73135831bcf452b539f9d270eec5dd");
+        if(genesis.GetHash() != hashGenesisBlock)
+        {
+            genesis.nNonce = 0;
+
+            uint256 hashTarget = CBigNum().SetCompact(genesis.nBits).getuint256();
+            while (genesis.GetHash() > hashTarget)
+            {
+                ++genesis.nNonce;
+                if(genesis.nNonce == 0)
+                {
+                    printf("NONCE WRAPPED, incrementing time");
+                    ++genesis.nTime;
+                }
+
+                if(genesis.nNonce % 100000 == 0)
+                {
+                    printf("nonce %08u: hash = %s \n", genesis.nNonce, genesis.GetHash().ToString().c_str());
+                }
+            }
+
+            printf("new genesis.nTime = %u \n", genesis.nTime);
+            printf("new genesis.nNonce = %u \n", genesis.nNonce);
+        }
+        else
+        {
+            assert(genesis.GetHash() == hashGenesisBlock);
+        }
+
+        vSeeds.clear();
+//        vSeeds.push_back(CDNSSeedData("emercoin.com", "seed.emercoin.com"));
+//        vSeeds.push_back(CDNSSeedData("emercoin.net", "seed.emercoin.net"));
+//        vSeeds.push_back(CDNSSeedData("emergate.net", "seed.emergate.net"));
+//        vSeeds.push_back(CDNSSeedData("emcdns", "seed.emc"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(33);   // emercoin: addresses begin with 'E'
         base58Prefixes[SCRIPT_ADDRESS] = list_of(92);   // emercoin: addresses begin with 'e'
@@ -179,7 +208,7 @@ public:
         fTestnetToBeDeprecatedFieldRPC = false;
     }
 
-    const Checkpoints::CCheckpointData& Checkpoints() const 
+    const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return data;
     }
@@ -198,8 +227,8 @@ public:
         pchMessageStart[1] = 0xf2;
         pchMessageStart[2] = 0xc0;
         pchMessageStart[3] = 0xef;
-        nDefaultPort = 6663;
-        bnProofOfWorkLimit = ~uint256(0) >> 28;
+        nDefaultPort = 5553;
+        bnProofOfWorkLimit = ~uint256(0) >> 24;
         bnInitialHashTarget = ~uint256(0) >> 29;
         nEnforceBlockUpgradeMajority = 51;
         nRejectBlockOutdatedMajority = 75;
@@ -214,11 +243,11 @@ public:
         genesis.nBits = bnProofOfWorkLimit.GetCompact();
         genesis.nNonce = 18330017;
         hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x0000000810da236a5c9239aa1c49ab971de289dbd41d08c4120fc9c8920d2212"));
+//        assert(hashGenesisBlock == uint256("0x0000000810da236a5c9239aa1c49ab971de289dbd41d08c4120fc9c8920d2212"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("emercoin", "tnseed.emercoin.com"));
+//        vSeeds.push_back(CDNSSeedData("emercoin", "tnseed.emercoin.com"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(111);
         base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
@@ -236,7 +265,7 @@ public:
         fMineBlocksOnDemand = false;
         fTestnetToBeDeprecatedFieldRPC = true;
     }
-    const Checkpoints::CCheckpointData& Checkpoints() const 
+    const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return dataTestnet;
     }
@@ -266,7 +295,7 @@ public:
         nMaxTipAge = 24 * 60 * 60;
         hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 6664;
-        assert(hashGenesisBlock == uint256("0x0000000810da236a5c9239aa1c49ab971de289dbd41d08c4120fc9c8920d2212"));
+//        assert(hashGenesisBlock == uint256("0x0000000810da236a5c9239aa1c49ab971de289dbd41d08c4120fc9c8920d2212"));
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();  //! Regtest mode doesn't have any DNS seeds.
@@ -279,7 +308,7 @@ public:
         fMineBlocksOnDemand = true;
         fTestnetToBeDeprecatedFieldRPC = false;
     }
-    const Checkpoints::CCheckpointData& Checkpoints() const 
+    const Checkpoints::CCheckpointData& Checkpoints() const
     {
         return dataRegtest;
     }
@@ -305,7 +334,7 @@ public:
         fMineBlocksOnDemand = true;
     }
 
-    const Checkpoints::CCheckpointData& Checkpoints() const 
+    const Checkpoints::CCheckpointData& Checkpoints() const
     {
         // UnitTest share the same checkpoints as MAIN
         return data;

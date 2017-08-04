@@ -20,7 +20,7 @@
       <string notr="true">QLabel { font-style:italic; }</string>
      </property>
      <property name="text">
-      <string>Welcome to Emercoin Core.</string>
+      <string>Welcome to iTecoCoin Core.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
