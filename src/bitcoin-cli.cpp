@@ -23,7 +23,7 @@ std::string HelpMessageCli()
     string strUsage;
     strUsage += _("Options:") + "\n";
     strUsage += "  -?                     " + _("This help message") + "\n";
-    strUsage += "  -conf=<file>           " + strprintf(_("Specify configuration file (default: %s)"), "emercoin.conf") + "\n";
+    strUsage += "  -conf=<file>           " + strprintf(_("Specify configuration file (default: %s)"), "iTecoCoin.conf") + "\n";
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
     strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be "
@@ -66,12 +66,12 @@ static bool AppInitRPC(int argc, char* argv[])
     //
     ParseParameters(argc, argv);
     if (argc<2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help") || mapArgs.count("-version")) {
-        std::string strUsage = _("Emercoin Core RPC client version") + " " + FormatFullVersion() + "\n";
+        std::string strUsage = _("iTecoCoin Core RPC client version") + " " + FormatFullVersion() + "\n";
         if (!mapArgs.count("-version")) {
             strUsage += "\n" + _("Usage:") + "\n" +
-                  "  emercoin-cli [options] <command> [params]  " + _("Send command to Emercoin Core") + "\n" +
-                  "  emercoin-cli [options] help                " + _("List commands") + "\n" +
-                  "  emercoin-cli [options] help <command>      " + _("Get help for a command") + "\n";
+                  "  iTecoCoin-cli [options] <command> [params]  " + _("Send command to iTecoCoin Core") + "\n" +
+                  "  iTecoCoin-cli [options] help                " + _("List commands") + "\n" +
+                  "  iTecoCoin-cli [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessageCli();
         }
@@ -146,8 +146,8 @@ UniValue CallRPC(const string& strMethod, const UniValue& params)
     else if (strReply.empty())
         throw runtime_error("no response from server");
 
-    // emercoin:
-    // we get emercoind output (possibly binary) of .write() that either:
+    // iTecoCoin:
+    // we get iTecoCoind output (possibly binary) of .write() that either:
     // 1) escapes some unicode characters (defined in univalue_escapes.h)
     // 2) escapes all unicode character as in legacy json_spirit
     // we must get back the same string byte by byte by invoking .read() with mode=1 or mode=2.

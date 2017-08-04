@@ -44,10 +44,10 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
     connect(ui->deleteButton_is, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->deleteButton_s, SIGNAL(clicked()), this, SLOT(deleteClicked()));
 
-    ui->payTo->setValidator(0);  // emercoin: disable validator so that we can type names
+    ui->payTo->setValidator(0);  // iTecoCoin: disable validator so that we can type names
     ui->payAmountExch->setValidator( new QDoubleValidator(0, 1e20, 8, this) );
     qsExchInfo = "<html><head/><body><p><span style=\" font-weight:600;\">"+
-            tr("WARNING: You're using external service! Emercoin is not responsible for functionality and correct behavior of this service.")+"</span><br/>"+
+            tr("WARNING: You're using external service! iTecoCoin is not responsible for functionality and correct behavior of this service.")+"</span><br/>"+
             tr("Usage: Enter amount, currency type and address. Press Request Payment and select desired exchange service.")+"<br/>"+
             tr("After creating transaction you can view details by double clicking that transaction in transaction list tab.")+"</p></body></html>";
     ui->infoExchLabel->setText(qsExchInfo);
@@ -92,7 +92,7 @@ void SendCoinsEntry::setModel(WalletModel *model)
 
     clear();
 
-    // emercoin: initialize exchange box
+    // iTecoCoin: initialize exchange box
     // initialize with refund address:
     std::string sAddress;
     if (this->model)

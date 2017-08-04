@@ -225,7 +225,7 @@ UniValue getaddednodeinfo(const UniValue& params, bool fHelp)
             "    \"connected\" : true|false,          (boolean) If connected\n"
             "    \"addresses\" : [\n"
             "       {\n"
-            "         \"address\" : \"192.168.0.201:8333\",  (string) The emercoin server host and port\n"
+            "         \"address\" : \"192.168.0.201:8333\",  (string) The iTecoCoin server host and port\n"
             "         \"connected\" : \"outbound\"           (string) connection, inbound or outbound\n"
             "       }\n"
             "       ,...\n"
@@ -407,7 +407,7 @@ UniValue getnetworkinfo(const UniValue& params, bool fHelp)
         );
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version",       EMERCOIN_VERSION));
+    obj.push_back(Pair("version",       ITECOCOIN_VERSION));
     obj.push_back(Pair("subversion",
         FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<string>())));
     obj.push_back(Pair("protocolversion",PROTOCOL_VERSION));
