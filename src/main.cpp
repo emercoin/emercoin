@@ -46,6 +46,7 @@ using namespace std;
 
 CCriticalSection cs_main;
 
+
 BlockMap mapBlockIndex;
 CChain chainActive;
 CBlockIndex *pindexBestHeader = NULL;
