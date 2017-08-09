@@ -85,7 +85,7 @@
     <item row="3" column="1">
      <widget class="QLabel" name="messageTextLabel">
       <property name="toolTip">
-       <string>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</string>
+       <string>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::PlainText</enum>
@@ -143,7 +143,7 @@
       <item>
        <widget class="QValidatedLineEdit" name="payTo">
         <property name="toolTip">
-         <string>The Emercoin address to send the payment to</string>
+         <string>The iTecoCoin address to send the payment to</string>
         </property>
        </widget>
       </item>
@@ -390,7 +390,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="infoExchLabel">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: You're using external service! Emercoin is not responsible for functionality and correct behavior of this service.&lt;/span&gt;&lt;br/&gt;Usage: Enter amount, currency typea and address. Press Request Payment and select desired exchange service.&lt;br/&gt;After creating transaction you can view details by double clicking that transaction in transaction list tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;WARNING: You're using external service! iTecoCoin is not responsible for functionality and correct behavior of this service.&lt;/span&gt;&lt;br/&gt;Usage: Enter amount, currency typea and address. Press Request Payment and select desired exchange service.&lt;br/&gt;After creating transaction you can view details by double clicking that transaction in transaction list tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>

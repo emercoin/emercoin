@@ -66,11 +66,11 @@
         <translation>正在接收地址</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>这是您用来付款的崛起币地址。在付款前，请总是核实付款金额和收款地址。</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation>这些都是您的崛起币地址，可用于收款。建议对每笔交易都使用一个新的地址。</translation>
     </message>
     <message>
@@ -164,7 +164,7 @@
         <translation>确认加密钱包</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR iTecoCoinS&lt;/b&gt;!</source>
         <translation>警告：如果您加密了您的钱包，但是忘记了密码，你将会&lt;b&gt;丢失所有的崛起币&lt;/b&gt;！</translation>
     </message>
     <message>
@@ -188,7 +188,7 @@
         <translation>请输入新的钱包密码. &lt;br/&gt;密码须包含&lt;b&gt;10个以上字符&lt;/b&gt;,或&lt;b&gt;8个以上单词&lt;/b&gt;.</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
         <translation>崛起币客户端将关闭软件以完成加密过程。请您谨记：钱包加密并不是万能的，电脑中毒等原因仍可能导致您的崛起币意外丢失。</translation>
     </message>
     <message>
@@ -295,7 +295,7 @@
         <translation>打开 &amp;URI...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
+        <source>iTecoCoin Core client</source>
         <translation>崛起币核心钱包</translation>
     </message>
     <message>
@@ -307,11 +307,11 @@
         <translation>正在为数据块建立索引...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
+        <source>Send coins to an iTecoCoin address</source>
         <translation>向一个崛起币地址发送崛起币</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
+        <source>Modify configuration options for iTecoCoin</source>
         <translation>设置选项</translation>
     </message>
     <message>
@@ -335,8 +335,8 @@
         <translation>验证消息(&amp;V)...</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -351,7 +351,7 @@
         <translation>接收(&amp;R)</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
+        <source>Show information about iTecoCoin Core</source>
         <translation>显示有关崛起币核心钱包信息</translation>
     </message>
     <message>
@@ -367,11 +367,11 @@
         <translation>对钱包中的私钥加密</translation>
     </message>
     <message>
-        <source>Sign messages with your Emercoin addresses to prove you own them</source>
+        <source>Sign messages with your iTecoCoin addresses to prove you own them</source>
         <translation>用崛起币地址关联的私钥为消息签名，以证明您拥有这个崛起币地址</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Emercoin addresses</source>
+        <source>Verify messages to ensure they were signed with specified iTecoCoin addresses</source>
         <translation>校验消息，确保该消息是由指定的崛起币地址所有者签名的</translation>
     </message>
     <message>
@@ -391,15 +391,15 @@
         <translation>分页工具栏</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>崛起币核心</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and emercoin: URIs)</source>
-        <translation>请求支付（生成二维码和 emercoin: URI）</translation>
+        <source>Request payments (generates QR codes and iTecoCoin: URIs)</source>
+        <translation>请求支付（生成二维码和 iTecoCoin: URI）</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
+        <source>&amp;About iTecoCoin Core</source>
         <translation>关于崛起币核心(&amp;A)</translation>
     </message>
     <message>
@@ -411,7 +411,7 @@
         <translation>显示用过的接收地址和标签的列表</translation>
     </message>
     <message>
-        <source>Open a emercoin: URI or payment request</source>
+        <source>Open a iTecoCoin: URI or payment request</source>
         <translation>打开一个崛起币：URI 或支付请求</translation>
     </message>
     <message>
@@ -419,11 +419,11 @@
         <translation>命令行选项(&amp;C)</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
         <translation>显示崛起币核心 程序帮助信息，获取可用的命令行选项 </translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
+        <source>%n active connection(s) to iTecoCoin network</source>
         <translation><numerusform>%n 个到崛起币网络的活动连接</numerusform></translation>
     </message>
     <message>
@@ -788,7 +788,7 @@ Address: %4
         <translation>输入的地址“%1”已经存在于地址簿中。</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Emercoin address.</source>
+        <source>The entered address "%1" is not a valid iTecoCoin address.</source>
         <translation>您输入的“%1”不是有效的崛起币地址。</translation>
     </message>
     <message>
@@ -826,7 +826,7 @@ Address: %4
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>崛起币核心</translation>
     </message>
     <message>
@@ -838,7 +838,7 @@ Address: %4
         <translation>(%1 位)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
+        <source>About iTecoCoin Core</source>
         <translation>关于崛起币核心</translation>
     </message>
     <message>
@@ -886,15 +886,15 @@ Address: %4
         <translation>欢迎</translation>
     </message>
     <message>
-        <source>Welcome to Emercoin Core.</source>
+        <source>Welcome to iTecoCoin Core.</source>
         <translation>欢迎使用 崛起币核心 程序。</translation>
     </message>
     <message>
-        <source>As this is the first time the program is launched, you can choose where Emercoin Core will store its data.</source>
+        <source>As this is the first time the program is launched, you can choose where iTecoCoin Core will store its data.</source>
         <translation>由于这是第一次运行 崛起币核心 程序，您可以选择数据存储目录。</translation>
     </message>
     <message>
-        <source>Emercoin Core will download and store a copy of the Emercoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <source>iTecoCoin Core will download and store a copy of the iTecoCoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
         <translation>崛起币核心 程序会下载储存一份数据块链(blockchain)。至少需要 %1 GB的存储空间，随着时间推移会需要更多的存储空间。钱包文件也储存在该目录。</translation>
     </message>
     <message>
@@ -906,7 +906,7 @@ Address: %4
         <translation>使用自定义的数据目录：</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>崛起币核心</translation>
     </message>
     <message>
@@ -960,11 +960,11 @@ Address: %4
         <translation>主要(&amp;M)</translation>
     </message>
     <message>
-        <source>Automatically start Emercoin after logging in to the system.</source>
+        <source>Automatically start iTecoCoin after logging in to the system.</source>
         <translation>登录系统后自动开启崛起币客户端</translation>
     </message>
     <message>
-        <source>&amp;Start Emercoin on system login</source>
+        <source>&amp;Start iTecoCoin on system login</source>
         <translation>系统启动时运行(&amp;S)</translation>
     </message>
     <message>
@@ -1040,7 +1040,7 @@ Address: %4
         <translation>使用未经确认的零钱(&amp;S)</translation>
     </message>
     <message>
-        <source>Automatically open the Emercoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the iTecoCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation>自动在路由器中打开崛起币端口。只有当您的路由器开启了 UPnP 选项时此功能才有效。</translation>
     </message>
     <message>
@@ -1048,7 +1048,7 @@ Address: %4
         <translation>使用 &amp;UPnP 映射端口</translation>
     </message>
     <message>
-        <source>Connect to the Emercoin network through a SOCKS5 proxy.</source>
+        <source>Connect to the iTecoCoin network through a SOCKS5 proxy.</source>
         <translation>通过 SOCKS5 代理连接崛起币网络。</translation>
     </message>
     <message>
@@ -1096,7 +1096,7 @@ Address: %4
         <translation>用户界面语言(&amp;L)：</translation>
     </message>
     <message>
-        <source>The user interface language can be set here. This setting will take effect after restarting Emercoin.</source>
+        <source>The user interface language can be set here. This setting will take effect after restarting iTecoCoin.</source>
         <translation>在这里设置用户界面的语言。设置将在客户端重启后生效。</translation>
     </message>
     <message>
@@ -1155,7 +1155,7 @@ Address: %4
         <translation>表单</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Emercoin network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the iTecoCoin network after a connection is established, but this process has not completed yet.</source>
         <translation>现在显示的消息可能是过期的. 在连接上崛起币网络节点后，您的钱包将自动与网络同步，但是这个过程还没有完成。</translation>
     </message>
     <message>
@@ -1262,7 +1262,7 @@ Address: %4
         <translation>支付请求出错</translation>
     </message>
     <message>
-        <source>Cannot start emercoin: click-to-pay handler</source>
+        <source>Cannot start iTecoCoin: click-to-pay handler</source>
         <translation>暂时无法启动崛起币：点击支付功能</translation>
     </message>
     <message>
@@ -1270,7 +1270,7 @@ Address: %4
         <translation>付款请求URI链接非法: %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters.</source>
+        <source>URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters.</source>
         <translation>URI无法解析！原因可能是崛起币地址不正确，或者URI参数错误。</translation>
     </message>
     <message>
@@ -1340,7 +1340,7 @@ Address: %4
         <translation>金额</translation>
     </message>
     <message>
-        <source>Enter an Emercoin address (e.g. %1)</source>
+        <source>Enter an iTecoCoin address (e.g. %1)</source>
         <translation>请输入一个崛起币地址 (例如 %1)</translation>
     </message>
     <message>
@@ -1566,7 +1566,7 @@ Address: %4
         <translation>调试日志文件</translation>
     </message>
     <message>
-        <source>Open the Emercoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <source>Open the iTecoCoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation>打开当前目录中的调试日志文件。日志文件大的话可能要等上几秒钟。</translation>
     </message>
     <message>
@@ -1574,7 +1574,7 @@ Address: %4
         <translation>清空控制台</translation>
     </message>
     <message>
-        <source>Welcome to the Emercoin RPC console.</source>
+        <source>Welcome to the iTecoCoin RPC console.</source>
         <translation>欢迎来到 RPC 控制台。</translation>
     </message>
     <message>
@@ -1649,7 +1649,7 @@ Address: %4
         <translation>重用现有的接收地址（不推荐）</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
         <translation>可在付款请求上备注一条信息，在打开付款请求时可以看到。注意：该消息不是通过崛起币网络传送。</translation>
     </message>
     <message>
@@ -1886,7 +1886,7 @@ Address: %4
         <translation>最小额 </translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for emercoin transactions than the network can process.</source>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for iTecoCoin transactions than the network can process.</source>
         <translation>交易量小时只支付最小交易费是可以的。但是请注意，当交易量大时您的交易可能永远无法确认。</translation>
     </message>
     <message>
@@ -2042,7 +2042,7 @@ Address: %4
         <translation>预计%1 个数据块后确认。</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
+        <source>Warning: Invalid iTecoCoin address</source>
         <translation>警告：无效的崛起币地址</translation>
     </message>
     <message>
@@ -2093,7 +2093,7 @@ Address: %4
         <translation>这是笔正常的支付。</translation>
     </message>
     <message>
-        <source>The Emercoin address to send the payment to</source>
+        <source>The iTecoCoin address to send the payment to</source>
         <translation>付款目的地址</translation>
     </message>
     <message>
@@ -2125,8 +2125,8 @@ Address: %4
         <translation>请为此地址输入一个标签以将它加入用过的地址列表</translation>
     </message>
     <message>
-        <source>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</source>
-        <translation>emercoin:URI 附带的备注信息，将会和交易一起存储，备查。 注意：该消息不会通过崛起币网络传输。</translation>
+        <source>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</source>
+        <translation>iTecoCoin:URI 附带的备注信息，将会和交易一起存储，备查。 注意：该消息不会通过崛起币网络传输。</translation>
     </message>
     <message>
         <source>This is an unverified payment request.</source>
@@ -2141,8 +2141,8 @@ Address: %4
         <translation>便条：</translation>
     </message>
     <message>
-        <source>WARNING: You're using external service! Emercoin is not responsible for functionality and correct behavior of this service.</source>
-        <translation>警告：您正在使用外部服务！ Emercoin对此服务的功能和正确行为概不负责。</translation>
+        <source>WARNING: You're using external service! iTecoCoin is not responsible for functionality and correct behavior of this service.</source>
+        <translation>警告：您正在使用外部服务！ iTecoCoin对此服务的功能和正确行为概不负责。</translation>
     </message>
     <message>
         <source>Usage: Enter amount, currency type and address. Press Request Payment and select desired exchange service.</source>
@@ -2156,7 +2156,7 @@ Address: %4
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
+        <source>iTecoCoin Core is shutting down...</source>
         <translation>崛起币核心正在关机...</translation>
     </message>
     <message>
@@ -2179,7 +2179,7 @@ Address: %4
         <translation>您可以用你的地址对消息进行签名，以证明您是该地址的所有人。注意不要对模棱两可的消息签名，以免遭受钓鱼式攻击。请确保消息内容准确的表达了您的真实意愿。</translation>
     </message>
     <message>
-        <source>The Emercoin address to sign the message with</source>
+        <source>The iTecoCoin address to sign the message with</source>
         <translation>用来对消息签名的地址 </translation>
     </message>
     <message>
@@ -2211,7 +2211,7 @@ Address: %4
         <translation>复制当前签名至剪切板</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
         <translation>签名消息，证明这个地址属于您。</translation>
     </message>
     <message>
@@ -2235,11 +2235,11 @@ Address: %4
         <translation>在下面输入签名地址，消息（请确保换行符、空格符、制表符等等一个不漏）和签名以验证消息。请确保签名信息准确，提防中间人攻击。</translation>
     </message>
     <message>
-        <source>The Emercoin address the message was signed with</source>
+        <source>The iTecoCoin address the message was signed with</source>
         <translation>消息使用的签名地址</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Emercoin address</source>
+        <source>Verify the message to ensure it was signed with the specified iTecoCoin address</source>
         <translation>验证消息，确保消息是由指定的崛起币地址签名过的。</translation>
     </message>
     <message>
@@ -2306,12 +2306,12 @@ Address: %4
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>崛起币核心</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>Emercoin Core 的开发者</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>iTecoCoin Core 的开发者</translation>
     </message>
     <message>
         <source>[testnet]</source>
@@ -2866,7 +2866,7 @@ Address: %4
         <translation>这是测试用的预发布版本 - 请谨慎使用 - 不要用来挖矿，或者在正式商用环境下使用</translation>
     </message>
     <message>
-        <source>Unable to bind to %s on this computer. Emercoin Core is probably already running.</source>
+        <source>Unable to bind to %s on this computer. iTecoCoin Core is probably already running.</source>
         <translation>无法 %s的绑定到电脑上，崛起币核心钱包可能已经在运行。</translation>
     </message>
     <message>
@@ -3050,7 +3050,7 @@ Address: %4
         <translation>绑定到指定地址监听 JSON-RPC连接。 IPv6使用[主机]:端口 格式。该选项可多次指定 (默认: 绑定到所有接口) </translation>
     </message>
     <message>
-        <source>Cannot obtain a lock on data directory %s. Emercoin Core is probably already running.</source>
+        <source>Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running.</source>
         <translation>无法获取数据目录的 %s. 崛起币核心钱包可能已经在运行.</translation>
     </message>
     <message>
@@ -3118,27 +3118,27 @@ Address: %4
         <translation>This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit &lt;https://www.openssl.org/&gt; and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.</translation>
     </message>
     <message>
-        <source>To use emercoind, or the -server option to emercoin-qt, you must set an rpcpassword in the configuration file:
+        <source>To use iTecoCoind, or the -server option to iTecoCoin-qt, you must set an rpcpassword in the configuration file:
 %s
 It is recommended you use the following random password:
-rpcuser=emercoinrpc
+rpcuser=iTecoCoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 The username and password MUST NOT be the same.
 If the file does not exist, create it with owner-readable-only file permissions.
 It is also recommended to set alertnotify so you are notified of problems;
-for example: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
+for example: alertnotify=echo %%s | mail -s "iTecoCoin Alert" admin@foo.com
 </source>
-        <translation>要使用 emercoind 或者 emercoin-qt 中的 -server 选项，您必须在配置文件中设置一个密码：
+        <translation>要使用 iTecoCoind 或者 iTecoCoin-qt 中的 -server 选项，您必须在配置文件中设置一个密码：
 %s
 建议您使用下列随机密码：
-rpcuser=emercoinrpc
+rpcuser=iTecoCoinrpc
 rpcpassword=%s
 （您不需要记住这个密码）
 用户名和密码不能相同。
 如果该文件不存在，创建一个文件并设置权限为仅创建者可读。
 此外，还建议您设置 alertnotify 以便您能注意到问题：
-例如 alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
+例如 alertnotify=echo %%s | mail -s "iTecoCoin Alert" admin@foo.com
 </translation>
     </message>
     <message>
@@ -3146,7 +3146,7 @@ rpcpassword=%s
         <translation>警告：-maxtxfee 设置的太高了！每进行一笔交易时您都要花费这么多费用。</translation>
     </message>
     <message>
-        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong Emercoin Core will not work properly.</source>
+        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong iTecoCoin Core will not work properly.</source>
         <translation>警告：请检查电脑的日期时间设置是否正确！时间错误可能会导致崛起币客户端运行异常。</translation>
     </message>
     <message>
@@ -3166,15 +3166,15 @@ rpcpassword=%s
         <translation>通过 SOCKS5 代理连接</translation>
     </message>
     <message>
-        <source>Copyright (C) 2013-%i The Emercoin Core Developers</source>
-        <translation>版权所有 (C) 2013-%i Emercoin Core 开发者</translation>
+        <source>Copyright (C) 2013-%i The iTecoCoin Core Developers</source>
+        <translation>版权所有 (C) 2013-%i iTecoCoin Core 开发者</translation>
     </message>
     <message>
         <source>Could not parse -rpcbind value %s as network address</source>
         <translation>无法解析 -rpcbind 的值 %s 为网络地址</translation>
     </message>
     <message>
-        <source>Error loading wallet.dat: Wallet requires newer version of Emercoin Core</source>
+        <source>Error loading wallet.dat: Wallet requires newer version of iTecoCoin Core</source>
         <translation>加载wallet.dat错误：需要新版的崛起币核心钱包</translation>
     </message>
     <message>
@@ -3198,8 +3198,8 @@ rpcpassword=%s
         <translation>信息</translation>
     </message>
     <message>
-        <source>Initialization sanity check failed. Emercoin Core is shutting down.</source>
-        <translation>初始化完整性检查失败。Emercoin Core 即将关闭。</translation>
+        <source>Initialization sanity check failed. iTecoCoin Core is shutting down.</source>
+        <translation>初始化完整性检查失败。iTecoCoin Core 即将关闭。</translation>
     </message>
     <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s'</source>
@@ -3306,7 +3306,7 @@ rpcpassword=%s
         <translation>JSON-RPC 连接用户名</translation>
     </message>
     <message>
-        <source>Wallet needed to be rewritten: restart Emercoin Core to complete</source>
+        <source>Wallet needed to be rewritten: restart iTecoCoin Core to complete</source>
         <translation>钱包需要被改写：重新启动核心钱包来完成</translation>
     </message>
     <message>

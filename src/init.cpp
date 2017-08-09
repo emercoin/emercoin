@@ -154,7 +154,7 @@ void Shutdown()
     /// for example if the data directory was found to be locked.
     /// Be sure that anything that writes files or flushes caches only does this if the respective
     /// module was initialized.
-    RenameThread("emercoin-shutoff");
+    RenameThread("iTecoCoin-shutoff");
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
 #ifdef ENABLE_WALLET
@@ -254,7 +254,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -checkblocks=<n>       " + strprintf(_("How many blocks to check at startup (default: %u, 0 = all)"), 288) + "\n";
     strUsage += "  -checklevel=<n>        " + strprintf(_("How thorough the block verification of -checkblocks is (0-4, default: %u)"), 3) + "\n";
     strUsage += "  -checkpointpubkey      " + _("Set checkpoint public key. 0 - disable, 1 - default key, hex string - custom key");
-    strUsage += "  -conf=<file>           " + strprintf(_("Specify configuration file (default: %s)"), "emercoin.conf") + "\n";
+    strUsage += "  -conf=<file>           " + strprintf(_("Specify configuration file (default: %s)"), "iTecoCoin.conf") + "\n";
     if (mode == HMM_BITCOIND)
     {
 #if !defined(WIN32)
@@ -267,7 +267,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -maxorphantx=<n>       " + strprintf(_("Keep at most <n> unconnectable transactions in memory (default: %u)"), DEFAULT_MAX_ORPHAN_TRANSACTIONS) + "\n";
     strUsage += "  -par=<n>               " + strprintf(_("Set the number of script verification threads (%u to %d, 0 = auto, <0 = leave that many cores free, default: %d)"), -(int)boost::thread::hardware_concurrency(), MAX_SCRIPTCHECK_THREADS, DEFAULT_SCRIPTCHECK_THREADS) + "\n";
 #ifndef WIN32
-    strUsage += "  -pid=<file>            " + strprintf(_("Specify pid file (default: %s)"), "emercoind.pid") + "\n";
+    strUsage += "  -pid=<file>            " + strprintf(_("Specify pid file (default: %s)"), "iTecoCoind.pid") + "\n";
 #endif
     strUsage += "  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup") + "\n";
 #if !defined(WIN32)
@@ -293,7 +293,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -onion=<ip:port>       " + strprintf(_("Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: %s)"), "-proxy") + "\n";
     strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)") + "\n";
     strUsage += "  -permitbaremultisig    " + strprintf(_("Relay non-P2SH multisig (default: %u)"), 1) + "\n";
-    strUsage += "  -port=<port>           " + strprintf(_("Listen for connections on <port> (default: %u or testnet: %u)"), 5551, 5553) + "\n";
+    strUsage += "  -port=<port>           " + strprintf(_("Listen for connections on <port> (default: %u or testnet: %u)"), 16661, 16663) + "\n";
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n";
     strUsage += "  -timeout=<n>           " + strprintf(_("Specify connection timeout in milliseconds (minimum: 1, default: %d)"), DEFAULT_CONNECT_TIMEOUT) + "\n";
@@ -388,7 +388,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -rpcbind=<addr>        " + _("Bind to given address to listen for JSON-RPC connections. Use [host]:port notation for IPv6. This option can be specified multiple times (default: bind to all interfaces)") + "\n";
     strUsage += "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n";
     strUsage += "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n";
-    strUsage += "  -rpcport=<port>        " + strprintf(_("Listen for JSON-RPC connections on <port> (default: %u or testnet: %u)"), 6662, 6662) + "\n";
+    strUsage += "  -rpcport=<port>        " + strprintf(_("Listen for JSON-RPC connections on <port> (default: %u or testnet: %u)"), 16662, 16662) + "\n";
     strUsage += "  -rpcallowip=<ip>       " + _("Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option can be specified multiple times") + "\n";
     strUsage += "  -rpcthreads=<n>        " + strprintf(_("Set the number of threads to service RPC calls (default: %d)"), 4) + "\n";
     strUsage += "  -rpckeepalive          " + strprintf(_("RPC support for HTTP persistent connections (default: %d)"), 1) + "\n";
@@ -405,15 +405,17 @@ std::string HelpMessage(HelpMessageMode mode)
 std::string LicenseInfo()
 {
     return FormatParagraph(strprintf(_("Copyright (C) 2017-%i The iTecoCoin Core Developers"), COPYRIGHT_YEAR)) + "\n" +
-           "\n" +
-           FormatParagraph(_("Copyright (С) Emercoin, Bitcoin, PPCoin, Namecoin, Unobtanium Developers")) + "\n" +
-           "\n" +
-           FormatParagraph(_("This is experimental software.")) + "\n" +
-           "\n" +
-           FormatParagraph(_("Distributed under the GPL3 software license, see the accompanying file COPYING or <http://www.gnu.org/licenses/gpl.html>.")) + "\n" +
-           "\n" +
-           FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
-           "\n";
+            "\n" +
+            FormatParagraph(_("Copyright (С) i-Teco Developers")) + "\n" +
+            "\n" +
+            FormatParagraph(_("Copyright (С) Emercoin, Bitcoin, PPCoin, Namecoin, Unobtanium Developers")) + "\n" +
+            "\n" +
+            FormatParagraph(_("This is experimental software.")) + "\n" +
+            "\n" +
+            FormatParagraph(_("Distributed under the GPL3 software license, see the accompanying file COPYING or <http://www.gnu.org/licenses/gpl.html>.")) + "\n" +
+            "\n" +
+            FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
+            "\n";
 }
 
 static void BlockNotifyCallback(const uint256& hashNewTip)
@@ -439,7 +441,7 @@ struct CImportingNow
 
 void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
 {
-    RenameThread("emercoin-loadblk");
+    RenameThread("iTecoCoin-loadblk");
 
     // -reindex
     if (fReindex) {
@@ -599,7 +601,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fLogIPs = GetBoolArg("-logips", false);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Emercoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
+    LogPrintf("iTecoCoin version %s (%s)\n", FormatFullVersion(), CLIENT_DATE);
 
     // when specifying an explicit binding address, you want to listen on it
     // even when -connect or -proxy is specified
@@ -793,7 +795,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // Sanity check
     if (!InitSanityCheck())
-        return InitError(_("Initialization sanity check failed. Emercoin Core is shutting down."));
+        return InitError(_("Initialization sanity check failed. iTecoCoin Core is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
 #ifdef ENABLE_WALLET
@@ -807,7 +809,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (file) fclose(file);
     static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
     if (!lock.try_lock())
-        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. Emercoin Core is probably already running."), strDataDir));
+        return InitError(strprintf(_("Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running."), strDataDir));
 #ifndef WIN32
     CreatePidFile(GetPidFile(), getpid());
 #endif
@@ -1076,8 +1078,8 @@ bool AppInit2(boost::thread_group& threadGroup)
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index..."));
-
         nStart = GetTimeMillis();
+
         do {
             try {
                 UnloadBlockIndex();
@@ -1091,6 +1093,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 		    boost::system::error_code err;
                     filesystem::remove(GetDataDir() / "nameindexV2.dat", err);
                 }
+
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
@@ -1107,19 +1110,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                         fAuxReindex++;
                     }
                     else
+                    {
                         strLoadError = _("Error loading block database");
+                    }
                     break;
                 }
 
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way around).
                 if (!mapBlockIndex.empty() && mapBlockIndex.count(Params().HashGenesisBlock()) == 0)
-                {
-                    printf("mapBlockIndex.empty() = %u \n", mapBlockIndex.empty());
-                    printf("Params().HashGenesisBlock() = %u \n", Params().HashGenesisBlock());
-                    printf("mapBlockIndex.count(Params().HashGenesisBlock() = %u \n", mapBlockIndex.count(Params().HashGenesisBlock()));
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
-                }
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
                 if (!InitBlockIndex()) {
@@ -1178,6 +1178,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
     }
+
 
     // As LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill the GUI during the last operation. If so, exit.
@@ -1246,10 +1247,10 @@ bool AppInit2(boost::thread_group& threadGroup)
                 InitWarning(msg);
             }
             else if (nLoadWalletRet == DB_TOO_NEW)
-                strErrors << _("Error loading wallet.dat: Wallet requires newer version of Emercoin Core") << "\n";
+                strErrors << _("Error loading wallet.dat: Wallet requires newer version of iTecoCoin Core") << "\n";
             else if (nLoadWalletRet == DB_NEED_REWRITE)
             {
-                strErrors << _("Wallet needed to be rewritten: restart Emercoin Core to complete") << "\n";
+                strErrors << _("Wallet needed to be rewritten: restart iTecoCoin Core to complete") << "\n";
                 LogPrintf("%s", strErrors.str());
                 return InitError(strErrors.str());
             }
@@ -1269,7 +1270,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             else
                 LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
             if (nMaxVersion < pwalletMain->GetVersion())
+            {
+                printf("nMaxVersion: %u \n", nMaxVersion);
+                printf("pwalletMain->GetVersion(): %u \n", pwalletMain->GetVersion());
                 strErrors << _("Cannot downgrade wallet") << "\n";
+            }
             pwalletMain->SetMaxVersion(nMaxVersion);
         }
 

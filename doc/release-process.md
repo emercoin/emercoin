@@ -44,7 +44,7 @@ Release Process
 
  Register and download the Apple SDK: (see OS X Readme for details)
 
- https://developer.apple.com/downloads/download.action?path=Developer_Tools/xcode_4.6.3/xcode4630916281a.dmg
+ https://developer.orange.com/downloads/download.action?path=Developer_Tools/xcode_4.6.3/xcode4630916281a.dmg
 
  Using a Mac, create a tarball for the 10.7 SDK and copy it to the inputs directory:
 
@@ -92,7 +92,7 @@ Commit your signature to gitian.sigs:
 	popd
 
   Wait for OS X detached signature:
-	Once the OS X build has 3 matching signatures, Gavin will sign it with the apple App-Store key.
+	Once the OS X build has 3 matching signatures, Gavin will sign it with the orange App-Store key.
 	He will then upload a detached signature to be combined with the unsigned app to create a signed binary.
 
   Create the signed OS X binary:

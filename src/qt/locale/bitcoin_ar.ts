@@ -66,11 +66,11 @@
         <translation>استقبال العناوين</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>هذه هي عناوين Emercion التابعة لك من أجل إرسال الدفعات. تحقق دائما من المبلغ و عنوان المرسل المستقبل قبل إرسال العملات</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation>هذه هي عناوين Emercion التابعة لك من أجل إستقبال الدفعات. ينصح استخدام عنوان جديد من أجل كل صفقة</translation>
     </message>
     <message>
@@ -160,8 +160,8 @@
         <translation>تأكيد تشفير المحفظة</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
-        <translation>تحذير: إذا قمت بتشفير محفظتك وفقدت كلمة المرور الخاص بك, ستفقد كل عملات EMERCOINS الخاصة بك.</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR ITECOCOINS&lt;/b&gt;!</source>
+        <translation>تحذير: إذا قمت بتشفير محفظتك وفقدت كلمة المرور الخاص بك, ستفقد كل عملات ITECOCOINS الخاصة بك.</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -184,7 +184,7 @@
         <translation>أدخل عبارة مرور جديدة إلى المحفظة. الرجاء استخدام عبارة مرور تتكون من10 حروف عشوائية على الاقل, أو أكثر من 7 كلمات</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
         <translation>بتكوين سوف يغلق الآن لإنهاء عملية التشفير. تذكر أن التشفير لا يستطيع حماية محفظتك تمامًا من السرقة من خلال البرمجيات الخبيثة التي تصيب جهازك </translation>
     </message>
     <message>
@@ -291,7 +291,7 @@
         <translation>افتح &amp;URI...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
+        <source>iTecoCoin Core client</source>
         <translation>عميل emercion core</translation>
     </message>
     <message>
@@ -303,12 +303,12 @@
         <translation>إعادة فهرسة الكتل على القرص</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
+        <source>Send coins to an iTecoCoin address</source>
         <translation>ارسل عملات الى عنوان بيتكوين</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
-        <translation>تعديل إعدادات emercoin</translation>
+        <source>Modify configuration options for iTecoCoin</source>
+        <translation>تعديل إعدادات iTecoCoin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -327,8 +327,8 @@
         <translation>&amp;التحقق من الرسالة...</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -339,7 +339,7 @@
         <translation>&amp;استقبل</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
+        <source>Show information about iTecoCoin Core</source>
         <translation>  اظهار معلومات حول emercion core</translation>
     </message>
     <message>
@@ -371,12 +371,12 @@
         <translation>شريط أدوات علامات التبويب</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>جوهر البيت كوين</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
-        <translation>حول emercoin core</translation>
+        <source>&amp;About iTecoCoin Core</source>
+        <translation>حول iTecoCoin core</translation>
     </message>
     <message numerus="yes">
         <source>%n hour(s)</source>
@@ -626,7 +626,7 @@
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>جوهر البيت كوين</translation>
     </message>
     <message>
@@ -634,7 +634,7 @@
         <translation>النسخة</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
+        <source>About iTecoCoin Core</source>
         <translation>عن جوهر البيت كوين</translation>
     </message>
     <message>
@@ -661,7 +661,7 @@
         <translation>استخدام دليل بيانات مخصص:</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>جوهر البيت كوين</translation>
     </message>
     <message>
@@ -1234,7 +1234,7 @@
         <translation>التوقيع</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
         <translation>وقع الرسالة لتثبت انك تمتلك عنوان البت كوين هذا</translation>
     </message>
     <message>
@@ -1301,11 +1301,11 @@
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
+        <source>iTecoCoin Core</source>
         <translation>جوهر البيت كوين</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
+        <source>The iTecoCoin Core developers</source>
         <translation>مطوري جوهر البيت كوين</translation>
     </message>
     <message>

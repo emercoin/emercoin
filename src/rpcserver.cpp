@@ -246,10 +246,10 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Emercoin server.");
+            "\nStop iTecoCoin server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "Emercoin server stopping";
+    return "iTecoCoin server stopping";
 }
 
 
@@ -615,16 +615,16 @@ void StartRPCThreads()
         unsigned char rand_pwd[32];
         GetRandBytes(rand_pwd, 32);
         uiInterface.ThreadSafeMessageBox(strprintf(
-            _("To use emercoind, or the -server option to emercoin-qt, you must set an rpcpassword in the configuration file:\n"
+            _("To use iTecoCoind, or the -server option to iTecoCoin-qt, you must set an rpcpassword in the configuration file:\n"
               "%s\n"
               "It is recommended you use the following random password:\n"
-              "rpcuser=emercoinrpc\n"
+              "rpcuser=iTecoCoinrpc\n"
               "rpcpassword=%s\n"
               "(you do not need to remember this password)\n"
               "The username and password MUST NOT be the same.\n"
               "If the file does not exist, create it with owner-readable-only file permissions.\n"
               "It is also recommended to set alertnotify so you are notified of problems;\n"
-              "for example: alertnotify=echo %%s | mail -s \"Emercoin Alert\" admin@foo.com\n"),
+              "for example: alertnotify=echo %%s | mail -s \"iTecoCoin Alert\" admin@foo.com\n"),
                 GetConfigFile().string(),
                 EncodeBase58(&rand_pwd[0],&rand_pwd[0]+32)),
                 "", CClientUIInterface::MSG_ERROR | CClientUIInterface::SECURE);
@@ -1060,7 +1060,7 @@ std::vector<std::string> CRPCTable::listCommands() const
 }
 
 std::string HelpExampleCli(string methodname, string args){
-    return "> emercoin-cli " + methodname + " " + args + "\n";
+    return "> iTecoCoin-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(string methodname, string args){

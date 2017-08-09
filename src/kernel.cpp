@@ -19,7 +19,7 @@ using namespace std;
 // Hard checkpoints of stake modifiers to ensure they are deterministic
 static std::map<int, unsigned int> mapStakeModifierCheckpoints =
     boost::assign::map_list_of
-    ( 0, 0x0e00670bu )
+    ( 0, 0x00000000fd11f4e7/*0x0e00670bu*/ )
     ( 19000, 0xb185c126u )
     ;
 
@@ -377,7 +377,7 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock& blockFrom, unsigned 
 
     ss << nTimeBlockFrom << nTxPrevOffset << txPrev.nTime << prevout.n << nTimeTx;
 
-    if (nTimeTx >= 1489782503) // block 219831
+    if (nTimeTx >= 1689782503) // block 219831
         ss << chainActive.Tip()->GetBlockHash();
 
     hashProofOfStake = Hash(ss.begin(), ss.end());
@@ -480,10 +480,7 @@ bool CheckCoinStakeTimestamp(int64_t nTimeBlock, int64_t nTimeTx)
 // Get stake modifier checksum
 unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex)
 {
-    printf("pindex->GetBlockHash() = %u \n", pindex->GetBlockHash());
-    printf("Params().HashGenesisBlock() = %u \n", Params().HashGenesisBlock());
-
-    //assert (pindex->pprev || pindex->GetBlockHash() == Params().HashGenesisBlock());
+    assert (pindex->pprev || pindex->GetBlockHash() == Params().HashGenesisBlock());
     // Hash previous checksum with flags, hashProofOfStake and nStakeModifier
     CDataStream ss(SER_GETHASH, 0);
     if (pindex->pprev)
@@ -497,6 +494,7 @@ unsigned int GetStakeModifierChecksum(const CBlockIndex* pindex)
 // Check stake modifier hard checkpoints
 bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierChecksum)
 {
+    //printf("Params().NetworkIDString(): %u \n", Params().NetworkIDString());
     if (Params().NetworkIDString() != "main") return true; // Testnet or Regtest has no checkpoints
     if (mapStakeModifierCheckpoints.count(nHeight))
         return nStakeModifierChecksum == mapStakeModifierCheckpoints[nHeight];

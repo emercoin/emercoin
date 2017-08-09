@@ -66,12 +66,12 @@
         <translation>Adresa prijatia</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Toto sú Vaše Emercoin adresy pre posielanie platieb. Vždy skontrolujte množstvo a prijímaciu adresu pred poslaním coins.</translation>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Toto sú Vaše iTecoCoin adresy pre posielanie platieb. Vždy skontrolujte množstvo a prijímaciu adresu pred poslaním coins.</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Toto sú vaše Emercoin adresy pre prijímanie platieb. Odporúča sa použiť novú prijímaciu adresu pre každú transakciu.</translation>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Toto sú vaše iTecoCoin adresy pre prijímanie platieb. Odporúča sa použiť novú prijímaciu adresu pre každú transakciu.</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -164,8 +164,8 @@
         <translation>Potvrďte šifrovanie peňaženky</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
-        <translation>Varovanie: Ak zašifrujete peňaženku a stratíte heslo, &lt;b&gt;STRATÍTE VŠETKY VAŠE EMERCOINY&lt;/b&gt;!⏎</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR iTecoCoinS&lt;/b&gt;!</source>
+        <translation>Varovanie: Ak zašifrujete peňaženku a stratíte heslo, &lt;b&gt;STRATÍTE VŠETKY VAŠE iTecoCoinY&lt;/b&gt;!⏎</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -188,8 +188,8 @@
         <translation>Zadajte nové heslo k peňaženke.&lt;br/&gt;Prosím použite heslo s dĺžkou aspoň &lt;b&gt;10 alebo viac náhodných znakov&lt;/b&gt;, alebo &lt;b&gt;8 alebo viac slov&lt;/b&gt;.</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
-        <translation>Emercoin sa teraz ukončí pre dokončenie procesu šifrovania. Pamätaj že šifrovanie peňaženky Ťa nemôže úplne ochrániť pred kráďežou emercoinov pomocou škodlivého software.</translation>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
+        <translation>iTecoCoin sa teraz ukončí pre dokončenie procesu šifrovania. Pamätaj že šifrovanie peňaženky Ťa nemôže úplne ochrániť pred kráďežou iTecoCoinov pomocou škodlivého software.</translation>
     </message>
     <message>
         <source>Wallet encryption failed</source>
@@ -295,8 +295,8 @@
         <translation>Otvoriť &amp;URI...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
-        <translation>Emercoin Core klient</translation>
+        <source>iTecoCoin Core client</source>
+        <translation>iTecoCoin Core klient</translation>
     </message>
     <message>
         <source>Importing blocks from disk...</source>
@@ -307,12 +307,12 @@
         <translation>Preindexúvam bloky na disku...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
-        <translation>Poslať emercoins na adresu</translation>
+        <source>Send coins to an iTecoCoin address</source>
+        <translation>Poslať iTecoCoins na adresu</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
-        <translation>Upraviť možnosti nastavenia pre emercoin</translation>
+        <source>Modify configuration options for iTecoCoin</source>
+        <translation>Upraviť možnosti nastavenia pre iTecoCoin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -335,8 +335,8 @@
         <translation>Overiť správu</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -351,8 +351,8 @@
         <translation>&amp;Prijať</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
-        <translation>Zobraziť informácie o Emercoin Core</translation>
+        <source>Show information about iTecoCoin Core</source>
+        <translation>Zobraziť informácie o iTecoCoin Core</translation>
     </message>
     <message>
         <source>&amp;Show / Hide</source>
@@ -367,12 +367,12 @@
         <translation>Zašifruj súkromné kľúče ktoré patria do vašej peňaženky</translation>
     </message>
     <message>
-        <source>Sign messages with your Emercoin addresses to prove you own them</source>
-        <translation>Podpísať správu s vašou adresou Emercoin aby ste preukázali že ju vlastníte</translation>
+        <source>Sign messages with your iTecoCoin addresses to prove you own them</source>
+        <translation>Podpísať správu s vašou adresou iTecoCoin aby ste preukázali že ju vlastníte</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Emercoin addresses</source>
-        <translation>Overiť či správa bola podpísaná uvedenou Emercoin adresou</translation>
+        <source>Verify messages to ensure they were signed with specified iTecoCoin addresses</source>
+        <translation>Overiť či správa bola podpísaná uvedenou iTecoCoin adresou</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -391,16 +391,16 @@
         <translation>Lišta záložiek</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Jadro Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>Jadro iTecoCoin</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and emercoin: URIs)</source>
-        <translation>Vyžiadať platbu (vygeneruje QR kód a emercoin: URI)</translation>
+        <source>Request payments (generates QR codes and iTecoCoin: URIs)</source>
+        <translation>Vyžiadať platbu (vygeneruje QR kód a iTecoCoin: URI)</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
-        <translation>O jadre Emercoin</translation>
+        <source>&amp;About iTecoCoin Core</source>
+        <translation>O jadre iTecoCoin</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -411,20 +411,20 @@
         <translation>Zobraziť zoznam použitých prijímacích adries a ich popisov</translation>
     </message>
     <message>
-        <source>Open a emercoin: URI or payment request</source>
-        <translation>Otvoriť emercoin URI alebo výzvu k platbe</translation>
+        <source>Open a iTecoCoin: URI or payment request</source>
+        <translation>Otvoriť iTecoCoin URI alebo výzvu k platbe</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>Možnosti príkazového riadku</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
-        <translation>Zobraziť pomocnú správu od Emercoin Jadra pre získanie zoznamu dostupných možností príkazového riadku</translation>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
+        <translation>Zobraziť pomocnú správu od iTecoCoin Jadra pre získanie zoznamu dostupných možností príkazového riadku</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
-        <translation><numerusform>%n aktívne pripojenie do siete Emercoin</numerusform><numerusform>%n aktívne pripojenia do siete Emercoin</numerusform><numerusform>%n aktívnych pripojení do siete Emercoin</numerusform></translation>
+        <source>%n active connection(s) to iTecoCoin network</source>
+        <translation><numerusform>%n aktívne pripojenie do siete iTecoCoin</numerusform><numerusform>%n aktívne pripojenia do siete iTecoCoin</numerusform><numerusform>%n aktívnych pripojení do siete iTecoCoin</numerusform></translation>
     </message>
     <message>
         <source>No block source available...</source>
@@ -787,8 +787,8 @@ Adresa: %4</translation>
         <translation>Vložená adresa "%1" sa už nachádza v adresári.</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Emercoin address.</source>
-        <translation>Vložená adresa "%1" nieje platnou adresou emercoin.</translation>
+        <source>The entered address "%1" is not a valid iTecoCoin address.</source>
+        <translation>Vložená adresa "%1" nieje platnou adresou iTecoCoin.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -825,8 +825,8 @@ Adresa: %4</translation>
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Jadro Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>Jadro iTecoCoin</translation>
     </message>
     <message>
         <source>version</source>
@@ -837,8 +837,8 @@ Adresa: %4</translation>
         <translation>(%1-bit)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
-        <translation>O jadre Emercoin</translation>
+        <source>About iTecoCoin Core</source>
+        <translation>O jadre iTecoCoin</translation>
     </message>
     <message>
         <source>Command-line options</source>
@@ -884,16 +884,16 @@ Adresa: %4</translation>
         <translation>Vitajte</translation>
     </message>
     <message>
-        <source>Welcome to Emercoin Core.</source>
-        <translation>Vitajte v jadre Emercoin.</translation>
+        <source>Welcome to iTecoCoin Core.</source>
+        <translation>Vitajte v jadre iTecoCoin.</translation>
     </message>
     <message>
-        <source>As this is the first time the program is launched, you can choose where Emercoin Core will store its data.</source>
-        <translation>Keďže spúštate program prvý krát, môžte si vybrať kde bude Emercoin Jadro ukladať svoje dáta.</translation>
+        <source>As this is the first time the program is launched, you can choose where iTecoCoin Core will store its data.</source>
+        <translation>Keďže spúštate program prvý krát, môžte si vybrať kde bude iTecoCoin Jadro ukladať svoje dáta.</translation>
     </message>
     <message>
-        <source>Emercoin Core will download and store a copy of the Emercoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>Jadro Emercoin stiahne zo siete a uloží kópiu Emercoin blockchain. Aspoň %1GB dát bude uložených v tomto priečinku a časom porastie. Peňaženka bude tiež uložená v tomto priečinku.</translation>
+        <source>iTecoCoin Core will download and store a copy of the iTecoCoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>Jadro iTecoCoin stiahne zo siete a uloží kópiu iTecoCoin blockchain. Aspoň %1GB dát bude uložených v tomto priečinku a časom porastie. Peňaženka bude tiež uložená v tomto priečinku.</translation>
     </message>
     <message>
         <source>Use the default data directory</source>
@@ -904,8 +904,8 @@ Adresa: %4</translation>
         <translation>Použiť vlastný dátový adresár:</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Jadro Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>Jadro iTecoCoin</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -958,12 +958,12 @@ Adresa: %4</translation>
         <translation>&amp;Hlavné</translation>
     </message>
     <message>
-        <source>Automatically start Emercoin after logging in to the system.</source>
-        <translation>Automaticky spustiť Emercoin po zapnutí počítača</translation>
+        <source>Automatically start iTecoCoin after logging in to the system.</source>
+        <translation>Automaticky spustiť iTecoCoin po zapnutí počítača</translation>
     </message>
     <message>
-        <source>&amp;Start Emercoin on system login</source>
-        <translation>&amp;Spustiť Emercoin pri spustení systému správy okien</translation>
+        <source>&amp;Start iTecoCoin on system login</source>
+        <translation>&amp;Spustiť iTecoCoin pri spustení systému správy okien</translation>
     </message>
     <message>
         <source>Size of &amp;database cache</source>
@@ -1038,16 +1038,16 @@ Adresa: %4</translation>
         <translation>Minúť nepotvrdený výdavok</translation>
     </message>
     <message>
-        <source>Automatically open the Emercoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Automaticky otvorit port pre Emercoin na routeri. Toto funguje len ak router podporuje UPnP a je táto podpora aktivovaná.</translation>
+        <source>Automatically open the iTecoCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Automaticky otvorit port pre iTecoCoin na routeri. Toto funguje len ak router podporuje UPnP a je táto podpora aktivovaná.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
         <translation>Mapovať port pomocou &amp;UPnP</translation>
     </message>
     <message>
-        <source>Connect to the Emercoin network through a SOCKS5 proxy.</source>
-        <translation>Pripojiť do siete Emercoin cez proxy server SOCKS5.</translation>
+        <source>Connect to the iTecoCoin network through a SOCKS5 proxy.</source>
+        <translation>Pripojiť do siete iTecoCoin cez proxy server SOCKS5.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1094,8 +1094,8 @@ Adresa: %4</translation>
         <translation>Jazyk užívateľského rozhrania:</translation>
     </message>
     <message>
-        <source>The user interface language can be set here. This setting will take effect after restarting Emercoin.</source>
-        <translation>Tu sa dá nastaviť jazyk užívateľského rozhrania. Toto nastavenie bude účinné po reštartovaní Emercoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting iTecoCoin.</source>
+        <translation>Tu sa dá nastaviť jazyk užívateľského rozhrania. Toto nastavenie bude účinné po reštartovaní iTecoCoin.</translation>
     </message>
     <message>
         <source>&amp;Unit to show amounts in:</source>
@@ -1103,7 +1103,7 @@ Adresa: %4</translation>
     </message>
     <message>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Zvoľte ako deliť emercoin pri zobrazovaní pri platbách a užívateľskom rozhraní.</translation>
+        <translation>Zvoľte ako deliť iTecoCoin pri zobrazovaní pri platbách a užívateľskom rozhraní.</translation>
     </message>
     <message>
         <source>Whether to show coin control features or not.</source>
@@ -1153,8 +1153,8 @@ Adresa: %4</translation>
         <translation>Forma</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Emercoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Zobrazené informácie môžu byť neaktuálne. Vaša peňaženka sa automaticky synchronizuje so sieťou Emercoin po nadviazaní spojenia, ale tento proces ešte nie je ukončený.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the iTecoCoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>Zobrazené informácie môžu byť neaktuálne. Vaša peňaženka sa automaticky synchronizuje so sieťou iTecoCoin po nadviazaní spojenia, ale tento proces ešte nie je ukončený.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1256,16 +1256,16 @@ Adresa: %4</translation>
         <translation>Chyba pri vyžiadaní platby</translation>
     </message>
     <message>
-        <source>Cannot start emercoin: click-to-pay handler</source>
-        <translation>Nedá sa spustiť obslužný program emercoin: click-to-pay zaplatiť kliknutím</translation>
+        <source>Cannot start iTecoCoin: click-to-pay handler</source>
+        <translation>Nedá sa spustiť obslužný program iTecoCoin: click-to-pay zaplatiť kliknutím</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>URL pre stiahnutie výzvy na zaplatenie je neplatné: %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters.</source>
-        <translation>URI sa nedá analyzovať! To môže byť spôsobené neplatnou Emercoin adresou alebo zle upravenými vlastnosťami URI.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters.</source>
+        <translation>URI sa nedá analyzovať! To môže byť spôsobené neplatnou iTecoCoin adresou alebo zle upravenými vlastnosťami URI.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1334,8 +1334,8 @@ Adresa: %4</translation>
         <translation>Suma</translation>
     </message>
     <message>
-        <source>Enter an Emercoin address (e.g. %1)</source>
-        <translation>Zadajte emercoin adresu (napr. %1)</translation>
+        <source>Enter an iTecoCoin address (e.g. %1)</source>
+        <translation>Zadajte iTecoCoin adresu (napr. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1552,16 +1552,16 @@ Adresa: %4</translation>
         <translation>Súbor záznamu ladenia</translation>
     </message>
     <message>
-        <source>Open the Emercoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Otvoriť Emercoin log súbor pre ladenie z aktuálneho dátového adresára. Toto môže trvať niekoľko sekúnd pre veľké súbory.</translation>
+        <source>Open the iTecoCoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Otvoriť iTecoCoin log súbor pre ladenie z aktuálneho dátového adresára. Toto môže trvať niekoľko sekúnd pre veľké súbory.</translation>
     </message>
     <message>
         <source>Clear console</source>
         <translation>Vymazať konzolu</translation>
     </message>
     <message>
-        <source>Welcome to the Emercoin RPC console.</source>
-        <translation>Vitajte v Emercoin RPC konzole.</translation>
+        <source>Welcome to the iTecoCoin RPC console.</source>
+        <translation>Vitajte v iTecoCoin RPC konzole.</translation>
     </message>
     <message>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
@@ -1635,8 +1635,8 @@ Adresa: %4</translation>
         <translation>Znovu použiť jestvujúcu prijímaciu adresu (neodporúča sa)</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
-        <translation>Pridať voliteľnú správu k výzve na zaplatenie, ktorá sa zobrazí keď bude výzva otvorená. Poznámka: Správa nebude poslaná s platbou cez sieť Emercoin.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
+        <translation>Pridať voliteľnú správu k výzve na zaplatenie, ktorá sa zobrazí keď bude výzva otvorená. Poznámka: Správa nebude poslaná s platbou cez sieť iTecoCoin.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -1785,7 +1785,7 @@ Adresa: %4</translation>
     <name>SendCoinsDialog</name>
     <message>
         <source>Send Coins</source>
-        <translation>Poslať Emercoins</translation>
+        <translation>Poslať iTecoCoins</translation>
     </message>
     <message>
         <source>Coin Control Features</source>
@@ -1872,7 +1872,7 @@ Adresa: %4</translation>
         <translation>spolu aspoň</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for emercoin transactions than the network can process.</source>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for iTecoCoin transactions than the network can process.</source>
         <translation>Zaplatenie len minimálneho poplatku je v poriadku, pokiaľ existuje menej transakcií ako miesta v blokoch. Uvedomte si však, že ak bude vyšší dopyt po transakciách ako dokáže sieť spracovať, môže byť vaša transakcia odsúvaná a nepotvrdená donekonečna.</translation>
     </message>
     <message>
@@ -1945,7 +1945,7 @@ Adresa: %4</translation>
     </message>
     <message>
         <source>Confirm send coins</source>
-        <translation>Potvrdiť odoslanie emercoins</translation>
+        <translation>Potvrdiť odoslanie iTecoCoins</translation>
     </message>
     <message>
         <source>%1 to %2</source>
@@ -2020,8 +2020,8 @@ Adresa: %4</translation>
         <translation>Zaplatiť minimálny poplatok %1</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
-        <translation>Varovanie: Nesprávna Emercoin adresa</translation>
+        <source>Warning: Invalid iTecoCoin address</source>
+        <translation>Varovanie: Nesprávna iTecoCoin adresa</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2071,7 +2071,7 @@ Adresa: %4</translation>
         <translation>Toto je normálna platba.</translation>
     </message>
     <message>
-        <source>The Emercoin address to send the payment to</source>
+        <source>The iTecoCoin address to send the payment to</source>
         <translation>Zvoľte adresu kam poslať platbu</translation>
     </message>
     <message>
@@ -2103,8 +2103,8 @@ Adresa: %4</translation>
         <translation>Vložte popis pre túto adresu aby sa uložila do zoznamu použitých adries</translation>
     </message>
     <message>
-        <source>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</source>
-        <translation>Správa ktorá bola pripojená k emercoin: URI a ktorá bude uložená s transakcou pre Vaše potreby. Poznámka: Táto správa nebude poslaná cez sieť Emercoin.</translation>
+        <source>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</source>
+        <translation>Správa ktorá bola pripojená k iTecoCoin: URI a ktorá bude uložená s transakcou pre Vaše potreby. Poznámka: Táto správa nebude poslaná cez sieť iTecoCoin.</translation>
     </message>
     <message>
         <source>This is an unverified payment request.</source>
@@ -2122,8 +2122,8 @@ Adresa: %4</translation>
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
-        <translation>Jadro Emercoin sa ukončuje...</translation>
+        <source>iTecoCoin Core is shutting down...</source>
+        <translation>Jadro iTecoCoin sa ukončuje...</translation>
     </message>
     <message>
         <source>Do not shut down the computer until this window disappears.</source>
@@ -2173,7 +2173,7 @@ Adresa: %4</translation>
         <translation>Kopírovať práve zvolenú adresu do systémového klipbordu</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
         <translation>Podpíšte správu aby ste dokázali že vlastníte túto adresu</translation>
     </message>
     <message>
@@ -2197,12 +2197,12 @@ Adresa: %4</translation>
         <translation>Vložte podpisovaciu adresu, správu (uistite sa, že kopírujete ukončenia riadkov, medzery, odrážky, atď. presne) a podpis pod to na overenie adresy. Buďte opatrní a nečítajte ako podpísané viac než je v samotnej podpísanej správe a môžete sa tak vyhnúť podvodu mitm útokom.</translation>
     </message>
     <message>
-        <source>The Emercoin address the message was signed with</source>
-        <translation>Adresa Emercoin, ktorou bola podpísaná správa</translation>
+        <source>The iTecoCoin address the message was signed with</source>
+        <translation>Adresa iTecoCoin, ktorou bola podpísaná správa</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Emercoin address</source>
-        <translation>Overím správy sa uistiť že bola podpísaná označenou Emercoin adresou</translation>
+        <source>Verify the message to ensure it was signed with the specified iTecoCoin address</source>
+        <translation>Overím správy sa uistiť že bola podpísaná označenou iTecoCoin adresou</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2268,12 +2268,12 @@ Adresa: %4</translation>
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Jadro Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>Jadro iTecoCoin</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>Vývojári jadra Emercoin</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>Vývojári jadra iTecoCoin</translation>
     </message>
     <message>
         <source>[testnet]</source>
@@ -2701,7 +2701,7 @@ Adresa: %4</translation>
     <name>WalletModel</name>
     <message>
         <source>Send Coins</source>
-        <translation>Poslať Emercoins</translation>
+        <translation>Poslať iTecoCoins</translation>
     </message>
 </context>
 <context>
@@ -2803,11 +2803,11 @@ Adresa: %4</translation>
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for mining or merchant applications</source>
-        <translation>Toto je pred-testovacia verzia - použitie je na vlastné riziko - nepoužívajte na tvorbu emercoin ani obchodovanie.</translation>
+        <translation>Toto je pred-testovacia verzia - použitie je na vlastné riziko - nepoužívajte na tvorbu iTecoCoin ani obchodovanie.</translation>
     </message>
     <message>
-        <source>Unable to bind to %s on this computer. Emercoin Core is probably already running.</source>
-        <translation>Nepodarilo sa pripojiť na %s na tomto počítači. Emercoin Jadro je už pravdepodobne spustené.</translation>
+        <source>Unable to bind to %s on this computer. iTecoCoin Core is probably already running.</source>
+        <translation>Nepodarilo sa pripojiť na %s na tomto počítači. iTecoCoin Jadro je už pravdepodobne spustené.</translation>
     </message>
     <message>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
@@ -2992,8 +2992,8 @@ The network does not appear to fully agree! Some miners appear to be experiencin
         <translation>Spojiť s danou adresou pre počúvanie JSON-RPC spojení. Použite zápis [host]:port pre IPv6. Táto možnosť môže byt zadaná niekoľko krát (predvolené: spojiť so všetkými rozhraniami)</translation>
     </message>
     <message>
-        <source>Cannot obtain a lock on data directory %s. Emercoin Core is probably already running.</source>
-        <translation>Neviem uzamknúť data adresár %s. Jadro Emercoin je pravdepodobne už spustené.</translation>
+        <source>Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running.</source>
+        <translation>Neviem uzamknúť data adresár %s. Jadro iTecoCoin je pravdepodobne už spustené.</translation>
     </message>
     <message>
         <source>Create new files with system default permissions, instead of umask 077 (only effective with disabled wallet functionality)</source>
@@ -3076,16 +3076,16 @@ The network does not appear to fully agree! Some miners appear to be experiencin
         <translation>Pripojiť cez proxy server SOCKS5</translation>
     </message>
     <message>
-        <source>Copyright (C) 2009-%i The Emercoin Core Developers</source>
-        <translation>Copyright (C) 2009-%i Vývojári jadra Emercoin</translation>
+        <source>Copyright (C) 2009-%i The iTecoCoin Core Developers</source>
+        <translation>Copyright (C) 2009-%i Vývojári jadra iTecoCoin</translation>
     </message>
     <message>
         <source>Could not parse -rpcbind value %s as network address</source>
         <translation>Nedá sa analyzovať -rpcbind hodnota %s ako sieťová adresa</translation>
     </message>
     <message>
-        <source>Error loading wallet.dat: Wallet requires newer version of Emercoin Core</source>
-        <translation>Chyba pri čítaní wallet.dat: Peňaženka vyžaduje vyššiu verziu Jadra Emercoin</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of iTecoCoin Core</source>
+        <translation>Chyba pri čítaní wallet.dat: Peňaženka vyžaduje vyššiu verziu Jadra iTecoCoin</translation>
     </message>
     <message>
         <source>Error reading from database, shutting down.</source>

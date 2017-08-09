@@ -66,12 +66,12 @@
         <translation>Endereços de depósito</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Estes são os seus endereços Emercoin para enviar pagamentos. Verifique sempre o valor e o endereço de envio antes de enviar moedas.</translation>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Estes são os seus endereços iTecoCoin para enviar pagamentos. Verifique sempre o valor e o endereço de envio antes de enviar moedas.</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Estes são os seus endereços Emercoin para receber pagamentos. É recomendado que utilize um endereço novo para cada transacção.</translation>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Estes são os seus endereços iTecoCoin para receber pagamentos. É recomendado que utilize um endereço novo para cada transacção.</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -164,8 +164,8 @@
         <translation>Confirmar encriptação da carteira</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
-        <translation>Atenção: Se encriptar a carteira e perder a sua senha irá &lt;b&gt;PERDER TODOS OS SEUS EMERCOINS&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR iTecoCoinS&lt;/b&gt;!</source>
+        <translation>Atenção: Se encriptar a carteira e perder a sua senha irá &lt;b&gt;PERDER TODOS OS SEUS iTecoCoinS&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -188,8 +188,8 @@
         <translation>Escreva a nova frase de seguraça da sua carteira. &lt;br/&gt; Por favor, use uma frase de &lt;b&gt;10 ou mais caracteres aleatórios,&lt;/b&gt; ou &lt;b&gt;oito ou mais palavras&lt;/b&gt;.</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
-        <translation>O cliente Emercoin irá agora ser fechado para terminar o processo de encriptação. Recorde que a encriptação da sua carteira não protegerá totalmente os seus emercoins de serem roubados por programas maliciosos que infectem o seu computador.</translation>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
+        <translation>O cliente iTecoCoin irá agora ser fechado para terminar o processo de encriptação. Recorde que a encriptação da sua carteira não protegerá totalmente os seus iTecoCoins de serem roubados por programas maliciosos que infectem o seu computador.</translation>
     </message>
     <message>
         <source>Wallet encryption failed</source>
@@ -295,8 +295,8 @@
         <translation>Abrir &amp;URI...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
-        <translation>Cliente Emercoin Core</translation>
+        <source>iTecoCoin Core client</source>
+        <translation>Cliente iTecoCoin Core</translation>
     </message>
     <message>
         <source>Importing blocks from disk...</source>
@@ -307,12 +307,12 @@
         <translation>A reindexar blocos no disco...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
-        <translation>Enviar moedas para um endereço emercoin</translation>
+        <source>Send coins to an iTecoCoin address</source>
+        <translation>Enviar moedas para um endereço iTecoCoin</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
-        <translation>Modificar opções de configuração para emercoin</translation>
+        <source>Modify configuration options for iTecoCoin</source>
+        <translation>Modificar opções de configuração para iTecoCoin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -335,8 +335,8 @@
         <translation>&amp;Verificar mensagem...</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -351,8 +351,8 @@
         <translation>&amp;Receber</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
-        <translation>Mostrar informação sobre Emercoin Core</translation>
+        <source>Show information about iTecoCoin Core</source>
+        <translation>Mostrar informação sobre iTecoCoin Core</translation>
     </message>
     <message>
         <source>&amp;Show / Hide</source>
@@ -367,12 +367,12 @@
         <translation>Encriptar as chaves privadas que pertencem à sua carteira</translation>
     </message>
     <message>
-        <source>Sign messages with your Emercoin addresses to prove you own them</source>
-        <translation>Assine mensagens com os seus endereços Emercoin para provar que os controla</translation>
+        <source>Sign messages with your iTecoCoin addresses to prove you own them</source>
+        <translation>Assine mensagens com os seus endereços iTecoCoin para provar que os controla</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Emercoin addresses</source>
-        <translation>Verifique mensagens para assegurar que foram assinadas com o endereço Emercoin especificado</translation>
+        <source>Verify messages to ensure they were signed with specified iTecoCoin addresses</source>
+        <translation>Verifique mensagens para assegurar que foram assinadas com o endereço iTecoCoin especificado</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -391,16 +391,16 @@
         <translation>Barra de separadores</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and emercoin: URIs)</source>
-        <translation>Solicitar pagamentos (gera códigos QR e URIs emercoin:)</translation>
+        <source>Request payments (generates QR codes and iTecoCoin: URIs)</source>
+        <translation>Solicitar pagamentos (gera códigos QR e URIs iTecoCoin:)</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
-        <translation>&amp;Sobre o Emercoin Core</translation>
+        <source>&amp;About iTecoCoin Core</source>
+        <translation>&amp;Sobre o iTecoCoin Core</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -411,20 +411,20 @@
         <translation>Mostrar a lista de rótulos e endereços de receção usados</translation>
     </message>
     <message>
-        <source>Open a emercoin: URI or payment request</source>
-        <translation>Abrir URI emercoin: ou pedido de pagamento</translation>
+        <source>Open a iTecoCoin: URI or payment request</source>
+        <translation>Abrir URI iTecoCoin: ou pedido de pagamento</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>&amp;Opções da linha de &amp;comandos</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
-        <translation>Mostrar a mensagem de ajuda do Emercoin Core para obter uma lista com possíveis opções de linha de comandos</translation>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
+        <translation>Mostrar a mensagem de ajuda do iTecoCoin Core para obter uma lista com possíveis opções de linha de comandos</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
-        <translation><numerusform>%n ligação ativa à rede Emercoin</numerusform><numerusform>%n ligações ativas à rede Emercoin</numerusform></translation>
+        <source>%n active connection(s) to iTecoCoin network</source>
+        <translation><numerusform>%n ligação ativa à rede iTecoCoin</numerusform><numerusform>%n ligações ativas à rede iTecoCoin</numerusform></translation>
     </message>
     <message>
         <source>No block source available...</source>
@@ -783,8 +783,8 @@ Endereço: %4</translation>
         <translation>O endereço introduzido "%1" já se encontra no livro de endereços.</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Emercoin address.</source>
-        <translation>O endereço introduzido "%1" não é um endereço emercoin válido.</translation>
+        <source>The entered address "%1" is not a valid iTecoCoin address.</source>
+        <translation>O endereço introduzido "%1" não é um endereço iTecoCoin válido.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -821,8 +821,8 @@ Endereço: %4</translation>
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
         <source>version</source>
@@ -833,8 +833,8 @@ Endereço: %4</translation>
         <translation>(%1-bit)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
-        <translation>Sobre o Emercoin Core</translation>
+        <source>About iTecoCoin Core</source>
+        <translation>Sobre o iTecoCoin Core</translation>
     </message>
     <message>
         <source>Command-line options</source>
@@ -880,16 +880,16 @@ Endereço: %4</translation>
         <translation>Bem-vindo</translation>
     </message>
     <message>
-        <source>Welcome to Emercoin Core.</source>
-        <translation>Bem-vindo ao Emercoin Core.</translation>
+        <source>Welcome to iTecoCoin Core.</source>
+        <translation>Bem-vindo ao iTecoCoin Core.</translation>
     </message>
     <message>
-        <source>As this is the first time the program is launched, you can choose where Emercoin Core will store its data.</source>
-        <translation>Sendo esta a primeira vez que o programa é iniciado, poderá escolher onde o Emercoin Core irá guardar os seus dados.</translation>
+        <source>As this is the first time the program is launched, you can choose where iTecoCoin Core will store its data.</source>
+        <translation>Sendo esta a primeira vez que o programa é iniciado, poderá escolher onde o iTecoCoin Core irá guardar os seus dados.</translation>
     </message>
     <message>
-        <source>Emercoin Core will download and store a copy of the Emercoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>O Emercoin Core vai transferir e armazenar uma cópia do "block chain" (cadeia de blocos). Pelo menos %1GB de dados serão armazenados nesta pasta, e vão crescer ao longo do tempo. A sua carteira também irá ser armazenada nesta pasta.</translation>
+        <source>iTecoCoin Core will download and store a copy of the iTecoCoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>O iTecoCoin Core vai transferir e armazenar uma cópia do "block chain" (cadeia de blocos). Pelo menos %1GB de dados serão armazenados nesta pasta, e vão crescer ao longo do tempo. A sua carteira também irá ser armazenada nesta pasta.</translation>
     </message>
     <message>
         <source>Use the default data directory</source>
@@ -900,8 +900,8 @@ Endereço: %4</translation>
         <translation>Utilizar uma pasta de dados personalizada:</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -954,12 +954,12 @@ Endereço: %4</translation>
         <translation>&amp;Principal</translation>
     </message>
     <message>
-        <source>Automatically start Emercoin after logging in to the system.</source>
-        <translation>Começar o Emercoin automaticamente ao iniciar sessão no sistema.</translation>
+        <source>Automatically start iTecoCoin after logging in to the system.</source>
+        <translation>Começar o iTecoCoin automaticamente ao iniciar sessão no sistema.</translation>
     </message>
     <message>
-        <source>&amp;Start Emercoin on system login</source>
-        <translation>&amp;Começar o Emercoin ao iniciar o sistema</translation>
+        <source>&amp;Start iTecoCoin on system login</source>
+        <translation>&amp;Começar o iTecoCoin ao iniciar o sistema</translation>
     </message>
     <message>
         <source>Size of &amp;database cache</source>
@@ -1035,16 +1035,16 @@ Endereço: %4</translation>
         <translation>&amp;Gastar troco não confirmado</translation>
     </message>
     <message>
-        <source>Automatically open the Emercoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Abrir a porta do cliente emercoin automaticamente no seu router. Isto apenas funciona se o seu router suportar UPnP e este se encontrar ligado.</translation>
+        <source>Automatically open the iTecoCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Abrir a porta do cliente iTecoCoin automaticamente no seu router. Isto apenas funciona se o seu router suportar UPnP e este se encontrar ligado.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
         <translation>Mapear porta usando &amp;UPnP</translation>
     </message>
     <message>
-        <source>Connect to the Emercoin network through a SOCKS5 proxy.</source>
-        <translation>Conectar à rede da Emercoin através dum proxy SOCLS5.</translation>
+        <source>Connect to the iTecoCoin network through a SOCKS5 proxy.</source>
+        <translation>Conectar à rede da iTecoCoin através dum proxy SOCLS5.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1091,8 +1091,8 @@ Endereço: %4</translation>
         <translation>&amp;Linguagem da interface de utilizador:</translation>
     </message>
     <message>
-        <source>The user interface language can be set here. This setting will take effect after restarting Emercoin.</source>
-        <translation>A linguagem da interface do utilizador pode ser definida aqui. Esta definição entrará em efeito após reiniciar o Emercoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting iTecoCoin.</source>
+        <translation>A linguagem da interface do utilizador pode ser definida aqui. Esta definição entrará em efeito após reiniciar o iTecoCoin.</translation>
     </message>
     <message>
         <source>&amp;Unit to show amounts in:</source>
@@ -1150,8 +1150,8 @@ Endereço: %4</translation>
         <translation>Formulário</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Emercoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>A informação mostrada poderá estar desatualizada. A sua carteira sincroniza automaticamente com a rede Emercoin depois de estabelecer ligação, mas este processo ainda não está completo.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the iTecoCoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>A informação mostrada poderá estar desatualizada. A sua carteira sincroniza automaticamente com a rede iTecoCoin depois de estabelecer ligação, mas este processo ainda não está completo.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1257,16 +1257,16 @@ Endereço: %4</translation>
         <translation>Erro de pedido de pagamento</translation>
     </message>
     <message>
-        <source>Cannot start emercoin: click-to-pay handler</source>
-        <translation>Impossível iniciar o controlador de emercoin: click-to-pay</translation>
+        <source>Cannot start iTecoCoin: click-to-pay handler</source>
+        <translation>Impossível iniciar o controlador de iTecoCoin: click-to-pay</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>O URL de pedido de pagamento é inválido: %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters.</source>
-        <translation>URI não foi lido correctamente! Isto pode ser causado por um endereço Emercoin inválido ou por parâmetros URI malformados.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters.</source>
+        <translation>URI não foi lido correctamente! Isto pode ser causado por um endereço iTecoCoin inválido ou por parâmetros URI malformados.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1335,8 +1335,8 @@ Endereço: %4</translation>
         <translation>Quantia</translation>
     </message>
     <message>
-        <source>Enter an Emercoin address (e.g. %1)</source>
-        <translation>Entre um endereço Emercoin (ex. %1)</translation>
+        <source>Enter an iTecoCoin address (e.g. %1)</source>
+        <translation>Entre um endereço iTecoCoin (ex. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1561,7 +1561,7 @@ Endereço: %4</translation>
         <translation>Ficheiro de registo de depuração</translation>
     </message>
     <message>
-        <source>Open the Emercoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <source>Open the iTecoCoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation>Abrir o ficheiro de registo de depuração da pasta de dados actual. Isto pode demorar alguns segundos para ficheiros de registo maiores.</translation>
     </message>
     <message>
@@ -1569,8 +1569,8 @@ Endereço: %4</translation>
         <translation>Limpar consola</translation>
     </message>
     <message>
-        <source>Welcome to the Emercoin RPC console.</source>
-        <translation>Bem-vindo à consola RPC Emercoin.</translation>
+        <source>Welcome to the iTecoCoin RPC console.</source>
+        <translation>Bem-vindo à consola RPC iTecoCoin.</translation>
     </message>
     <message>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
@@ -1644,8 +1644,8 @@ Endereço: %4</translation>
         <translation>Reutilizar um endereço de receção existente (não recomendado)</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
-        <translation>Uma mensagem opcional para anexar ao pedido de pagamento, que será exibida quando o pedido for aberto. Nota: A mensagem não será enviada com o pagamento através da rede Emercoin.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
+        <translation>Uma mensagem opcional para anexar ao pedido de pagamento, que será exibida quando o pedido for aberto. Nota: A mensagem não será enviada com o pagamento através da rede iTecoCoin.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -1881,7 +1881,7 @@ Endereço: %4</translation>
         <translation>total minimo</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for emercoin transactions than the network can process.</source>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for iTecoCoin transactions than the network can process.</source>
         <translation>Pode pagar somente a taxa minima desde que haja um volume de transações inferior ao espaço nos blocos. No entanto tenha em atenção que esta opção poderá acabar em uma transação nunca confirmada assim que os pedidos de transações excedam a capacidade de processamento da rede.</translation>
     </message>
     <message>
@@ -2033,8 +2033,8 @@ Endereço: %4</translation>
         <translation>Confirmação deverá começar dentro de %1 bloco(s).</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
-        <translation>Aviso: Endereço Emercoin inválido</translation>
+        <source>Warning: Invalid iTecoCoin address</source>
+        <translation>Aviso: Endereço iTecoCoin inválido</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2084,8 +2084,8 @@ Endereço: %4</translation>
         <translation>Este é um pagamento normal.</translation>
     </message>
     <message>
-        <source>The Emercoin address to send the payment to</source>
-        <translation>O endereço Emercoin para enviar o pagamento</translation>
+        <source>The iTecoCoin address to send the payment to</source>
+        <translation>O endereço iTecoCoin para enviar o pagamento</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2116,8 +2116,8 @@ Endereço: %4</translation>
         <translation>Introduza um rótulo para este endereço para o adicionar à sua lista de endereços usados</translation>
     </message>
     <message>
-        <source>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</source>
-        <translation>Uma mensagem que estava anexada ao URI emercoin: que será armazenada com a transação para sua referência. Nota: Esta mensagem não será enviada através da rede Emercoin.</translation>
+        <source>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</source>
+        <translation>Uma mensagem que estava anexada ao URI iTecoCoin: que será armazenada com a transação para sua referência. Nota: Esta mensagem não será enviada através da rede iTecoCoin.</translation>
     </message>
     <message>
         <source>This is an unverified payment request.</source>
@@ -2135,8 +2135,8 @@ Endereço: %4</translation>
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
-        <translation>O Emercoin Core está a encerrar...</translation>
+        <source>iTecoCoin Core is shutting down...</source>
+        <translation>O iTecoCoin Core está a encerrar...</translation>
     </message>
     <message>
         <source>Do not shut down the computer until this window disappears.</source>
@@ -2158,8 +2158,8 @@ Endereço: %4</translation>
         <translation>Pode assinar mensagens com os seus endereços para provar que são seus. Tenha atenção ao assinar mensagens ambíguas, pois ataques de phishing podem tentar enganá-lo de modo a assinar a sua identidade para os atacantes. Apenas assine declarações detalhadas com as quais concorde.</translation>
     </message>
     <message>
-        <source>The Emercoin address to sign the message with</source>
-        <translation>O endereço Emercoin para designar a mensagem</translation>
+        <source>The iTecoCoin address to sign the message with</source>
+        <translation>O endereço iTecoCoin para designar a mensagem</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2190,8 +2190,8 @@ Endereço: %4</translation>
         <translation>Copiar a assinatura actual para a área de transferência</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
-        <translation>Assine uma mensagem para provar que é dono deste endereço Emercoin</translation>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
+        <translation>Assine uma mensagem para provar que é dono deste endereço iTecoCoin</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>
@@ -2214,12 +2214,12 @@ Endereço: %4</translation>
         <translation>Introduza o endereço de assinatura, mensagem (assegure-se que copia quebras de linha, espaços, tabulações, etc. exactamente) e assinatura abaixo para verificar a mensagem. Tenha atenção para não ler mais na assinatura do que o que estiver na mensagem assinada, para evitar ser enganado por um atacante que se encontre entre si e quem assinou a mensagem.</translation>
     </message>
     <message>
-        <source>The Emercoin address the message was signed with</source>
-        <translation>O endereço Emercoin com que a mensagem foi designada</translation>
+        <source>The iTecoCoin address the message was signed with</source>
+        <translation>O endereço iTecoCoin com que a mensagem foi designada</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Emercoin address</source>
-        <translation>Verifique a mensagem para assegurar que foi assinada com o endereço Emercoin especificado</translation>
+        <source>Verify the message to ensure it was signed with the specified iTecoCoin address</source>
+        <translation>Verifique a mensagem para assegurar que foi assinada com o endereço iTecoCoin especificado</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2285,12 +2285,12 @@ Endereço: %4</translation>
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>Os programadores do Emercoin Core</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>Os programadores do iTecoCoin Core</translation>
     </message>
     <message>
         <source>[testnet]</source>
@@ -2839,8 +2839,8 @@ Endereço: %4</translation>
         <translation>Esta é uma versão de testes pré-lançamento - use à sua responsabilidade - não usar para minar ou aplicações comerciais</translation>
     </message>
     <message>
-        <source>Unable to bind to %s on this computer. Emercoin Core is probably already running.</source>
-        <translation>Incapaz de vincular à porta %s neste computador. O Emercoin Core provavelmente já está a correr.</translation>
+        <source>Unable to bind to %s on this computer. iTecoCoin Core is probably already running.</source>
+        <translation>Incapaz de vincular à porta %s neste computador. O iTecoCoin Core provavelmente já está a correr.</translation>
     </message>
     <message>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
@@ -3023,8 +3023,8 @@ Endereço: %4</translation>
         <translation>Vinculado para dar o endereço para atender as ligações JSON-RPC. Use [host]: Notação de porta para IPv6. Esta opção pode ser especificada várias vezes (padrão: ligam-se a todas as interfaces)</translation>
     </message>
     <message>
-        <source>Cannot obtain a lock on data directory %s. Emercoin Core is probably already running.</source>
-        <translation>Impossível trancar a pasta de dados %s. Provavelmente o Emercoin Core já está a ser executado.</translation>
+        <source>Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running.</source>
+        <translation>Impossível trancar a pasta de dados %s. Provavelmente o iTecoCoin Core já está a ser executado.</translation>
     </message>
     <message>
         <source>Execute command when a relevant alert is received or we see a really long fork (%s in cmd is replaced by message)</source>
@@ -3035,16 +3035,16 @@ Endereço: %4</translation>
         <translation>Definir tamanho máximo de transações com alta-prioridade/baixa-taxa em bytes (por defeito: %d)</translation>
     </message>
     <message>
-        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong Emercoin Core will not work properly.</source>
-        <translation>Atenção: Por favor verifique que a data e hora do seu computador estão correctas! Se o seu relógio não estiver certo o Emercoin Core não irá funcionar correctamente.</translation>
+        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong iTecoCoin Core will not work properly.</source>
+        <translation>Atenção: Por favor verifique que a data e hora do seu computador estão correctas! Se o seu relógio não estiver certo o iTecoCoin Core não irá funcionar correctamente.</translation>
     </message>
     <message>
-        <source>Copyright (C) 2009-%i The Emercoin Core Developers</source>
-        <translation>Copyright (C) 2009-%i Os Programadores do Emercoin Core</translation>
+        <source>Copyright (C) 2009-%i The iTecoCoin Core Developers</source>
+        <translation>Copyright (C) 2009-%i Os Programadores do iTecoCoin Core</translation>
     </message>
     <message>
-        <source>Error loading wallet.dat: Wallet requires newer version of Emercoin Core</source>
-        <translation>Erro ao carregar wallet.dat: A Carteira requer uma versão mais recente do Emercoin Core</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of iTecoCoin Core</source>
+        <translation>Erro ao carregar wallet.dat: A Carteira requer uma versão mais recente do iTecoCoin Core</translation>
     </message>
     <message>
         <source>Information</source>
@@ -3091,8 +3091,8 @@ Endereço: %4</translation>
         <translation>Nome de utilizador para ligações JSON-RPC</translation>
     </message>
     <message>
-        <source>Wallet needed to be rewritten: restart Emercoin Core to complete</source>
-        <translation>A Carteira precisou de ser reescrita: reinicie o Emercoin Core para completar o processo</translation>
+        <source>Wallet needed to be rewritten: restart iTecoCoin Core to complete</source>
+        <translation>A Carteira precisou de ser reescrita: reinicie o iTecoCoin Core para completar o processo</translation>
     </message>
     <message>
         <source>Warning</source>

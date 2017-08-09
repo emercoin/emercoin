@@ -62,11 +62,11 @@
         <translation>Хүлээн авах хаяг</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>Эдгээр Биткойн хаягууд нь илгээх хаягууд. Хүлээн авах хаяг болон тоо хэмжээг илгээхээсээ өмнө сайн нягталж үзэж байна уу</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation>Эдгээр Биткойн хаягууд нь хүлээн авах хаягууд. Гүйлгээ болгонд шинээр хаяг үүсгэхийг бид санал болгож байна.</translation>
     </message>
     <message>
@@ -152,7 +152,7 @@
         <translation>Түрүйвч цоожлогдлоо</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
         <translation>Цоожлолтын процесыг дуусгахын тулд Емеркойн одоо хаагдана. Ѳѳрийн түрүйвчийг цоожлох нь таны емеркойнуудыг компьютерийн вирус хулгайлахаас бүрэн сэргийлж чадахгүй гэдгийг санаарай.</translation>
     </message>
     <message>
@@ -247,7 +247,7 @@
         <translation>Оношилгоо ба засварын консолыг онгойлго</translation>
     </message>
     <message>
-        <source>Emercoin</source>
+        <source>iTecoCoin</source>
         <translation>Емеркойн</translation>
     </message>
     <message>
@@ -271,7 +271,7 @@
         <translation>&amp;Тусламж</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
+        <source>%n active connection(s) to iTecoCoin network</source>
         <translation><numerusform>Емеркойны сүлжээрүү %n идэвхитэй холболт байна </numerusform><numerusform>Емеркойны сүлжээрүү %n идэвхитэй холболтууд байна </numerusform></translation>
     </message>
     <message numerus="yes">
@@ -708,7 +708,7 @@ Address: %4
         <translation>Гүйлгээний тѳлбѳр %1-ийг тооцхоор нийт дүн нь таны балансаас хэтрээд байна.</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
+        <source>Warning: Invalid iTecoCoin address</source>
         <translation>Анхаар:Буруу Емеркойны хаяг байна</translation>
     </message>
     <message>
@@ -754,7 +754,7 @@ Address: %4
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
+        <source>iTecoCoin Core is shutting down...</source>
         <translation>Емеркойны цѳм хаагдаж байна...</translation>
     </message>
     <message>

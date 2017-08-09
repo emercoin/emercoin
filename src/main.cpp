@@ -37,7 +37,7 @@ using namespace boost;
 using namespace std;
 
 #if defined(NDEBUG)
-# error "Emercoin cannot be compiled without assertions."
+# error "iTecoCoin cannot be compiled without assertions."
 #endif
 
 /**
@@ -84,8 +84,8 @@ static void CheckBlockIndex();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "EmerCoin Signed Message:\n";
-CHooks* hooks = InitHook(); //this adds namecoin hooks which allow splicing of code inside standart emercoin functions.
+const string strMessageMagic = "iTecoCoin Signed Message:\n";
+CHooks* hooks = InitHook(); //this adds namecoin hooks which allow splicing of code inside standart iTecoCoin functions.
 
 // Internal stuff
 namespace {
@@ -569,7 +569,7 @@ bool AddOrphanTx(const CTransaction& tx, NodeId peer)
         return false;
 
     // Ignore big transactions, to avoid a
-    // send-big-orphans memory exhaustion attack. If a peer has a legitimateS
+    // send-big-orphans memory exhaustion attack. If a peer has a legitimate
     // large transaction with a missing parent then we assume
     // it will rebroadcast it later, after the parent transaction(s)
     // have been mined or received.
@@ -1791,7 +1791,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
-    RenameThread("emercoin-scriptch");
+    RenameThread("iTecoCoin-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -1845,7 +1845,7 @@ bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, C
   // compute nStakeModifierChecksum end
 
     if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
-        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
+        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifierChecksum);
 
     if (fJustCheck)
         return true;
@@ -2931,7 +2931,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, bool fProofOfStake, C
         }
         else
         {
-            // this is needed only for emercoin official blockchain, because of mistake we made at the beginning
+            // this is needed only for iTecoCoin official blockchain, because of mistake we made at the beginning
             unsigned int check = GetNextTargetRequired(pindexPrev, fProofOfStake);
             unsigned int max_error = check / 100000;
             if (!(block.nBits >= check - max_error && block.nBits <= check + max_error)) // +- 0.001% interval

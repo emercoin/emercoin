@@ -50,14 +50,14 @@ using namespace boost;
 using namespace std;
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString BITCOIN_IPC_PREFIX("emercoin:");
+const QString BITCOIN_IPC_PREFIX("iTecoCoin:");
 // BIP70 payment protocol messages
 const char* BIP70_MESSAGE_PAYMENTACK = "PaymentACK";
 const char* BIP70_MESSAGE_PAYMENTREQUEST = "PaymentRequest";
 // BIP71 payment protocol media types
-const char* BIP71_MIMETYPE_PAYMENT = "application/emercoin-payment";
-const char* BIP71_MIMETYPE_PAYMENTACK = "application/emercoin-paymentack";
-const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/emercoin-paymentrequest";
+const char* BIP71_MIMETYPE_PAYMENT = "application/iTecoCoin-payment";
+const char* BIP71_MIMETYPE_PAYMENTACK = "application/iTecoCoin-paymentack";
+const char* BIP71_MIMETYPE_PAYMENTREQUEST = "application/iTecoCoin-paymentrequest";
 // BIP70 max payment request size in bytes (DoS protection)
 const qint64 BIP70_MAX_PAYMENTREQUEST_SIZE = 50000;
 
@@ -78,7 +78,7 @@ void PaymentServer::freeCertStore()
 //
 static QString ipcServerName()
 {
-    QString name("EmercoinQt");
+    QString name("iTecoCoinQt");
 
     // Append a simple hash of the datadir
     // Note that GetDataDir(true) returns a different path
@@ -315,7 +315,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) :
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "emit message()" here
             QMessageBox::critical(0, tr("Payment request error"),
-                tr("Cannot start emercoin: click-to-pay handler"));
+                tr("Cannot start iTecoCoin: click-to-pay handler"));
         }
         else {
             connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
@@ -441,7 +441,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
             }
             else
                 emit message(tr("URI handling"),
-                    tr("URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters."),
+                    tr("URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;
