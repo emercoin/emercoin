@@ -15,9 +15,9 @@ static const struct {
     const char *titleAddText;
     const char *splashImage;
 } network_styles[] = {
-    {"main", QAPP_APP_NAME_DEFAULT, ":/icons/emercoin", "", ":/images/splash"},
-    {"test", QAPP_APP_NAME_TESTNET, ":/icons/emercoin_testnet", QT_TRANSLATE_NOOP("SplashScreen", "[testnet]"), ":/images/splash_testnet"},
-    {"regtest", QAPP_APP_NAME_TESTNET, ":/icons/emercoin_testnet", "[regtest]", ":/images/splash_testnet"}
+    {"main", QAPP_APP_NAME_DEFAULT, ":/icons/iTecoCoin", "", ":/images/splash"},
+    {"test", QAPP_APP_NAME_TESTNET, ":/icons/iTecoCoin_testnet", QT_TRANSLATE_NOOP("SplashScreen", "[testnet]"), ":/images/splash_testnet"},
+    {"regtest", QAPP_APP_NAME_TESTNET, ":/icons/iTecoCoin_testnet", "[regtest]", ":/images/splash_testnet"}
 };
 static const unsigned network_styles_count = sizeof(network_styles)/sizeof(*network_styles);
 

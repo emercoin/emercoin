@@ -79,7 +79,7 @@ UniValue Exch::httpsFetch(const char *get, const UniValue *post) {
   // Send request
   stream << reqType << (get? get : "/") << " HTTP/1.1\r\n"
          << "Host: " << Host() << "\r\n"
-         << "User-Agent: emercoin-json-rpc/" << FormatFullVersion() << "\r\n";
+         << "User-Agent: iTecoCoin-json-rpc/" << FormatFullVersion() << "\r\n";
 
   if(postBody.size()) {
     stream << "Content-Type: application/json\r\n"

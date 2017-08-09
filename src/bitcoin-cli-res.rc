@@ -16,14 +16,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Emercoin"
-            VALUE "FileDescription",    "Emercoin-cli (OSS RPC client for Emercoin)"
+            VALUE "CompanyName",        "iTecoCoin"
+            VALUE "FileDescription",    "iTecoCoin-cli (OSS RPC client for iTecoCoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "emercoin-cli"
+            VALUE "InternalName",       "iTecoCoin-cli"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the GPL3 software license, see the accompanying file COPYING or http://www.gnu.org/licenses/gpl.html."
-            VALUE "OriginalFilename",   "emercoin-cli.exe"
-            VALUE "ProductName",        "Emercoin-cli"
+            VALUE "OriginalFilename",   "iTecoCoin-cli.exe"
+            VALUE "ProductName",        "iTecoCoin-cli"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

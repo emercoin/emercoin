@@ -153,7 +153,7 @@ CBlockTemplate* CreateNewBlockInner(const CScript& scriptPubKeyIn, bool fAddProo
             nLastCoinStakeSearchTime = nSearchTime;
         }
         if (fPoSCancel)
-            return NULL; // emercoin: there is no point to continue if we failed to create coinstake
+            return NULL; // iTecoCoin: there is no point to continue if we failed to create coinstake
     }
     else
         pblock->nBits = GetNextTargetRequired(pindexPrev, false);
@@ -376,7 +376,7 @@ CBlockTemplate* CreateNewBlockInner(const CScript& scriptPubKeyIn, bool fAddProo
         pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
 
         CValidationState state;
-        if (!TestBlockValidity(state, *pblock, pindexPrev, false, false, false)) // emercoin: we do not check block signature here, since we did not sign it yet
+        if (!TestBlockValidity(state, *pblock, pindexPrev, false, false, false)) // iTecoCoin: we do not check block signature here, since we did not sign it yet
             throw std::runtime_error("CreateNewBlock() : TestBlockValidity failed");
     }
 
@@ -483,7 +483,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-            return error("EmercoinMiner : generated block is stale");
+            return error("iTecoCoinMiner : generated block is stale");
     }
 
     // Remove key from key pool
@@ -498,7 +498,7 @@ bool ProcessBlockFound(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Process this block the same as if we had received it from another node
     CValidationState state;
     if (!ProcessNewBlock(state, NULL, pblock))
-        return error("EmercoinMiner : ProcessNewBlock, block not accepted");
+        return error("iTecoCoinMiner : ProcessNewBlock, block not accepted");
 
     return true;
 }
@@ -507,7 +507,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
 {
     LogPrintf("CPUMiner started for proof-of-%s\n", fProofOfStake? "stake" : "work");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread(fProofOfStake? "emercoin-stake-minter" : "emercoin-miner");
+    RenameThread(fProofOfStake? "iTecoCoin-stake-minter" : "iTecoCoin-miner");
 
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
@@ -569,7 +569,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
 
             if (!pblocktemplate.get())
             {
-                LogPrintf("Error in EmercoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
+                LogPrintf("Error in iTecoCoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n");
                 return;
             }
             CBlock *pblock = &pblocktemplate->block;
@@ -598,7 +598,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
                 continue;
             }
 
-            LogPrintf("Running EmercoinMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+            LogPrintf("Running iTecoCoinMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                 ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
@@ -700,13 +700,13 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     }
     catch (boost::thread_interrupted)
     {
-        LogPrintf("EmercoinMiner terminated\n");
+        LogPrintf("iTecoCoinMiner terminated\n");
 	return;
         // throw;
     }
     catch (const std::runtime_error &e)
     {
-        LogPrintf("EmercoinMiner runtime error: %s\n", e.what());
+        LogPrintf("iTecoCoinMiner runtime error: %s\n", e.what());
         return;
     }
 }

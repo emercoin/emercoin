@@ -50,7 +50,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
             "  \"version\": xxxxx,           (numeric) the server version\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total emercoin balance of the wallet\n"
+            "  \"balance\": xxxxxxx,         (numeric) the total iTecoCoin balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
@@ -73,7 +73,7 @@ UniValue getinfo(const UniValue& params, bool fHelp)
     GetProxy(NET_IPV4, proxy);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version", EMERCOIN_VERSION));
+    obj.push_back(Pair("version", ITECOCOIN_VERSION));
     obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
@@ -158,14 +158,14 @@ UniValue validateaddress(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "validateaddress \"emercoinaddress\"\n"
-            "\nReturn information about the given emercoin address.\n"
+            "validateaddress \"iTecoCoinaddress\"\n"
+            "\nReturn information about the given iTecoCoin address.\n"
             "\nArguments:\n"
-            "1. \"emercoinaddress\"     (string, required) The emercoin address to validate\n"
+            "1. \"iTecoCoinaddress\"     (string, required) The iTecoCoin address to validate\n"
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,         (boolean) If the address is valid or not. If not, this is the only property returned.\n"
-            "  \"address\" : \"emercoinaddress\", (string) The emercoin address validated\n"
+            "  \"address\" : \"iTecoCoinaddress\", (string) The iTecoCoin address validated\n"
             "  \"ismine\" : true|false,          (boolean) If the address is yours or not\n"
             "  \"isscript\" : true|false,        (boolean) If the key is a script\n"
             "  \"pubkey\" : \"publickeyhex\",    (string) The hex value of the raw public key\n"
@@ -276,9 +276,9 @@ UniValue createmultisig(const UniValue& params, bool fHelp)
 
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"       (string, required) A json array of keys which are emercoin addresses or hex-encoded public keys\n"
+            "2. \"keys\"       (string, required) A json array of keys which are iTecoCoin addresses or hex-encoded public keys\n"
             "     [\n"
-            "       \"key\"    (string) emercoin address or hex-encoded public key\n"
+            "       \"key\"    (string) iTecoCoin address or hex-encoded public key\n"
             "       ,...\n"
             "     ]\n"
 
@@ -313,10 +313,10 @@ UniValue verifymessage(const UniValue& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-            "verifymessage \"emercoinaddress\" \"signature\" \"message\"\n"
+            "verifymessage \"iTecoCoinaddress\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
-            "1. \"emercoinaddress\"  (string, required) The emercoin address to use for the signature.\n"
+            "1. \"iTecoCoinaddress\"  (string, required) The iTecoCoin address to use for the signature.\n"
             "2. \"signature\"       (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
             "3. \"message\"         (string, required) The message that was signed.\n"
             "\nResult:\n"

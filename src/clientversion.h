@@ -16,11 +16,11 @@
 //! These need to be macros, as clientversion.cpp's and bitcoin*-res.rc's voodoo requires it
 #define CLIENT_VERSION_MAJOR 0
 #define CLIENT_VERSION_MINOR 10
-#define CLIENT_VERSION_REVISION 4
+#define CLIENT_VERSION_REVISION 1
 
-#define EMERCOIN_VERSION_MAJOR 0
-#define EMERCOIN_VERSION_MINOR 6
-#define EMERCOIN_VERSION_REVISION 2
+#define ITECOCOIN_VERSION_MAJOR 0
+#define ITECOCOIN_VERSION_MINOR 6
+#define ITECOCOIN_VERSION_REVISION 1
 
 #define CLIENT_VERSION_BUILD 0
 
@@ -43,7 +43,7 @@
 #define DO_STRINGIZE(X) #X
 
 //! Copyright string used in Windows .rc files
-#define COPYRIGHT_STR "2013-" STRINGIZE(COPYRIGHT_YEAR) " The Emercoin Core Developers"
+#define COPYRIGHT_STR "2017-" STRINGIZE(COPYRIGHT_YEAR) " The i-Teco NT Core Developers"
 
 /**
  * bitcoind-res.rc includes this file, but it cannot cope with real c++ code.
@@ -62,11 +62,11 @@ static const int CLIENT_VERSION =
                          +     100 * CLIENT_VERSION_REVISION
                          +       1 * CLIENT_VERSION_BUILD;
 
-// note: emercoin version is used for display purpose AND to accept alerts
-static const int EMERCOIN_VERSION =
-                           1000000 * EMERCOIN_VERSION_MAJOR
-                         +   10000 * EMERCOIN_VERSION_MINOR
-                         +     100 * EMERCOIN_VERSION_REVISION
+// note: iTecoCoin version is used for display purpose AND to accept alerts
+static const int ITECOCOIN_VERSION =
+                           1000000 * ITECOCOIN_VERSION_MAJOR
+                         +   10000 * ITECOCOIN_VERSION_MINOR
+                         +     100 * ITECOCOIN_VERSION_REVISION
                          +       1 * CLIENT_VERSION_BUILD;
 
 extern const std::string CLIENT_NAME;

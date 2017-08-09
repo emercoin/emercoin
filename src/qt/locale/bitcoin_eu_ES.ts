@@ -144,7 +144,7 @@
     </message>
     <message>
         <source>Show information about Qt</source>
-        <translation>Erakutsi Emercoin-i buruzko informazioa</translation>
+        <translation>Erakutsi iTecoCoin-i buruzko informazioa</translation>
     </message>
     <message>
         <source>&amp;Options...</source>

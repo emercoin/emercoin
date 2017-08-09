@@ -66,12 +66,12 @@
         <translation>Mottagaradresser</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Detta är dina Emercoin adresser för att skicka betalningar. Kolla alltid summan och den mottagande adressen innan du skickar Emercoins.</translation>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Detta är dina iTecoCoin adresser för att skicka betalningar. Kolla alltid summan och den mottagande adressen innan du skickar iTecoCoins.</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Detta är dina Emercoin adresser för att ta emot betalningar. Det rekommenderas att använda en ny mottagningsadress för varje transaktion.</translation>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Detta är dina iTecoCoin adresser för att ta emot betalningar. Det rekommenderas att använda en ny mottagningsadress för varje transaktion.</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -165,7 +165,7 @@ Var vänlig och försök igen.</translation>
         <translation>Bekräfta kryptering av plånbok</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR iTecoCoinS&lt;/b&gt;!</source>
         <translation>VARNING: Om du krypterar din plånbok och glömmer ditt lösenord, kommer du att &lt;b&gt;FÖRLORA ALLA DINA TILLGÅNGAR&lt;/b&gt;!</translation>
     </message>
     <message>
@@ -189,7 +189,7 @@ Var vänlig och försök igen.</translation>
         <translation>Ange plånbokens nya lösenord. &lt;br/&gt; Använd ett lösenord på &lt;b&gt;tio eller fler slumpmässiga tecken,&lt;/b&gt; eller &lt;b&gt;åtta eller fler ord.&lt;/b&gt;.</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
         <translation>Programmet kommer nu att stänga ner för att färdigställa krypteringen. Tänk på att en krypterad plånbok inte skyddar mot stöld om din dator är infekterad med en keylogger.</translation>
     </message>
     <message>
@@ -296,8 +296,8 @@ Var vänlig och försök igen.</translation>
         <translation>Öppna &amp;URI...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
-        <translation>Emercoin Core klient</translation>
+        <source>iTecoCoin Core client</source>
+        <translation>iTecoCoin Core klient</translation>
     </message>
     <message>
         <source>Importing blocks from disk...</source>
@@ -308,12 +308,12 @@ Var vänlig och försök igen.</translation>
         <translation>Återindexerar block på disken...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
-        <translation>Skicka emercoins till en Emercoin-adress</translation>
+        <source>Send coins to an iTecoCoin address</source>
+        <translation>Skicka iTecoCoins till en iTecoCoin-adress</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
-        <translation>Ändra konfigurationsalternativ för Emercoin</translation>
+        <source>Modify configuration options for iTecoCoin</source>
+        <translation>Ändra konfigurationsalternativ för iTecoCoin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -336,8 +336,8 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Verifiera meddelande...</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -352,8 +352,8 @@ Var vänlig och försök igen.</translation>
         <translation>&amp;Ta emot</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
-        <translation>Visa information om Emercoin Core</translation>
+        <source>Show information about iTecoCoin Core</source>
+        <translation>Visa information om iTecoCoin Core</translation>
     </message>
     <message>
         <source>&amp;Show / Hide</source>
@@ -368,12 +368,12 @@ Var vänlig och försök igen.</translation>
         <translation>Kryptera de privata nycklar som tillhör din plånbok</translation>
     </message>
     <message>
-        <source>Sign messages with your Emercoin addresses to prove you own them</source>
-        <translation>Signera meddelanden med din Emercoin-adress för att bevisa att du äger dem</translation>
+        <source>Sign messages with your iTecoCoin addresses to prove you own them</source>
+        <translation>Signera meddelanden med din iTecoCoin-adress för att bevisa att du äger dem</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Emercoin addresses</source>
-        <translation>Verifiera meddelanden för att vara säker på att de var signerade med specificerade Emercoin-adresser</translation>
+        <source>Verify messages to ensure they were signed with specified iTecoCoin addresses</source>
+        <translation>Verifiera meddelanden för att vara säker på att de var signerade med specificerade iTecoCoin-adresser</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -392,16 +392,16 @@ Var vänlig och försök igen.</translation>
         <translation>Verktygsfält för Tabbar</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Kärna</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Kärna</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and emercoin: URIs)</source>
-        <translation>Begär betalning (genererar QR-koder och emercoin-URI)</translation>
+        <source>Request payments (generates QR codes and iTecoCoin: URIs)</source>
+        <translation>Begär betalning (genererar QR-koder och iTecoCoin-URI)</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
-        <translation>&amp;Om Emercoin Core</translation>
+        <source>&amp;About iTecoCoin Core</source>
+        <translation>&amp;Om iTecoCoin Core</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -412,20 +412,20 @@ Var vänlig och försök igen.</translation>
         <translation>Visa listan av använda mottagningsadresser och etiketter</translation>
     </message>
     <message>
-        <source>Open a emercoin: URI or payment request</source>
-        <translation>Öppna en emercoin: URI eller betalningsbegäran</translation>
+        <source>Open a iTecoCoin: URI or payment request</source>
+        <translation>Öppna en iTecoCoin: URI eller betalningsbegäran</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>&amp;Kommandoradsalternativ</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
-        <translation>Visa Emercoin Core hjälpmeddelande för att få en lista med möjliga Emercoin kommandoradsalternativ.</translation>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
+        <translation>Visa iTecoCoin Core hjälpmeddelande för att få en lista med möjliga iTecoCoin kommandoradsalternativ.</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
-        <translation><numerusform>%n aktiva anslutningar till Emercoin-nätverket.</numerusform><numerusform>%n aktiva anslutningar till Emercoin-nätverket.</numerusform></translation>
+        <source>%n active connection(s) to iTecoCoin network</source>
+        <translation><numerusform>%n aktiva anslutningar till iTecoCoin-nätverket.</numerusform><numerusform>%n aktiva anslutningar till iTecoCoin-nätverket.</numerusform></translation>
     </message>
     <message>
         <source>No block source available...</source>
@@ -785,8 +785,8 @@ Adress: %4
         <translation>Den angivna adressen "%1" finns redan i adressboken.</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Emercoin address.</source>
-        <translation>Den angivna adressen "%1" är inte en giltig Emercoin-adress.</translation>
+        <source>The entered address "%1" is not a valid iTecoCoin address.</source>
+        <translation>Den angivna adressen "%1" är inte en giltig iTecoCoin-adress.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -823,8 +823,8 @@ Adress: %4
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Kärna</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Kärna</translation>
     </message>
     <message>
         <source>version</source>
@@ -835,8 +835,8 @@ Adress: %4
         <translation>(%1-bit)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
-        <translation>Om Emercoin Core</translation>
+        <source>About iTecoCoin Core</source>
+        <translation>Om iTecoCoin Core</translation>
     </message>
     <message>
         <source>Command-line options</source>
@@ -882,16 +882,16 @@ Adress: %4
         <translation>Välkommen</translation>
     </message>
     <message>
-        <source>Welcome to Emercoin Core.</source>
-        <translation>Välkommen till Emercoin Core.</translation>
+        <source>Welcome to iTecoCoin Core.</source>
+        <translation>Välkommen till iTecoCoin Core.</translation>
     </message>
     <message>
-        <source>As this is the first time the program is launched, you can choose where Emercoin Core will store its data.</source>
-        <translation>Eftersom detta är första gången programmet startas får du välja var Emercoin Core skall lagra sitt data.</translation>
+        <source>As this is the first time the program is launched, you can choose where iTecoCoin Core will store its data.</source>
+        <translation>Eftersom detta är första gången programmet startas får du välja var iTecoCoin Core skall lagra sitt data.</translation>
     </message>
     <message>
-        <source>Emercoin Core will download and store a copy of the Emercoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>Emercoin Core kommer att ladda ner och spara en kopia av Emercoin blockkedjan. Åtminstone %1GB av data kommer att sparas i denna katalog, och den kommer att växa över tiden. Plånboken kommer också att sparas i denna katalog.</translation>
+        <source>iTecoCoin Core will download and store a copy of the iTecoCoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>iTecoCoin Core kommer att ladda ner och spara en kopia av iTecoCoin blockkedjan. Åtminstone %1GB av data kommer att sparas i denna katalog, och den kommer att växa över tiden. Plånboken kommer också att sparas i denna katalog.</translation>
     </message>
     <message>
         <source>Use the default data directory</source>
@@ -902,8 +902,8 @@ Adress: %4
         <translation>Använd en anpassad datakatalog:</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Kärna</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Kärna</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -956,12 +956,12 @@ Adress: %4
         <translation>&amp;Allmänt</translation>
     </message>
     <message>
-        <source>Automatically start Emercoin after logging in to the system.</source>
-        <translation>Starta Emercoin automatiskt efter inloggning.</translation>
+        <source>Automatically start iTecoCoin after logging in to the system.</source>
+        <translation>Starta iTecoCoin automatiskt efter inloggning.</translation>
     </message>
     <message>
-        <source>&amp;Start Emercoin on system login</source>
-        <translation>&amp;Starta Emercoin vid systemstart</translation>
+        <source>&amp;Start iTecoCoin on system login</source>
+        <translation>&amp;Starta iTecoCoin vid systemstart</translation>
     </message>
     <message>
         <source>Size of &amp;database cache</source>
@@ -1036,16 +1036,16 @@ Adress: %4
         <translation>&amp;Spendera okonfirmerad växel</translation>
     </message>
     <message>
-        <source>Automatically open the Emercoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Öppna automatiskt Emercoin-klientens port på routern. Detta fungerar endast om din router har UPnP aktiverat.</translation>
+        <source>Automatically open the iTecoCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Öppna automatiskt iTecoCoin-klientens port på routern. Detta fungerar endast om din router har UPnP aktiverat.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
         <translation>Tilldela port med hjälp av &amp;UPnP</translation>
     </message>
     <message>
-        <source>Connect to the Emercoin network through a SOCKS5 proxy.</source>
-        <translation>Anslut till Emercoin-nätverket genom en SOCKS5-proxy.</translation>
+        <source>Connect to the iTecoCoin network through a SOCKS5 proxy.</source>
+        <translation>Anslut till iTecoCoin-nätverket genom en SOCKS5-proxy.</translation>
     </message>
     <message>
         <source>&amp;Connect through SOCKS5 proxy (default proxy):</source>
@@ -1092,8 +1092,8 @@ Adress: %4
         <translation>Användargränssnittets &amp;språk: </translation>
     </message>
     <message>
-        <source>The user interface language can be set here. This setting will take effect after restarting Emercoin.</source>
-        <translation>Användargränssnittets språk kan ställas in här. Denna inställning träder i kraft efter en omstart av Emercoin.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting iTecoCoin.</source>
+        <translation>Användargränssnittets språk kan ställas in här. Denna inställning träder i kraft efter en omstart av iTecoCoin.</translation>
     </message>
     <message>
         <source>&amp;Unit to show amounts in:</source>
@@ -1151,8 +1151,8 @@ Adress: %4
         <translation>Formulär</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Emercoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med Emercoin-nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the iTecoCoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>Den visade informationen kan vara inaktuell. Plånboken synkroniseras automatiskt med iTecoCoin-nätverket efter att anslutningen är upprättad, men denna process har inte slutförts ännu.</translation>
     </message>
     <message>
         <source>Watch-only:</source>
@@ -1258,16 +1258,16 @@ Adress: %4
         <translation>Fel vid betalningsbegäran</translation>
     </message>
     <message>
-        <source>Cannot start emercoin: click-to-pay handler</source>
-        <translation>Kan inte starta emercoin: klicka-och-betala handhavare</translation>
+        <source>Cannot start iTecoCoin: click-to-pay handler</source>
+        <translation>Kan inte starta iTecoCoin: klicka-och-betala handhavare</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>Betalningsbegärans hämta URL är felaktig: %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters.</source>
-        <translation>URI går inte att tolkas! Detta kan orsakas av en ogiltig Emercoin-adress eller felaktiga URI parametrar.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters.</source>
+        <translation>URI går inte att tolkas! Detta kan orsakas av en ogiltig iTecoCoin-adress eller felaktiga URI parametrar.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1336,8 +1336,8 @@ Adress: %4
         <translation>Mängd</translation>
     </message>
     <message>
-        <source>Enter an Emercoin address (e.g. %1)</source>
-        <translation>Ange en Emercoin-adress (t.ex. %1)</translation>
+        <source>Enter an iTecoCoin address (e.g. %1)</source>
+        <translation>Ange en iTecoCoin-adress (t.ex. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1562,16 +1562,16 @@ Adress: %4
         <translation>Debugloggfil</translation>
     </message>
     <message>
-        <source>Open the Emercoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Öppna Emercoin debug-loggfilen som finns i datakatalogen. Detta kan ta några sekunder för stora loggfiler.</translation>
+        <source>Open the iTecoCoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Öppna iTecoCoin debug-loggfilen som finns i datakatalogen. Detta kan ta några sekunder för stora loggfiler.</translation>
     </message>
     <message>
         <source>Clear console</source>
         <translation>Rensa konsollen</translation>
     </message>
     <message>
-        <source>Welcome to the Emercoin RPC console.</source>
-        <translation>Välkommen till Emercoin RPC-konsollen.</translation>
+        <source>Welcome to the iTecoCoin RPC console.</source>
+        <translation>Välkommen till iTecoCoin RPC-konsollen.</translation>
     </message>
     <message>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
@@ -1641,8 +1641,8 @@ Adress: %4
         <translation>Åt&amp;eranvänd en existerande mottagningsadress (rekommenderas inte)</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
-        <translation>Ett frivilligt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. NB: Meddelandet kommer inte att sändas med betalningen över Emercoinnätverket.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
+        <translation>Ett frivilligt meddelande att bifoga betalningsbegäran, vilket visas när begäran öppnas. NB: Meddelandet kommer inte att sändas med betalningen över iTecoCoinnätverket.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -1878,8 +1878,8 @@ Adress: %4
         <translation>totalt minst</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for emercoin transactions than the network can process.</source>
-        <translation>Att betala endast den minsta avgiften är bara bra så länge det är mindre transaktionsvolym än utrymme i blocken. Men tänk på att det kan hamna i en aldrig bekräftar transaktion när det finns mer efterfrågan på emercoin transaktioner än nätverket kan bearbeta.</translation>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for iTecoCoin transactions than the network can process.</source>
+        <translation>Att betala endast den minsta avgiften är bara bra så länge det är mindre transaktionsvolym än utrymme i blocken. Men tänk på att det kan hamna i en aldrig bekräftar transaktion när det finns mer efterfrågan på iTecoCoin transaktioner än nätverket kan bearbeta.</translation>
     </message>
     <message>
         <source>(read the tooltip)</source>
@@ -2034,8 +2034,8 @@ Adress: %4
         <translation>Bekräftelsen beräknas börja inom %1 block.</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
-        <translation>Varning: Felaktig Emercoinadress</translation>
+        <source>Warning: Invalid iTecoCoin address</source>
+        <translation>Varning: Felaktig iTecoCoinadress</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2085,8 +2085,8 @@ Adress: %4
         <translation>Detta är en normal betalning.</translation>
     </message>
     <message>
-        <source>The Emercoin address to send the payment to</source>
-        <translation>Emercoinadress att sända betalning till</translation>
+        <source>The iTecoCoin address to send the payment to</source>
+        <translation>iTecoCoinadress att sända betalning till</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2117,8 +2117,8 @@ Adress: %4
         <translation>Ange en etikett för denna adress att adderas till listan över använda adresser</translation>
     </message>
     <message>
-        <source>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</source>
-        <translation>Ett meddelande som bifogades emercoin-URI, vilket lagras med transaktionen som referens. NB: Meddelandet kommer inte att sändas över Emercoinnätverket.</translation>
+        <source>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</source>
+        <translation>Ett meddelande som bifogades iTecoCoin-URI, vilket lagras med transaktionen som referens. NB: Meddelandet kommer inte att sändas över iTecoCoinnätverket.</translation>
     </message>
     <message>
         <source>This is an unverified payment request.</source>
@@ -2136,8 +2136,8 @@ Adress: %4
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
-        <translation>Emercoin Core stängs av...</translation>
+        <source>iTecoCoin Core is shutting down...</source>
+        <translation>iTecoCoin Core stängs av...</translation>
     </message>
     <message>
         <source>Do not shut down the computer until this window disappears.</source>
@@ -2159,8 +2159,8 @@ Adress: %4
         <translation>Du kan signera meddelanden med dina adresser för att bevisa att du äger dem. Var försiktig med vad du signerar eftersom phising-attacker kan försöka få dig att skriva över din identitet till någon annan. Signera bara väldetaljerade påståenden du kan gå i god för.</translation>
     </message>
     <message>
-        <source>The Emercoin address to sign the message with</source>
-        <translation>Emercoinadress att signera meddelandet med</translation>
+        <source>The iTecoCoin address to sign the message with</source>
+        <translation>iTecoCoinadress att signera meddelandet med</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2191,7 +2191,7 @@ Adress: %4
         <translation>Kopiera signaturen till systemets Urklipp</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
         <translation>Signera meddelandet för att bevisa att du äger denna adress</translation>
     </message>
     <message>
@@ -2215,12 +2215,12 @@ Adress: %4
         <translation>Skriv in din adress, meddelande (se till att du kopierar radbrytningar, mellanslag, tabbar, osv. exakt) och signatur nedan för att verifiera meddelandet. Var noga med att inte läsa in mer i signaturen än vad som finns i det signerade meddelandet, för att undvika att luras av en man-in-the-middle attack.</translation>
     </message>
     <message>
-        <source>The Emercoin address the message was signed with</source>
-        <translation>Emercoinadressen som meddelandet signerades med</translation>
+        <source>The iTecoCoin address the message was signed with</source>
+        <translation>iTecoCoinadressen som meddelandet signerades med</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Emercoin address</source>
-        <translation>Verifiera meddelandet för att vara säker på att den var signerad med den angivna Emercoin-adressen</translation>
+        <source>Verify the message to ensure it was signed with the specified iTecoCoin address</source>
+        <translation>Verifiera meddelandet för att vara säker på att den var signerad med den angivna iTecoCoin-adressen</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2286,12 +2286,12 @@ Adress: %4
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Kärna</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Kärna</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>Emercoin Core-utvecklarna</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>iTecoCoin Core-utvecklarna</translation>
     </message>
     <message>
         <source>[testnet]</source>
@@ -2840,8 +2840,8 @@ Adress: %4
         <translation>Detta är ett förhands testbygge - använd på egen risk - använd inte för mining eller handels applikationer</translation>
     </message>
     <message>
-        <source>Unable to bind to %s on this computer. Emercoin Core is probably already running.</source>
-        <translation>Det går inte att binda till %s på den här datorn. Emercoin Core är förmodligen redan igång.</translation>
+        <source>Unable to bind to %s on this computer. iTecoCoin Core is probably already running.</source>
+        <translation>Det går inte att binda till %s på den här datorn. iTecoCoin Core är förmodligen redan igång.</translation>
     </message>
     <message>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
@@ -3024,8 +3024,8 @@ Adress: %4
         <translation>Bind till angiven adress för att lyssna på JSON-RPC anslutningar. Använd [värd]:port notation for IPv6. Denna option kan specificeras flera gånger (förvalt: bind till alla gränssnitt)</translation>
     </message>
     <message>
-        <source>Cannot obtain a lock on data directory %s. Emercoin Core is probably already running.</source>
-        <translation>Kan inte låsa data-mappen %s. Emercoin Core körs förmodligen redan.</translation>
+        <source>Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running.</source>
+        <translation>Kan inte låsa data-mappen %s. iTecoCoin Core körs förmodligen redan.</translation>
     </message>
     <message>
         <source>Continuously rate-limit free transactions to &lt;n&gt;*1000 bytes per minute (default:%u)</source>
@@ -3089,27 +3089,27 @@ Adress: %4
         <translation>Denna produkten innehåller mjukvara utvecklad av OpenSSL Project för användning i OpenSSL Toolkit &lt;https://www.openssl.org/&gt; och kryptografisk mjukvara utvecklad av Eric Young samt UPnP-mjukvara skriven av Thomas Bernard.</translation>
     </message>
     <message>
-        <source>To use emercoind, or the -server option to emercoin-qt, you must set an rpcpassword in the configuration file:
+        <source>To use iTecoCoind, or the -server option to iTecoCoin-qt, you must set an rpcpassword in the configuration file:
 %s
 It is recommended you use the following random password:
-rpcuser=emercoinrpc
+rpcuser=iTecoCoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 The username and password MUST NOT be the same.
 If the file does not exist, create it with owner-readable-only file permissions.
 It is also recommended to set alertnotify so you are notified of problems;
-for example: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
+for example: alertnotify=echo %%s | mail -s "iTecoCoin Alert" admin@foo.com
 </source>
-        <translation>För att använda emerconid,eller -server optionen till emercoin-qt så mäste du sätta ett rpclösensord i konfigurationsfilen:
+        <translation>För att använda emerconid,eller -server optionen till iTecoCoin-qt så mäste du sätta ett rpclösensord i konfigurationsfilen:
 %s
 Det är rekommenderat att använda följande slumpade lösenord:
-rpcuser=emercoinrpc
+rpcuser=iTecoCoinrpc
 rpcpassword=%s
 (du behöver inte komma ihåg lösenordet)
 Användarnamnet och lösenordet FÅR INTE vara detsamma.
 Om filen inte existerar, skapa den med enbart ägarläsbara filrättigheter.
 Det är också rekommenderat att sätta alertnotify så du meddelas om problem;
-till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
+till exempel: alertnotify=echo %%s | mail -s "iTecoCoin Alert" admin@foo.com
 </translation>
     </message>
     <message>
@@ -3117,8 +3117,8 @@ till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
         <translation>Varning: -maxtxfee är satt väldigt hög! Så höga avgifter kan betalas för en enstaka transaktion.</translation>
     </message>
     <message>
-        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong Emercoin Core will not work properly.</source>
-        <translation>Varning: Vänligen kolla så att din dators datum och tid är korrekt! Om din klocka går fel kommer Emercoin Core inte att fungera korrekt.</translation>
+        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong iTecoCoin Core will not work properly.</source>
+        <translation>Varning: Vänligen kolla så att din dators datum och tid är korrekt! Om din klocka går fel kommer iTecoCoin Core inte att fungera korrekt.</translation>
     </message>
     <message>
         <source>Whitelisted peers cannot be DoS banned and their transactions are always relayed, even if they are already in the mempool, useful e.g. for a gateway</source>
@@ -3137,16 +3137,16 @@ till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
         <translation>Anslut genom SOCKS5 proxy</translation>
     </message>
     <message>
-        <source>Copyright (C) 2013-%i The Emercoin Core Developers</source>
-        <translation>Copyright (C) 2013-%i Emercoin Core Utvecklarna</translation>
+        <source>Copyright (C) 2013-%i The iTecoCoin Core Developers</source>
+        <translation>Copyright (C) 2013-%i iTecoCoin Core Utvecklarna</translation>
     </message>
     <message>
         <source>Could not parse -rpcbind value %s as network address</source>
         <translation>Kunde inte tolka -rpcbind värdet %s som en nätverksadress</translation>
     </message>
     <message>
-        <source>Error loading wallet.dat: Wallet requires newer version of Emercoin Core</source>
-        <translation>Fel vid inläsningen av wallet.dat: Kontofilen kräver en senare version av Emercoin Core</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of iTecoCoin Core</source>
+        <translation>Fel vid inläsningen av wallet.dat: Kontofilen kräver en senare version av iTecoCoin Core</translation>
     </message>
     <message>
         <source>Error reading from database, shutting down.</source>
@@ -3169,8 +3169,8 @@ till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
         <translation>Information</translation>
     </message>
     <message>
-        <source>Initialization sanity check failed. Emercoin Core is shutting down.</source>
-        <translation>Initieringschecken fallerade. Emercoin Core stängs av...</translation>
+        <source>Initialization sanity check failed. iTecoCoin Core is shutting down.</source>
+        <translation>Initieringschecken fallerade. iTecoCoin Core stängs av...</translation>
     </message>
     <message>
         <source>Invalid amount for -maxtxfee=&lt;amount&gt;: '%s'</source>
@@ -3281,8 +3281,8 @@ till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
         <translation>Användarnamn för JSON-RPC-anslutningar</translation>
     </message>
     <message>
-        <source>Wallet needed to be rewritten: restart Emercoin Core to complete</source>
-        <translation>Kontot behöver sparas om: Starta om Emercoin Core för att fullfölja</translation>
+        <source>Wallet needed to be rewritten: restart iTecoCoin Core to complete</source>
+        <translation>Kontot behöver sparas om: Starta om iTecoCoin Core för att fullfölja</translation>
     </message>
     <message>
         <source>Warning</source>
@@ -3530,7 +3530,7 @@ till exempel: alertnotify=echo %%s | mail -s "Emercoin Alert" admin@foo.com
     </message>
     <message>
         <source>Insufficient funds</source>
-        <translation>Otillräckligt med emercoins</translation>
+        <translation>Otillräckligt med iTecoCoins</translation>
     </message>
     <message>
         <source>Loading block index...</source>

@@ -20,7 +20,7 @@ static void ResetArgs(const std::string& strArg)
       boost::split(vecArg, strArg, boost::is_space(), boost::token_compress_on);
 
     // Insert dummy executable name:
-    vecArg.insert(vecArg.begin(), "testemercoin");
+    vecArg.insert(vecArg.begin(), "testiTecoCoin");
 
     // Convert to char*:
     std::vector<const char*> vecChar;

@@ -62,12 +62,12 @@
         <translation>Recibiendo direcciones</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Estas son tus direcciones de Emercoin para enviar pagos. Siempre revise la cantidad y la dirección receptora antes de enviar monedas</translation>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Estas son tus direcciones de iTecoCoin para enviar pagos. Siempre revise la cantidad y la dirección receptora antes de enviar monedas</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Estas son tus direcciones Emercoin para recibir pagos. Es recomendado usar una nueva dirección receptora para cada transacción.</translation>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Estas son tus direcciones iTecoCoin para recibir pagos. Es recomendado usar una nueva dirección receptora para cada transacción.</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -152,8 +152,8 @@
         <translation>Confirmar la encriptación de cartera</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
-        <translation>Advertencia: Si encripta su cartera y pierde su contraseña, &lt;b&gt;PERDERÁ TODOS SUS EMERCOINS&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR ITECOCOINS&lt;/b&gt;!</source>
+        <translation>Advertencia: Si encripta su cartera y pierde su contraseña, &lt;b&gt;PERDERÁ TODOS SUS ITECOCOINS&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -168,8 +168,8 @@
         <translation>Cartera encriptada</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
-        <translation>Emercoin se cerrará para finalizar el proceso de encriptación. Recuerda que encriptar tu cartera no protege completamente a tus emercoins de ser robadas por malware infectando tu computadora.</translation>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
+        <translation>iTecoCoin se cerrará para finalizar el proceso de encriptación. Recuerda que encriptar tu cartera no protege completamente a tus iTecoCoins de ser robadas por malware infectando tu computadora.</translation>
     </message>
     <message>
         <source>Wallet encryption failed</source>
@@ -283,12 +283,12 @@
         <translation>Reindexando bloques en el disco...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
-        <translation>Enviar monedas a una dirección Emercoin</translation>
+        <source>Send coins to an iTecoCoin address</source>
+        <translation>Enviar monedas a una dirección iTecoCoin</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
-        <translation>Modificar las opciones de configuración de Emercoin</translation>
+        <source>Modify configuration options for iTecoCoin</source>
+        <translation>Modificar las opciones de configuración de iTecoCoin</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -327,20 +327,20 @@
         <translation>Pestañas</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>nucleo Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>nucleo iTecoCoin</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>opciones de la &amp;Linea de comandos</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
-        <translation>Mostrar mensaje de ayuda del nucleo de Emercoin para optener una lista con los posibles comandos  de Emercoin</translation>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
+        <translation>Mostrar mensaje de ayuda del nucleo de iTecoCoin para optener una lista con los posibles comandos  de iTecoCoin</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
-        <translation><numerusform>%n Activar conexión a la red de Emercoin</numerusform><numerusform>%n Activar conexiones a la red de Emercoin</numerusform></translation>
+        <source>%n active connection(s) to iTecoCoin network</source>
+        <translation><numerusform>%n Activar conexión a la red de iTecoCoin</numerusform><numerusform>%n Activar conexiones a la red de iTecoCoin</numerusform></translation>
     </message>
     <message>
         <source>Up to date</source>
@@ -490,8 +490,8 @@
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>nucleo Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>nucleo iTecoCoin</translation>
     </message>
     <message>
         <source>version</source>
@@ -502,8 +502,8 @@
         <translation>(%1-bit)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
-        <translation>Acerca de Emercoin Core</translation>
+        <source>About iTecoCoin Core</source>
+        <translation>Acerca de iTecoCoin Core</translation>
     </message>
     <message>
         <source>Usage:</source>
@@ -537,8 +537,8 @@
 <context>
     <name>Intro</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>nucleo Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>nucleo iTecoCoin</translation>
     </message>
     </context>
 <context>
@@ -588,8 +588,8 @@
         <translation>&amp;Etiqueta</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
-        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de Emercoin.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
+        <translation>Mensaje opcional para agregar a la solicitud de pago, el cual será mostrado cuando la solicitud este abierta. Nota: El mensaje no se manda con el pago a travéz de la red de iTecoCoin.</translation>
     </message>
     <message>
         <source>Use this form to request payments. All fields are &lt;b&gt;optional&lt;/b&gt;.</source>
@@ -725,8 +725,8 @@
         <translation>¡La transación fue rechazada! Esto puede ocurrir si algunas de tus monedas en tu cartera han sido gastadas, al igual que si usas una cartera copiada y la monedas fueron gastadas en la copia pero no se marcaron como gastadas.</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
-        <translation>Advertencia: Dirección de Emercoin invalida</translation>
+        <source>Warning: Invalid iTecoCoin address</source>
+        <translation>Advertencia: Dirección de iTecoCoin invalida</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -795,8 +795,8 @@
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
-        <translation>Apagando el nucleo de Emercoin...</translation>
+        <source>iTecoCoin Core is shutting down...</source>
+        <translation>Apagando el nucleo de iTecoCoin...</translation>
     </message>
     <message>
         <source>Do not shut down the computer until this window disappears.</source>
@@ -821,12 +821,12 @@
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>nucleo Emercoin</translation>
+        <source>iTecoCoin Core</source>
+        <translation>nucleo iTecoCoin</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>El nucleo de Emercoin de desarrolladores</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>El nucleo de iTecoCoin de desarrolladores</translation>
     </message>
     </context>
 <context>

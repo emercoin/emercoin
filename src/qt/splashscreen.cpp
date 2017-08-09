@@ -32,9 +32,10 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
     float fontFactor            = 1.0;
 
     // define text to place
-    QString titleText       = tr("Emercoin Core");
+    QString titleText       = tr("iTecoCoin Core");
     QString versionText     = QString("Version %1").arg(QString::fromStdString(FormatFullVersion()));
-    QString copyrightText   = QChar(0xA9)+QString(" 2013-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Emercoin Core developers")) + "\n" +
+    QString copyrightText   = QChar(0xA9)+QString(" 2017-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The iTecoCoin Core developers")) + "\n" +
+                              QChar(0xA9)+" 2013-2017 Emercoin Developers" + "\n" +
                               QChar(0xA9)+" 2009-2015 Bitcoin Developers" + "\n" +
                               QChar(0xA9)+" 2011-2012 PPCoin Developers" + "\n" +
                               QChar(0xA9)+" 2009-2013 Namecoin Developers";

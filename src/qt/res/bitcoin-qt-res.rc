@@ -1,5 +1,5 @@
-IDI_ICON1 ICON DISCARDABLE "icons/emercoin.ico"
-IDI_ICON2 ICON DISCARDABLE "icons/emercoin_testnet.ico"
+IDI_ICON1 ICON DISCARDABLE "icons/iTecoCoin.ico"
+IDI_ICON2 ICON DISCARDABLE "icons/iTecoCoin_testnet.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
 #include "../../clientversion.h" // holds the needed client version information
@@ -19,14 +19,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Emercoin"
-            VALUE "FileDescription",    "Emercoin Core (OSS GUI client for Emercoin)"
+            VALUE "CompanyName",        "iTecoCoin"
+            VALUE "FileDescription",    "iTecoCoin Core (OSS GUI client for iTecoCoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "emercoin-qt"
+            VALUE "InternalName",       "iTecoCoin-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the GPL3 software license, see the accompanying file COPYING or http://www.gnu.org/licenses/gpl.html."
-            VALUE "OriginalFilename",   "emercoin-qt.exe"
-            VALUE "ProductName",        "Emercoin Core"
+            VALUE "OriginalFilename",   "iTecoCoin-qt.exe"
+            VALUE "ProductName",        "iTecoCoin Core"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

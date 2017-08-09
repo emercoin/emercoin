@@ -72,11 +72,11 @@ bin_PROGRAMS =
 TESTS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += emercoind
+  bin_PROGRAMS += iTecoCoind
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += emercoin-cli emercoin-tx
+  bin_PROGRAMS += iTecoCoin-cli iTecoCoin-tx
 endif
 
 .PHONY: FORCE
@@ -154,7 +154,7 @@ BITCOIN_CORE_H = \
   wallet_ismine.h \
   walletdb.h \
   compat/sanity.h \
-## --- ppcoin and emercoin headers start from this line --- ##
+## --- ppcoin and iTecoCoin headers start from this line --- ##
   uint256hm.h \
   kernel.h \
   namecoin.h \
@@ -196,7 +196,7 @@ libbitcoin_server_a_SOURCES = \
   script/sigcache.cpp \
   txdb.cpp \
   txmempool.cpp \
-## --- ppcoin and emercoin sources start from this line --- ##
+## --- ppcoin and iTecoCoin sources start from this line --- ##
   kernel.cpp \
   namecoin.cpp \
   emcdns.cpp \
@@ -302,15 +302,15 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-emercoind_SOURCES = bitcoind.cpp
-emercoind_CPPFLAGS = $(BITCOIN_INCLUDES)
-emercoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+iTecoCoind_SOURCES = bitcoind.cpp
+iTecoCoind_CPPFLAGS = $(BITCOIN_INCLUDES)
+iTecoCoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-emercoind_SOURCES += bitcoind-res.rc
+iTecoCoind_SOURCES += bitcoind-res.rc
 endif
 
-emercoind_LDADD = \
+iTecoCoind_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
@@ -321,22 +321,22 @@ emercoind_LDADD = \
   $(LIBSECP256K1)
 
 if ENABLE_WALLET
-emercoind_LDADD += libbitcoin_wallet.a
+iTecoCoind_LDADD += libbitcoin_wallet.a
 endif
 
-emercoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
+iTecoCoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
 #
 
 # bitcoin-cli binary #
-emercoin_cli_SOURCES = bitcoin-cli.cpp
-emercoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
-emercoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+iTecoCoin_cli_SOURCES = bitcoin-cli.cpp
+iTecoCoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
+iTecoCoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-emercoin_cli_SOURCES += bitcoin-cli-res.rc
+iTecoCoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
-emercoin_cli_LDADD = \
+iTecoCoin_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
@@ -346,11 +346,11 @@ emercoin_cli_LDADD = \
 #
 
 # bitcoin-tx binary #
-emercoin_tx_SOURCES = bitcoin-tx.cpp
-emercoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
-emercoin_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+iTecoCoin_tx_SOURCES = bitcoin-tx.cpp
+iTecoCoin_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
+iTecoCoin_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
-emercoin_tx_LDADD = \
+iTecoCoin_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \

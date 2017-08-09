@@ -96,7 +96,7 @@ UniValue getgenerate(const UniValue& params, bool fHelp)
         throw runtime_error(
             "getgenerate\n"
             "\nReturn if the server is set to generate coins or not. The default is false.\n"
-            "It is set with the command line argument -gen (or emercoin.conf setting gen)\n"
+            "It is set with the command line argument -gen (or iTecoCoin.conf setting gen)\n"
             "It can also be set with the setgenerate call.\n"
             "\nResult\n"
             "true|false      (boolean) If the server is set to generate coins or not\n"
@@ -427,10 +427,10 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Emercoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "iTecoCoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Emercoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "iTecoCoin is downloading blocks...");
 
     static unsigned int nTransactionsUpdatedLast;
 
@@ -691,10 +691,10 @@ UniValue getauxblock(const UniValue& params, bool fHelp)
             "the aux proof of work and returns true if it was successful.");
 
     if (vNodes.empty())
-        throw JSONRPCError(-9, "Emercoin is not connected!");
+        throw JSONRPCError(-9, "iTecoCoin is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(-10, "Emercoin is downloading blocks...");
+        throw JSONRPCError(-10, "iTecoCoin is downloading blocks...");
 
     static map<uint256, CBlock*> mapNewBlock;
     static vector<CBlockTemplate*> vNewBlockTemplate;

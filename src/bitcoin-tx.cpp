@@ -47,10 +47,10 @@ static bool AppInitRawTx(int argc, char* argv[])
     if (argc<2 || mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help"))
     {
         // First part of help message is specific to this utility
-        std::string strUsage = _("Emercoin Core emercoin-tx utility version") + " " + FormatFullVersion() + "\n\n" +
+        std::string strUsage = _("iTecoCoin Core iTecoCoin-tx utility version") + " " + FormatFullVersion() + "\n\n" +
             _("Usage:") + "\n" +
-              "  emercoin-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded emercoin transaction") + "\n" +
-              "  emercoin-tx [options] -create [commands]   " + _("Create hex-encoded emercoin transaction") + "\n" +
+              "  iTecoCoin-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded iTecoCoin transaction") + "\n" +
+              "  iTecoCoin-tx [options] -create [commands]   " + _("Create hex-encoded iTecoCoin transaction") + "\n" +
               "\n";
 
         fprintf(stdout, "%s", strUsage.c_str());

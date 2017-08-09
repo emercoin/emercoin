@@ -66,12 +66,12 @@
         <translation>Prejemni naslovi</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Tukaj so vaši Emercoin naslovi za pošiljanje plačil. Vedno preverite znesek in prejemnikov naslov pred pošiljanjem kovancev.</translation>
+        <source>These are your iTecoCoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Tukaj so vaši iTecoCoin naslovi za pošiljanje plačil. Vedno preverite znesek in prejemnikov naslov pred pošiljanjem kovancev.</translation>
     </message>
     <message>
-        <source>These are your Emercoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Tukaj so vaši Emercoin naslovi za prejemanje plačil. Priporočljivo je uporabiti nov naslov za vsako novo plačilo.</translation>
+        <source>These are your iTecoCoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Tukaj so vaši iTecoCoin naslovi za prejemanje plačil. Priporočljivo je uporabiti nov naslov za vsako novo plačilo.</translation>
     </message>
     <message>
         <source>Copy &amp;Label</source>
@@ -160,8 +160,8 @@
         <translation>Potrditev šifriranja denarnice</translation>
     </message>
     <message>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR EMERCOINS&lt;/b&gt;!</source>
-        <translation>Opozorilo: V primeru izgube gesla šifrirane denarnice, boste &lt;b&gt;IZGUBILI VSE SVOJE EMERCOINE&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR iTecoCoinS&lt;/b&gt;!</source>
+        <translation>Opozorilo: V primeru izgube gesla šifrirane denarnice, boste &lt;b&gt;IZGUBILI VSE SVOJE iTecoCoinE&lt;/b&gt;!</translation>
     </message>
     <message>
         <source>Are you sure you wish to encrypt your wallet?</source>
@@ -184,7 +184,7 @@
         <translation>Vnesite novo geslo. Prosimo, da uporabite geslo sestavljeno iz &lt;b&gt;deset ali več&lt;/b&gt; naključnih znakov, ali &lt;b&gt;osem ali več&lt;/b&gt; besed.</translation>
     </message>
     <message>
-        <source>Emercoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your emercoins from being stolen by malware infecting your computer.</source>
+        <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
         <translation>Program se bo zaprl, da dokonča proces šifriranja. Zapomnite si, da šifriranje ne more popolnoma zaščititi vašo denarnico pred krajami in zlonamernimi programi, ki bi lahko bili nameščeni na vašem računalniku.</translation>
     </message>
     <message>
@@ -291,8 +291,8 @@
         <translation>Odpri &amp;URI ...</translation>
     </message>
     <message>
-        <source>Emercoin Core client</source>
-        <translation>Odjemalec Emercoin Core</translation>
+        <source>iTecoCoin Core client</source>
+        <translation>Odjemalec iTecoCoin Core</translation>
     </message>
     <message>
         <source>Importing blocks from disk...</source>
@@ -303,11 +303,11 @@
         <translation>Poustvarjam kazalo blokov na disku ...</translation>
     </message>
     <message>
-        <source>Send coins to an Emercoin address</source>
-        <translation>Pošlji kovance na Emercoin naslov</translation>
+        <source>Send coins to an iTecoCoin address</source>
+        <translation>Pošlji kovance na iTecoCoin naslov</translation>
     </message>
     <message>
-        <source>Modify configuration options for Emercoin</source>
+        <source>Modify configuration options for iTecoCoin</source>
         <translation>Urejanje nastavitev programa</translation>
     </message>
     <message>
@@ -327,8 +327,8 @@
         <translation>Odpri razhroščevalno in diagnostično konzolo</translation>
     </message>
     <message>
-        <source>Emercoin</source>
-        <translation>Emercoin</translation>
+        <source>iTecoCoin</source>
+        <translation>iTecoCoin</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -343,7 +343,7 @@
         <translation>&amp;Sprejmi</translation>
     </message>
     <message>
-        <source>Show information about Emercoin Core</source>
+        <source>Show information about iTecoCoin Core</source>
         <translation>Pokaži informacije o programu</translation>
     </message>
     <message>
@@ -359,11 +359,11 @@
         <translation>Šifiraj zasebne ključe v denarnici</translation>
     </message>
     <message>
-        <source>Sign messages with your Emercoin addresses to prove you own them</source>
+        <source>Sign messages with your iTecoCoin addresses to prove you own them</source>
         <translation>Podpišite sporočilo za dokaz, da ste lastnik naslova</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Emercoin addresses</source>
+        <source>Verify messages to ensure they were signed with specified iTecoCoin addresses</source>
         <translation>Preverite, da je sporočilo bilo podpisano z danim naslovom</translation>
     </message>
     <message>
@@ -383,15 +383,15 @@
         <translation>Orodna vrstica zavihkov</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and emercoin: URIs)</source>
-        <translation>Ustvarjanje zahtevka za plačilo (izdelava QR kode in emercoin: URI naslova)</translation>
+        <source>Request payments (generates QR codes and iTecoCoin: URIs)</source>
+        <translation>Ustvarjanje zahtevka za plačilo (izdelava QR kode in iTecoCoin: URI naslova)</translation>
     </message>
     <message>
-        <source>&amp;About Emercoin Core</source>
+        <source>&amp;About iTecoCoin Core</source>
         <translation>&amp;O programu</translation>
     </message>
     <message>
@@ -403,20 +403,20 @@
         <translation>Prikaži seznam uporabljenih sprejemnih naslovov in oznak</translation>
     </message>
     <message>
-        <source>Open a emercoin: URI or payment request</source>
-        <translation>Odpri Emercoin: URI ali zahteva o plačilu</translation>
+        <source>Open a iTecoCoin: URI or payment request</source>
+        <translation>Odpri iTecoCoin: URI ali zahteva o plačilu</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
         <translation>Opcije &amp;ukazne vrstice</translation>
     </message>
     <message>
-        <source>Show the Emercoin Core help message to get a list with possible Emercoin command-line options</source>
+        <source>Show the iTecoCoin Core help message to get a list with possible iTecoCoin command-line options</source>
         <translation>Prikaže seznam vseh opcij pri zagonu programa in kratek opis</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Emercoin network</source>
-        <translation><numerusform>%n aktivna povezava v emercoin omrežje</numerusform><numerusform>%n aktivni povezavi v emercoin omrežje</numerusform><numerusform>%n aktivnih povezav v emercoin omrežje</numerusform><numerusform>%n aktivnih povezav v emercoin omrežje</numerusform></translation>
+        <source>%n active connection(s) to iTecoCoin network</source>
+        <translation><numerusform>%n aktivna povezava v iTecoCoin omrežje</numerusform><numerusform>%n aktivni povezavi v iTecoCoin omrežje</numerusform><numerusform>%n aktivnih povezav v iTecoCoin omrežje</numerusform><numerusform>%n aktivnih povezav v iTecoCoin omrežje</numerusform></translation>
     </message>
     <message>
         <source>No block source available...</source>
@@ -768,8 +768,8 @@ Naslov: %4
         <translation>Vnešeni naslov "%1" je že v imeniku.</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Emercoin address.</source>
-        <translation>Vnešeni naslov "%1" ni veljaven Emercoin naslov.</translation>
+        <source>The entered address "%1" is not a valid iTecoCoin address.</source>
+        <translation>Vnešeni naslov "%1" ni veljaven iTecoCoin naslov.</translation>
     </message>
     <message>
         <source>Could not unlock wallet.</source>
@@ -806,8 +806,8 @@ Naslov: %4
 <context>
     <name>HelpMessageDialog</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
         <source>version</source>
@@ -818,8 +818,8 @@ Naslov: %4
         <translation>(%1-bit)</translation>
     </message>
     <message>
-        <source>About Emercoin Core</source>
-        <translation>O programu Emercoin Core</translation>
+        <source>About iTecoCoin Core</source>
+        <translation>O programu iTecoCoin Core</translation>
     </message>
     <message>
         <source>Command-line options</source>
@@ -865,16 +865,16 @@ Naslov: %4
         <translation>Dobrodošli</translation>
     </message>
     <message>
-        <source>Welcome to Emercoin Core.</source>
-        <translation>Dobrodošli v Emercoin Core.</translation>
+        <source>Welcome to iTecoCoin Core.</source>
+        <translation>Dobrodošli v iTecoCoin Core.</translation>
     </message>
     <message>
-        <source>As this is the first time the program is launched, you can choose where Emercoin Core will store its data.</source>
-        <translation>To je prvi zagonom programa, zato izberite kje bo program Emercoin Core shranjeval podatke.</translation>
+        <source>As this is the first time the program is launched, you can choose where iTecoCoin Core will store its data.</source>
+        <translation>To je prvi zagonom programa, zato izberite kje bo program iTecoCoin Core shranjeval podatke.</translation>
     </message>
     <message>
-        <source>Emercoin Core will download and store a copy of the Emercoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>Program bo prenesel in shranil kopijo emercoin verige blokov. V izbrano mapo bo shranjenih vsaj %1 GB podatkov, ta količina bo sčasoma še naraščala. Denarnica bo prav tako shranjena v to mapo.</translation>
+        <source>iTecoCoin Core will download and store a copy of the iTecoCoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>Program bo prenesel in shranil kopijo iTecoCoin verige blokov. V izbrano mapo bo shranjenih vsaj %1 GB podatkov, ta količina bo sčasoma še naraščala. Denarnica bo prav tako shranjena v to mapo.</translation>
     </message>
     <message>
         <source>Use the default data directory</source>
@@ -885,8 +885,8 @@ Naslov: %4
         <translation>Uporabi to mapo za shranjevanje podatkov:</translation>
     </message>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
         <source>Error: Specified data directory "%1" cannot be created.</source>
@@ -935,11 +935,11 @@ Naslov: %4
         <translation>&amp;Glavno</translation>
     </message>
     <message>
-        <source>Automatically start Emercoin after logging in to the system.</source>
+        <source>Automatically start iTecoCoin after logging in to the system.</source>
         <translation>Samodejen zagon programa po prijavi v sistem.</translation>
     </message>
     <message>
-        <source>&amp;Start Emercoin on system login</source>
+        <source>&amp;Start iTecoCoin on system login</source>
         <translation>&amp;Zaženi program ob prijavi v sistem</translation>
     </message>
     <message>
@@ -1015,7 +1015,7 @@ Naslov: %4
         <translation>&amp;Trošenje nepotrjenega vračila</translation>
     </message>
     <message>
-        <source>Automatically open the Emercoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the iTecoCoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation>Program samodejno odpre ustrezna vrata na usmerjevalniku. To deluje samo, če vaš usmerjevalnik podpira in ima omogočen UPnP.</translation>
     </message>
     <message>
@@ -1023,7 +1023,7 @@ Naslov: %4
         <translation>Naslavljanje vrat z uporabo &amp;UPnP</translation>
     </message>
     <message>
-        <source>Connect to the Emercoin network through a SOCKS5 proxy.</source>
+        <source>Connect to the iTecoCoin network through a SOCKS5 proxy.</source>
         <translation>Povezava v omrežje s pomočjo SOCKS5 posrednika.</translation>
     </message>
     <message>
@@ -1071,7 +1071,7 @@ Naslov: %4
         <translation>&amp;Jezik uporabniškega vmesnika:</translation>
     </message>
     <message>
-        <source>The user interface language can be set here. This setting will take effect after restarting Emercoin.</source>
+        <source>The user interface language can be set here. This setting will take effect after restarting iTecoCoin.</source>
         <translation>Tukaj je mogoče nastaviti jezik uporabniškega vmesnika. Ta nastavitev bo prikazana šele, ko boste znova zagnali program.</translation>
     </message>
     <message>
@@ -1126,7 +1126,7 @@ Naslov: %4
         <translation>Oblika</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Emercoin network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the iTecoCoin network after a connection is established, but this process has not completed yet.</source>
         <translation>Prikazani podatki so lahko zastareli. Vaša denarnica se po vzpostavitvi povezave z omrežjem samodejno sinhronizira, ampak ta proces še ni zaključen.</translation>
     </message>
     <message>
@@ -1225,16 +1225,16 @@ Naslov: %4
         <translation>Napaka pri zahtevi plačila</translation>
     </message>
     <message>
-        <source>Cannot start emercoin: click-to-pay handler</source>
-        <translation>Ni mogoče zagnati upravitelja plačil na klik tipa emercoin:.</translation>
+        <source>Cannot start iTecoCoin: click-to-pay handler</source>
+        <translation>Ni mogoče zagnati upravitelja plačil na klik tipa iTecoCoin:.</translation>
     </message>
     <message>
         <source>Payment request fetch URL is invalid: %1</source>
         <translation>Naslov URL za pridobitev zahtevka za plačilo ni veljaven: %1</translation>
     </message>
     <message>
-        <source>URI cannot be parsed! This can be caused by an invalid Emercoin address or malformed URI parameters.</source>
-        <translation>Naslov URL je neprepoznaven! Razlog je lahko neveljaven naslov Emercoin ali  napačni parametri v URI.</translation>
+        <source>URI cannot be parsed! This can be caused by an invalid iTecoCoin address or malformed URI parameters.</source>
+        <translation>Naslov URL je neprepoznaven! Razlog je lahko neveljaven naslov iTecoCoin ali  napačni parametri v URI.</translation>
     </message>
     <message>
         <source>Payment request file handling</source>
@@ -1299,8 +1299,8 @@ Naslov: %4
         <translation>Količina</translation>
     </message>
     <message>
-        <source>Enter a Emercoin address (e.g. %1)</source>
-        <translation>Vnesite naslov Emercoin (npr. %1):</translation>
+        <source>Enter a iTecoCoin address (e.g. %1)</source>
+        <translation>Vnesite naslov iTecoCoin (npr. %1):</translation>
     </message>
     <message>
         <source>%1 d</source>
@@ -1521,8 +1521,8 @@ Naslov: %4
         <translation>Počisti konzolo</translation>
     </message>
     <message>
-        <source>Welcome to the Emercoin RPC console.</source>
-        <translation>Dobrodošli  na Emercoin RPC konzoli.</translation>
+        <source>Welcome to the iTecoCoin RPC console.</source>
+        <translation>Dobrodošli  na iTecoCoin RPC konzoli.</translation>
     </message>
     <message>
         <source>Use up and down arrows to navigate history, and &lt;b&gt;Ctrl-L&lt;/b&gt; to clear screen.</source>
@@ -1596,8 +1596,8 @@ Naslov: %4
         <translation>P&amp;onovno uporabite obstoječ naslov za prejemanje. (Ni priporočeno.)</translation>
     </message>
     <message>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Emercoin network.</source>
-        <translation>Neobvezno sporočilo kot priponka zahtevku za plačilo, ki bo prikazano, ko bo zahtevek odprt. Opomba: Opravljeno plačilo.prek omrežja Emercoin tega sporočila ne bo vsebovalo.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the iTecoCoin network.</source>
+        <translation>Neobvezno sporočilo kot priponka zahtevku za plačilo, ki bo prikazano, ko bo zahtevek odprt. Opomba: Opravljeno plačilo.prek omrežja iTecoCoin tega sporočila ne bo vsebovalo.</translation>
     </message>
     <message>
         <source>An optional label to associate with the new receiving address.</source>
@@ -1825,7 +1825,7 @@ Naslov: %4
         <translation>skupno vsaj</translation>
     </message>
     <message>
-        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for emercoin transactions than the network can process.</source>
+        <source>Paying only the minimum fee is just fine as long as there is less transaction volume than space in the blocks. But be aware that this can end up in a never confirming transaction once there is more demand for iTecoCoin transactions than the network can process.</source>
         <translation>Dokler bo v blokih še dovolj prostora za vse nastajajoče transakcije, je dovolj tudi plačilo samo minimalne provizije. Ko pa se bo količina vseh transakcij povečala do meja zmogljivosti omrežja, se lahko zgodi, da vaša transakcija brez večje provizije nikoli ne bo potrjena.</translation>
     </message>
     <message>
@@ -1961,8 +1961,8 @@ Naslov: %4
         <translation>Plačilo samo minimalne provizije v znesku %1</translation>
     </message>
     <message>
-        <source>Warning: Invalid Emercoin address</source>
-        <translation>Opozorilo: Neveljaven Emercoin naslov</translation>
+        <source>Warning: Invalid iTecoCoin address</source>
+        <translation>Opozorilo: Neveljaven iTecoCoin naslov</translation>
     </message>
     <message>
         <source>(no label)</source>
@@ -2012,8 +2012,8 @@ Naslov: %4
         <translation>Plačilo je navadne vrste.</translation>
     </message>
     <message>
-        <source>The Emercoin address to send the payment to</source>
-        <translation>Naslov Emercoin, na katerega bo plačilo poslano</translation>
+        <source>The iTecoCoin address to send the payment to</source>
+        <translation>Naslov iTecoCoin, na katerega bo plačilo poslano</translation>
     </message>
     <message>
         <source>Alt+A</source>
@@ -2040,8 +2040,8 @@ Naslov: %4
         <translation>Vnesite oznako za ta naslov, ki bo shranjena v seznam uporabljenih naslovov</translation>
     </message>
     <message>
-        <source>A message that was attached to the emercoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Emercoin network.</source>
-        <translation>Sporočilo, ki ste ga pripeli na URI emercoin: in bo shranjeno skupaj s podatki o transakciji. Opomba: Sporočilo ne bo poslano preko omrežja Emercoin.</translation>
+        <source>A message that was attached to the iTecoCoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the iTecoCoin network.</source>
+        <translation>Sporočilo, ki ste ga pripeli na URI iTecoCoin: in bo shranjeno skupaj s podatki o transakciji. Opomba: Sporočilo ne bo poslano preko omrežja iTecoCoin.</translation>
     </message>
     <message>
         <source>Pay To:</source>
@@ -2055,8 +2055,8 @@ Naslov: %4
 <context>
     <name>ShutdownWindow</name>
     <message>
-        <source>Emercoin Core is shutting down...</source>
-        <translation>Emercoin Core se ustavlja...</translation>
+        <source>iTecoCoin Core is shutting down...</source>
+        <translation>iTecoCoin Core se ustavlja...</translation>
     </message>
     <message>
         <source>Do not shut down the computer until this window disappears.</source>
@@ -2074,8 +2074,8 @@ Naslov: %4
         <translation>&amp;Podpiši sporočilo</translation>
     </message>
     <message>
-        <source>The Emercoin address to sign the message with</source>
-        <translation>Naslov Emercoin, s katerim podpisujete sporočilo</translation>
+        <source>The iTecoCoin address to sign the message with</source>
+        <translation>Naslov iTecoCoin, s katerim podpisujete sporočilo</translation>
     </message>
     <message>
         <source>Choose previously used address</source>
@@ -2106,7 +2106,7 @@ Naslov: %4
         <translation>Kopiranje trenutnega podpisa na sistemsko odložišče.</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Emercoin address</source>
+        <source>Sign the message to prove you own this iTecoCoin address</source>
         <translation>Podpišite sporočilo, da dokažete lastništvo nad zgornjim naslovom.</translation>
     </message>
     <message>
@@ -2126,12 +2126,12 @@ Naslov: %4
         <translation>&amp;Preveri sporočilo</translation>
     </message>
     <message>
-        <source>The Emercoin address the message was signed with</source>
-        <translation>Naslov Emercoin, s katerim je bilo sporočilo podpisano</translation>
+        <source>The iTecoCoin address the message was signed with</source>
+        <translation>Naslov iTecoCoin, s katerim je bilo sporočilo podpisano</translation>
     </message>
     <message>
-        <source>Verify the message to ensure it was signed with the specified Emercoin address</source>
-        <translation>Preverite, ali je bilo sporočilo v resnici podpisano z navedenim naslovom Emercoin.</translation>
+        <source>Verify the message to ensure it was signed with the specified iTecoCoin address</source>
+        <translation>Preverite, ali je bilo sporočilo v resnici podpisano z navedenim naslovom iTecoCoin.</translation>
     </message>
     <message>
         <source>Verify &amp;Message</source>
@@ -2197,12 +2197,12 @@ Naslov: %4
 <context>
     <name>SplashScreen</name>
     <message>
-        <source>Emercoin Core</source>
-        <translation>Emercoin Core</translation>
+        <source>iTecoCoin Core</source>
+        <translation>iTecoCoin Core</translation>
     </message>
     <message>
-        <source>The Emercoin Core developers</source>
-        <translation>Emercoin Core razvijalci</translation>
+        <source>The iTecoCoin Core developers</source>
+        <translation>iTecoCoin Core razvijalci</translation>
     </message>
     <message>
         <source>[testnet]</source>
@@ -2720,11 +2720,11 @@ Naslov: %4
     </message>
     <message>
         <source>This is a pre-release test build - use at your own risk - do not use for mining or merchant applications</source>
-        <translation>To je preizkusna verzija - uporaba na lastno odgovornost - ne uporabljajte je za rudarjenje emercoinov ali za trgovske aplikacije</translation>
+        <translation>To je preizkusna verzija - uporaba na lastno odgovornost - ne uporabljajte je za rudarjenje iTecoCoinov ali za trgovske aplikacije</translation>
     </message>
     <message>
-        <source>Unable to bind to %s on this computer. Emercoin Core is probably already running.</source>
-        <translation>Na tem računalniku se ni bilo mogoče povezati na %s. Odjemalec Emercoin Core je verjetno že zagnan.</translation>
+        <source>Unable to bind to %s on this computer. iTecoCoin Core is probably already running.</source>
+        <translation>Na tem računalniku se ni bilo mogoče povezati na %s. Odjemalec iTecoCoin Core je verjetno že zagnan.</translation>
     </message>
     <message>
         <source>Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.</source>
@@ -2891,8 +2891,8 @@ Naslov: %4
         <translation>Veži dani naslov in sprejemaj povezave na JSON-RPC. Za naslove protokola IPv6 uporabite zapis [gostitelj]:vrata. To opcijo lahko navedete večkrat. (privzeto: veži vse omrežne vmesnike)</translation>
     </message>
     <message>
-        <source>Cannot obtain a lock on data directory %s. Emercoin Core is probably already running.</source>
-        <translation>Ne morem zakleniti podatkovne mape %s. Emercoin Core je verjetno že zagnan.</translation>
+        <source>Cannot obtain a lock on data directory %s. iTecoCoin Core is probably already running.</source>
+        <translation>Ne morem zakleniti podatkovne mape %s. iTecoCoin Core je verjetno že zagnan.</translation>
     </message>
     <message>
         <source>Create new files with system default permissions, instead of umask 077 (only effective with disabled wallet functionality)</source>
@@ -2919,8 +2919,8 @@ Naslov: %4
         <translation>Če opcija -paytxfee ni nastavljena, nastavi znesek provizije tako visoko, da bodo transakcije potrjene v povprečno n blokih. (privzeto: %u)</translation>
     </message>
     <message>
-        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong Emercoin Core will not work properly.</source>
-        <translation>Opozorilo: Preverite, če sta datum in ura na vašem računalniku točna! Emercoin Core ne bo dobro deloval, če je nastavljeni čas nepravilen.</translation>
+        <source>Warning: Please check that your computer's date and time are correct! If your clock is wrong iTecoCoin Core will not work properly.</source>
+        <translation>Opozorilo: Preverite, če sta datum in ura na vašem računalniku točna! iTecoCoin Core ne bo dobro deloval, če je nastavljeni čas nepravilen.</translation>
     </message>
     <message>
         <source>Cannot resolve -whitebind address: '%s'</source>
@@ -2931,8 +2931,8 @@ Naslov: %4
         <translation>Poveži se preko posredniškega strežnika SOCKS5</translation>
     </message>
     <message>
-        <source>Copyright (C) 2009-%i The Emercoin Core Developers</source>
-        <translation>Copyright (C) 2009-%i The Emercoin Core Developers</translation>
+        <source>Copyright (C) 2009-%i The iTecoCoin Core Developers</source>
+        <translation>Copyright (C) 2009-%i The iTecoCoin Core Developers</translation>
     </message>
     <message>
         <source>Information</source>
