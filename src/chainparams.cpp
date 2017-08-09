@@ -101,7 +101,7 @@ public:
         pchMessageStart[1] = 0xe8;
         pchMessageStart[2] = 0xe9;
         pchMessageStart[3] = 0xe5;
-        nDefaultPort = 16661;
+        nDefaultPort = 15551;
         bnProofOfWorkLimit = ~uint256(0) >> 26;
         bnInitialHashTarget = ~uint256(0) >> 26;
         nEnforceBlockUpgradeMajority = 750;
@@ -224,7 +224,7 @@ public:
         pchMessageStart[1] = 0xf2;
         pchMessageStart[2] = 0xc0;
         pchMessageStart[3] = 0xef;
-        nDefaultPort = 6663;
+        nDefaultPort = 15553;
         bnProofOfWorkLimit = ~uint256(0) >> 24;
         bnInitialHashTarget = ~uint256(0) >> 29;
         nEnforceBlockUpgradeMajority = 51;
@@ -313,7 +313,7 @@ public:
         //genesis.nNonce = 2;
         nMaxTipAge = 24 * 60 * 60;
         hashGenesisBlock = genesis.GetHash();
-        nDefaultPort = 16664;
+        nDefaultPort = 15554;
         assert(hashGenesisBlock == uint256("0x000000c05084ef9775553d1d6b76d81dc0e073f5370e3363af3e1bef4c8045c6"));
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
@@ -342,7 +342,7 @@ public:
     CUnitTestParams() {
         networkID = CBaseChainParams::UNITTEST;
         strNetworkID = "unittest";
-        nDefaultPort = 16665;
+        nDefaultPort = 15555;
         vFixedSeeds.clear(); //! Unit test mode doesn't have any fixed seeds.
         vSeeds.clear();  //! Unit test mode doesn't have any DNS seeds.
 
