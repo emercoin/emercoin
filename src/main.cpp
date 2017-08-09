@@ -569,7 +569,7 @@ bool AddOrphanTx(const CTransaction& tx, NodeId peer)
         return false;
 
     // Ignore big transactions, to avoid a
-    // send-big-orphans memory exhaustion attack. If a peer has a legitimateS
+    // send-big-orphans memory exhaustion attack. If a peer has a legitimate
     // large transaction with a missing parent then we assume
     // it will rebroadcast it later, after the parent transaction(s)
     // have been mined or received.
@@ -1845,7 +1845,7 @@ bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, C
   // compute nStakeModifierChecksum end
 
     if (!CheckStakeModifierCheckpoints(pindex->nHeight, nStakeModifierChecksum))
-        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifier);
+        return error("ConnectBlock() : Rejected by stake modifier checkpoint height=%d, modifier=0x%016llx", pindex->nHeight, nStakeModifierChecksum);
 
     if (fJustCheck)
         return true;

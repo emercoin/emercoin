@@ -7,6 +7,12 @@ src/emercoin-cli
 src/emercoin-tx
 src/test/test_emercoin
 src/qt/test/test_emercoin-qt
+src/iTecoCoin-cli
+src/iTecoCoin-tx
+src/iTecoCoind
+src/qt/iTecoCoin-qt
+src/qt/test/test_iTecoCoin-qt
+src/test/test_iTecoCoin
 
 # autoreconf
 Makefile.in

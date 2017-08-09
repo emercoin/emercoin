@@ -185,7 +185,7 @@
 </message>
 <message>
     <source>iTecoCoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your iTecoCoins from being stolen by malware infecting your computer.</source>
-<translation>Сейчас программа закроется для завершения процесса шифрования. Помните, что шифрование вашего бумажника не может полностью защитить ваши емеркойны от кражи с помощью инфицирования вашего компьютера вредоносным ПО.</translation>
+<translation>Сейчас программа закроется для завершения процесса шифрования. Помните, что шифрование вашего бумажника не может полностью защитить ваши айтекокойны от кражи с помощью инфицирования вашего компьютера вредоносным ПО.</translation>
 </message>
 <message>
     <source>Wallet encryption failed</source>
@@ -332,7 +332,7 @@
 </message>
 <message>
     <source>iTecoCoin</source>
-<translation>Емеркойн</translation>
+<translation>iTecoCoin</translation>
 </message>
 <message>
     <source>Wallet</source>
@@ -1993,7 +1993,7 @@
 </message>
 <message>
     <source>WARNING: You're using external service! iTecoCoin is not responsible for functionality and correct behavior of this service.</source>
-<translation>ВНИМАНИЕ: Вы  используете внешний сервис! Емеркоин не несет ответственность за его функциональность и правильную работу.</translation>
+<translation>ВНИМАНИЕ: Вы  используете внешний сервис! iTecoCoin не несет ответственность за его функциональность и правильную работу.</translation>
 </message>
 <message>
     <source>Usage: Enter amount, currency type and address. Press Request Payment and select desired exchange service.</source>
@@ -2061,7 +2061,7 @@
 </message>
 <message>
     <source>You will need to send %1emc to %2\n</source>
-<translation>Вы должны отправить %1emc на %2\n</translation>
+<translation>Вы должны отправить %1itc на %2\n</translation>
 </message>
 <message>
     <source>Payment id: %1\n</source>
@@ -3044,11 +3044,11 @@
 </message>
 <message>
     <source>Fees (in EMC/Kb) smaller than this are considered zero fee for relaying (default: %s)</source>
-<translation>Комиссии (в EMC/Кб) меньшие этого значения считаются нулевыми для трансляции (по умолчанию: %s)</translation>
+<translation>Комиссии (в ITC/Кб) меньшие этого значения считаются нулевыми для трансляции (по умолчанию: %s)</translation>
 </message>
 <message>
     <source>Fees (in EMC/Kb) smaller than this are considered zero fee for transaction creation (default: %s)</source>
-<translation>Комиссии (в EMC/Кб) меньшие этого значения считаются нулевыми для создания транзакции (по умолчанию: %s)</translation>
+<translation>Комиссии (в ITC/Кб) меньшие этого значения считаются нулевыми для создания транзакции (по умолчанию: %s)</translation>
 </message>
 <message>
     <source>If paytxfee is not set, include enough fee so transactions begin confirmation on average within n blocks (default: %u)</source>
@@ -3156,7 +3156,7 @@ rpcpassword=%s
 </message>
 <message>
     <source>Fee (in EMC/Kb) to add to transactions you send (default: %s)</source>
-<translation>Комиссия (в EMC/Кб) для добавления к вашим транзакциям (по умолчанию: %s)</translation>
+<translation>Комиссия (в ITC/Кб) для добавления к вашим транзакциям (по умолчанию: %s)</translation>
 </message>
 <message>
     <source>Information</source>

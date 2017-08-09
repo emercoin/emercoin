@@ -1,11 +1,11 @@
 # Notes
 The sources in this directory are unit test cases.  Boost includes a
-unit testing framework, and since emercoin already uses boost, it makes
+unit testing framework, and since iTecoCoin already uses boost, it makes
 sense to simply use this framework rather than require developers to
 configure some other framework (we want as few impediments to creating
 unit tests as possible).
 
-The build system is setup to compile an executable called "test_emercoin"
+The build system is setup to compile an executable called "test_iTecoCoin"
 that runs all of the unit tests.  The main source file is called
 test_bitcoin.cpp, which simply includes other files that contain the
 actual unit tests (outside of a couple required preprocessor

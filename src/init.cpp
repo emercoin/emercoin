@@ -293,7 +293,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -onion=<ip:port>       " + strprintf(_("Use separate SOCKS5 proxy to reach peers via Tor hidden services (default: %s)"), "-proxy") + "\n";
     strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (ipv4, ipv6 or onion)") + "\n";
     strUsage += "  -permitbaremultisig    " + strprintf(_("Relay non-P2SH multisig (default: %u)"), 1) + "\n";
-    strUsage += "  -port=<port>           " + strprintf(_("Listen for connections on <port> (default: %u or testnet: %u)"), 5551, 5553) + "\n";
+    strUsage += "  -port=<port>           " + strprintf(_("Listen for connections on <port> (default: %u or testnet: %u)"), 16661, 16663) + "\n";
     strUsage += "  -proxy=<ip:port>       " + _("Connect through SOCKS5 proxy") + "\n";
     strUsage += "  -seednode=<ip>         " + _("Connect to a node to retrieve peer addresses, and disconnect") + "\n";
     strUsage += "  -timeout=<n>           " + strprintf(_("Specify connection timeout in milliseconds (minimum: 1, default: %d)"), DEFAULT_CONNECT_TIMEOUT) + "\n";
@@ -388,7 +388,7 @@ std::string HelpMessage(HelpMessageMode mode)
     strUsage += "  -rpcbind=<addr>        " + _("Bind to given address to listen for JSON-RPC connections. Use [host]:port notation for IPv6. This option can be specified multiple times (default: bind to all interfaces)") + "\n";
     strUsage += "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n";
     strUsage += "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n";
-    strUsage += "  -rpcport=<port>        " + strprintf(_("Listen for JSON-RPC connections on <port> (default: %u or testnet: %u)"), 6662, 6662) + "\n";
+    strUsage += "  -rpcport=<port>        " + strprintf(_("Listen for JSON-RPC connections on <port> (default: %u or testnet: %u)"), 16662, 16662) + "\n";
     strUsage += "  -rpcallowip=<ip>       " + _("Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option can be specified multiple times") + "\n";
     strUsage += "  -rpcthreads=<n>        " + strprintf(_("Set the number of threads to service RPC calls (default: %d)"), 4) + "\n";
     strUsage += "  -rpckeepalive          " + strprintf(_("RPC support for HTTP persistent connections (default: %d)"), 1) + "\n";
@@ -405,15 +405,17 @@ std::string HelpMessage(HelpMessageMode mode)
 std::string LicenseInfo()
 {
     return FormatParagraph(strprintf(_("Copyright (C) 2017-%i The iTecoCoin Core Developers"), COPYRIGHT_YEAR)) + "\n" +
-           "\n" +
-           FormatParagraph(_("Copyright (С) iTecoCoin, Emercoin, Bitcoin, PPCoin, Namecoin, Unobtanium Developers")) + "\n" +
-           "\n" +
-           FormatParagraph(_("This is experimental software.")) + "\n" +
-           "\n" +
-           FormatParagraph(_("Distributed under the GPL3 software license, see the accompanying file COPYING or <http://www.gnu.org/licenses/gpl.html>.")) + "\n" +
-           "\n" +
-           FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
-           "\n";
+            "\n" +
+            FormatParagraph(_("Copyright (С) i-Teco Developers")) + "\n" +
+            "\n" +
+            FormatParagraph(_("Copyright (С) Emercoin, Bitcoin, PPCoin, Namecoin, Unobtanium Developers")) + "\n" +
+            "\n" +
+            FormatParagraph(_("This is experimental software.")) + "\n" +
+            "\n" +
+            FormatParagraph(_("Distributed under the GPL3 software license, see the accompanying file COPYING or <http://www.gnu.org/licenses/gpl.html>.")) + "\n" +
+            "\n" +
+            FormatParagraph(_("This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit <https://www.openssl.org/> and cryptographic software written by Eric Young and UPnP software written by Thomas Bernard.")) +
+            "\n";
 }
 
 static void BlockNotifyCallback(const uint256& hashNewTip)
@@ -1076,8 +1078,8 @@ bool AppInit2(boost::thread_group& threadGroup)
         std::string strLoadError;
 
         uiInterface.InitMessage(_("Loading block index..."));
-
         nStart = GetTimeMillis();
+
         do {
             try {
                 UnloadBlockIndex();
@@ -1091,6 +1093,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 		    boost::system::error_code err;
                     filesystem::remove(GetDataDir() / "nameindexV2.dat", err);
                 }
+
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinscatcher = new CCoinsViewErrorCatcher(pcoinsdbview);
@@ -1107,19 +1110,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                         fAuxReindex++;
                     }
                     else
+                    {
                         strLoadError = _("Error loading block database");
+                    }
                     break;
                 }
 
                 // If the loaded chain has a wrong genesis, bail out immediately
                 // (we're likely using a testnet datadir, or the other way around).
                 if (!mapBlockIndex.empty() && mapBlockIndex.count(Params().HashGenesisBlock()) == 0)
-                {
-                    printf("mapBlockIndex.empty() = %u \n", mapBlockIndex.empty());
-                    printf("Params().HashGenesisBlock() = %u \n", Params().HashGenesisBlock());
-                    printf("mapBlockIndex.count(Params().HashGenesisBlock() = %u \n", mapBlockIndex.count(Params().HashGenesisBlock()));
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
-                }
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
                 if (!InitBlockIndex()) {
@@ -1178,6 +1178,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
     }
+
 
     // As LoadBlockIndex can take several minutes, it's possible the user
     // requested to kill the GUI during the last operation. If so, exit.
@@ -1269,7 +1270,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             else
                 LogPrintf("Allowing wallet upgrade up to %i\n", nMaxVersion);
             if (nMaxVersion < pwalletMain->GetVersion())
+            {
+                printf("nMaxVersion: %u \n", nMaxVersion);
+                printf("pwalletMain->GetVersion(): %u \n", pwalletMain->GetVersion());
                 strErrors << _("Cannot downgrade wallet") << "\n";
+            }
             pwalletMain->SetMaxVersion(nMaxVersion);
         }
 

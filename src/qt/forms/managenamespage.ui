@@ -308,7 +308,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>Enter Emercoin address (or prefix of it)</string>
+          <string>Enter iTecoCoin address (or prefix of it)</string>
          </property>
          <property name="text">
           <string notr="true"/>
