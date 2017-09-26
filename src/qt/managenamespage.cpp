@@ -316,7 +316,7 @@ void ManageNamesPage::on_submitNameButton_clicked()
 
     try
     {
-        NameTxReturn res;
+        NameTxReturn res = {0};
         int nHeight = 0;
         ChangeType status = CT_NEW;
         if (txType == "NAME_NEW")
