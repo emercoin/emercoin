@@ -63,7 +63,7 @@ ManageDnsPage::ManageDnsPage() {
 		lay->setSpacing(0);
 		lay->setMargin(0);
 		
-		_resultingName->setText("dns");
+        _resultingName->setPlaceholderText(tr("This field will contain name to insert to 'Manage names' panel"));
 		_resultingName->setReadOnly(true);
 		lay->addWidget(_resultingName);
 		
@@ -86,6 +86,7 @@ ManageDnsPage::ManageDnsPage() {
 		lay->setMargin(0);
 
 		_resultingValue->setReadOnly(true);
+        _resultingValue->setPlaceholderText(tr("This field will contain value to insert to 'Manage names' panel"));
 		lay->addWidget(_resultingValue);
 
 		auto copy = new QToolButton;
@@ -111,7 +112,12 @@ ManageDnsPage::ManageDnsPage() {
     lay->addStretch();
 }
 void ManageDnsPage::recalcValue() {
-	const QString Dns = _editName->text().trimmed();
+    const QString dns = _editName->text().trimmed();
+    if(dns.isEmpty())
+        _resultingName->setText(QString());//to display placeholderText
+    else
+        _resultingName->setText("dns:" + dns);
+
 	const QString A = _editA->text().trimmed();
 	const QString AAAA = _editAAAA->text().trimmed();
 	const QString MX = _editMx->text().trimmed();
@@ -122,7 +128,6 @@ void ManageDnsPage::recalcValue() {
 		parts << "AAAA=" + AAAA;
 	if(!MX.isEmpty())
 		parts << "MX=" + MX;
-	_resultingName->setText("dns:" + Dns);
 	_resultingValue->setText(parts.join('|'));
 }
 void ManageDnsPage::addHtmlRow(QFormLayout*form, QString text, QLineEdit*line, QString tooltip) {
