@@ -91,29 +91,30 @@ private:
     QProgressBar *progressBar;
     QProgressDialog *progressDialog;
 
-    QMenuBar *appMenuBar;
-    QAction *overviewAction;
-    QAction *historyAction;
-    QAction *quitAction;
-    QAction *sendCoinsAction;
-    QAction *sendCoinsMenuAction;
-    QAction *manageNamesAction;
-    QAction *usedSendingAddressesAction;
-    QAction *usedReceivingAddressesAction;
-    QAction *signMessageAction;
-    QAction *verifyMessageAction;
-    QAction *aboutAction;
-    QAction *receiveCoinsAction;
-    QAction *receiveCoinsMenuAction;
-    QAction *optionsAction;
-    QAction *toggleHideAction;
-    QAction *encryptWalletAction;
-    QAction *backupWalletAction;
-    QAction *changePassphraseAction;
-    QAction *aboutQtAction;
-    QAction *openRPCConsoleAction;
-    QAction *openAction;
-    QAction *showHelpMessageAction;
+    QMenuBar *appMenuBar = 0;
+    QAction *overviewAction = 0;
+    QAction *historyAction = 0;
+    QAction *quitAction = 0;
+    QAction *sendCoinsAction = 0;
+    QAction *sendCoinsMenuAction = 0;
+    QAction *manageNamesAction = 0;
+    QAction *manageDnsAction = 0;
+    QAction *usedSendingAddressesAction = 0;
+    QAction *usedReceivingAddressesAction = 0;
+    QAction *signMessageAction = 0;
+    QAction *verifyMessageAction = 0;
+    QAction *aboutAction = 0;
+    QAction *receiveCoinsAction = 0;
+    QAction *receiveCoinsMenuAction = 0;
+    QAction *optionsAction = 0;
+    QAction *toggleHideAction = 0;
+    QAction *encryptWalletAction = 0;
+    QAction *backupWalletAction = 0;
+    QAction *changePassphraseAction = 0;
+    QAction *aboutQtAction = 0;
+    QAction *openRPCConsoleAction = 0;
+    QAction *openAction = 0;
+    QAction *showHelpMessageAction = 0;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -157,12 +158,25 @@ Q_SIGNALS:
     void receivedURI(const QString &uri);
 
 public Q_SLOTS:
+    /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
+    void showNormalIfMinimized(bool fToggleHidden = false);
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set network state shown in the UI */
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
+    /** Switch to overview (home) page */
+    void gotoOverviewPage();
+    /** Switch to history (transactions) page */
+    void gotoHistoryPage();
+    /** Switch to receive coins page */
+    void gotoReceiveCoinsPage();
+    /** Switch to send coins page */
+    void gotoSendCoinsPage(QString addr = "");
+    /** Switch to manage names page */
+    void gotoManageNamesPage();
+    void gotoManageDnsPage();
 
     /** Notify the user of an event from the core network or transaction handling code.
        @param[in] title     the message box / notification title
@@ -194,17 +208,6 @@ public Q_SLOTS:
 
 private Q_SLOTS:
 #ifdef ENABLE_WALLET
-    /** Switch to overview (home) page */
-    void gotoOverviewPage();
-    /** Switch to history (transactions) page */
-    void gotoHistoryPage();
-    /** Switch to receive coins page */
-    void gotoReceiveCoinsPage();
-    /** Switch to send coins page */
-    void gotoSendCoinsPage(QString addr = "");
-    /** Switch to manage names page */
-    void gotoManageNamesPage();
-
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
@@ -228,8 +231,6 @@ private Q_SLOTS:
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
 
-    /** Show window if hidden, unminimize when minimized, rise when obscured or show if hidden and fToggleHidden is true */
-    void showNormalIfMinimized(bool fToggleHidden = false);
     /** Simply calls showNormalIfMinimized(true) for use in SLOT() macro */
     void toggleHidden();
 

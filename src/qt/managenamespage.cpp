@@ -594,5 +594,18 @@ void ManageNamesPage::on_registerValue_textChanged()
     else
         byteSize = importedAsBinaryFile.size();
 
-    ui->labelValue->setText(tr("value(%1%)").arg(int(100 * byteSize / MAX_VALUE_LENGTH)));
+    QString str = tr("Value(%1%):").arg(int(100 * byteSize / MAX_VALUE_LENGTH));
+    if (byteSize<=0)
+        str = tr("Value:");
+    ui->labelValue->setText(str);
+}
+
+void ManageNamesPage::setDisplayedName(const QString & s)
+{
+    ui->registerName->setText(s);
+}
+
+void ManageNamesPage::setDisplayedValue(const QString & s)
+{
+    ui->registerValue->setPlainText(s);
 }

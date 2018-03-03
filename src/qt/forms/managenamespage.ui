@@ -31,7 +31,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>name:</string>
+        <string>Name:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -41,10 +41,26 @@
      <item>
       <widget class="QValidatedLineEdit" name="registerName">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enter name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Enter name to add, update or delete</string>
        </property>
        <property name="text">
         <string notr="true"/>
+       </property>
+       <property name="placeholderText">
+        <string>Enter name to add, update or delete</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="registerTimeUnits">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set number of days that will be added to name expire time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="maximum">
+        <number>9999</number>
+       </property>
+       <property name="value">
+        <number>30</number>
        </property>
       </widget>
      </item>
@@ -71,20 +87,10 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="registerTimeUnits">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set number of days that will be added to name expire time.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="maximum">
-        <number>9999</number>
-       </property>
-       <property name="value">
-        <number>30</number>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QComboBox" name="txTypeSelector">
+       <property name="toolTip">
+        <string>Choose operation for specified name to perform after you click on 'Submit' button</string>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -119,8 +125,11 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="toolTip">
+          <string>Shows how many % of maximum length used</string>
+         </property>
          <property name="text">
-          <string>value(0%):</string>
+          <string>Value:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -129,8 +138,15 @@
        </item>
        <item>
         <widget class="QPushButton" name="importValueButton">
+         <property name="toolTip">
+          <string>Import value from file on disk</string>
+         </property>
          <property name="text">
-          <string>Import</string>
+          <string>import...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../bitcoin.qrc">
+           <normaloff>:/icons/open</normaloff>:/icons/open</iconset>
          </property>
         </widget>
        </item>
@@ -143,6 +159,12 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>Enter value for specified name. Size limit is 20Kb.</string>
        </property>
       </widget>
      </item>
@@ -162,7 +184,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>new address:</string>
+        <string>New address:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -179,6 +201,9 @@
        </property>
        <property name="text">
         <string notr="true"/>
+       </property>
+       <property name="placeholderText">
+        <string>Enter address of the owner of name-value pair</string>
        </property>
       </widget>
      </item>

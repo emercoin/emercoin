@@ -46,7 +46,8 @@ public:
     void setModel(WalletModel *walletModel);
     std::vector<unsigned char> importedAsBinaryFile;
     QString               importedAsTextFile;
-
+    void setDisplayedName(const QString & n);
+    void setDisplayedValue(const QString & v);
 private:
     Ui::ManageNamesPage *ui;
     NameTableModel *model;
