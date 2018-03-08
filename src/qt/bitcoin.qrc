@@ -1,4 +1,4 @@
-<!DOCTYPE RCC><RCC version="1.0">
+<RCC>
     <qresource prefix="/icons">
         <file alias="emercoin">res/icons/emercoin.png</file>
         <file alias="emercoin_testnet">res/icons/emercoin_testnet.png</file>
@@ -56,6 +56,7 @@
         <file alias="network_disabled">res/icons/network_disabled.png</file>
         <file alias="tx_nameop">res/icons/tx_nameop.png</file>
         <file alias="name2">res/icons/name2.png</file>
+        <file alias="DNS">res/icons/DNS.png</file>
     </qresource>
     <qresource prefix="/movies">
         <file alias="spinner-000">res/movies/spinner-000.png</file>

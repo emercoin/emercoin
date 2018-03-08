@@ -312,7 +312,7 @@ void BitcoinGUI::createActions()
     manageNamesAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(manageNamesAction);
 
-    manageDnsAction = new QAction(QIcon(":/icons/name2"), tr("&DNS"), this);
+    manageDnsAction = new QAction(QIcon(":/icons/DNS"), tr("&DNS"), this);
     manageDnsAction->setStatusTip(tr("Manage DNS records hosted by Emercoin"));
     manageDnsAction->setToolTip(manageDnsAction->statusTip());
     manageDnsAction->setCheckable(true);
