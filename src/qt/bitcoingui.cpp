@@ -312,13 +312,6 @@ void BitcoinGUI::createActions()
     manageNamesAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(manageNamesAction);
 
-    manageDnsAction = new QAction(QIcon(":/icons/DNS"), tr("&DNS"), this);
-    manageDnsAction->setStatusTip(tr("Manage DNS records hosted by Emercoin"));
-    manageDnsAction->setToolTip(manageDnsAction->statusTip());
-    manageDnsAction->setCheckable(true);
-    manageDnsAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
-    tabGroup->addAction(manageDnsAction);
-
     historyAction = new QAction(platformStyle->SingleColorIcon(":/icons/history"), tr("&Transactions"), this);
     historyAction->setStatusTip(tr("Browse transaction history"));
     historyAction->setToolTip(historyAction->statusTip());
@@ -335,7 +328,6 @@ void BitcoinGUI::createActions()
     connect(receiveCoinsAction, &QAction::triggered, this, &BitcoinGUI::gotoReceiveCoinsPage);
     connect(receiveCoinsMenuAction, &QAction::triggered, this, &BitcoinGUI::gotoReceiveCoinsPage);
     connect(manageNamesAction, &QAction::triggered, this, &BitcoinGUI::gotoManageNamesPage);
-    connect(manageDnsAction, &QAction::triggered, this, &BitcoinGUI::gotoManageDnsPage);
     connect(historyAction, &QAction::triggered, this, &BitcoinGUI::gotoHistoryPage);
 #endif // ENABLE_WALLET
 
@@ -471,7 +463,6 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         toolbar->addAction(manageNamesAction);
-        toolbar->addAction(manageDnsAction);
         overviewAction->setChecked(true);
     }
 }
@@ -569,7 +560,6 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     sendCoinsAction->setEnabled(enabled);
     sendCoinsMenuAction->setEnabled(enabled);
     manageNamesAction->setEnabled(enabled);
-    manageDnsAction->setEnabled(enabled);
     receiveCoinsAction->setEnabled(enabled);
     receiveCoinsMenuAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
@@ -621,7 +611,6 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addAction(sendCoinsMenuAction);
     trayIconMenu->addAction(receiveCoinsMenuAction);
     trayIconMenu->addAction(manageNamesAction);
-    trayIconMenu->addAction(manageDnsAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(signMessageAction);
     trayIconMenu->addAction(verifyMessageAction);
@@ -726,13 +715,6 @@ void BitcoinGUI::gotoManageNamesPage()
     showNormalIfMinimized();
     manageNamesAction->setChecked(true);
     if (walletFrame) walletFrame->gotoManageNamesPage();
-}
-
-void BitcoinGUI::gotoManageDnsPage()
-{
-    showNormalIfMinimized();
-    manageDnsAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoManageDnsPage();
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)

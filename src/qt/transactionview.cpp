@@ -35,9 +35,37 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
+struct TransactionView::TableView: public QTableView{
+    TableView() {
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+        setTabKeyNavigation(false);
+        setContextMenuPolicy(Qt::CustomContextMenu);
+
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setAlternatingRowColors(true);
+        setSelectionBehavior(QAbstractItemView::SelectRows);
+        setSelectionMode(QAbstractItemView::ExtendedSelection);
+        setSortingEnabled(true);
+        sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
+        verticalHeader()->hide();
+
+        setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
+        setColumnWidth(TransactionTableModel::Watchonly, WATCHONLY_COLUMN_WIDTH);
+        setColumnWidth(TransactionTableModel::Date, DATE_COLUMN_WIDTH);
+        setColumnWidth(TransactionTableModel::Type, TYPE_COLUMN_WIDTH);
+        setColumnWidth(TransactionTableModel::Amount, AMOUNT_MINIMUM_COLUMN_WIDTH);
+    }
+    virtual void selectionChanged(const QItemSelection & selected, const QItemSelection & deselected)override {
+        //for(const QModelIndex& index: selectionModel()->selectedRows()) {
+        //    QModelIndex indexAmount = index.sibling(index.row(), TransactionTableModel::Amount);
+        //    Q_ASSERT(indexAmount.isValid());
+        //    indexAmount.data();
+        //}
+    }
+};
+
 TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *parent) :
-    QWidget(parent), model(0), transactionProxyModel(0),
-    transactionView(0), abandonAction(0), columnResizingFixer(0)
+    QWidget(parent)
 {
     // Build filter row
     setContentsMargins(0,0,0,0);
@@ -117,26 +145,20 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     vlayout->setContentsMargins(0,0,0,0);
     vlayout->setSpacing(0);
 
-    QTableView *view = new QTableView(this);
+    transactionView = new TableView();
     vlayout->addLayout(hlayout);
     vlayout->addWidget(createDateRangeWidget());
-    vlayout->addWidget(view);
+    vlayout->addWidget(transactionView);
     vlayout->setSpacing(0);
-    int width = view->verticalScrollBar()->sizeHint().width();
+    int width = transactionView->verticalScrollBar()->sizeHint().width();
     // Cover scroll bar width with spacing
     if (platformStyle->getUseExtraSpacing()) {
         hlayout->addSpacing(width+2);
     } else {
         hlayout->addSpacing(width);
     }
-    // Always show scroll bar
-    view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    view->setTabKeyNavigation(false);
-    view->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    view->installEventFilter(this);
-
-    transactionView = view;
+    transactionView->installEventFilter(this);
 
     // Actions
     abandonAction = new QAction(tr("Abandon transaction"), this);
@@ -172,8 +194,8 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     connect(addressWidget, SIGNAL(textChanged(QString)), this, SLOT(changedPrefix(QString)));
     connect(amountWidget, SIGNAL(textChanged(QString)), this, SLOT(changedAmount(QString)));
 
-    connect(view, SIGNAL(doubleClicked(QModelIndex)), this, SIGNAL(doubleClicked(QModelIndex)));
-    connect(view, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
+    connect(transactionView, SIGNAL(doubleClicked(QModelIndex)), this, SIGNAL(doubleClicked(QModelIndex)));
+    connect(transactionView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextualMenu(QPoint)));
 
     connect(abandonAction, SIGNAL(triggered()), this, SLOT(abandonTx()));
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
@@ -189,58 +211,44 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
 void TransactionView::setModel(WalletModel *_model)
 {
     this->model = _model;
-    if(_model)
+    if(!_model)
+        return;
+    transactionProxyModel = new TransactionFilterProxy(this);
+    transactionProxyModel->setSourceModel(_model->getTransactionTableModel());
+    transactionProxyModel->setDynamicSortFilter(true);
+    transactionProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
+    transactionProxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+
+    transactionProxyModel->setSortRole(Qt::EditRole);
+
+    transactionView->setModel(transactionProxyModel);
+
+    columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(transactionView, AMOUNT_MINIMUM_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, this);
+
+    if (_model->getOptionsModel())
     {
-        transactionProxyModel = new TransactionFilterProxy(this);
-        transactionProxyModel->setSourceModel(_model->getTransactionTableModel());
-        transactionProxyModel->setDynamicSortFilter(true);
-        transactionProxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
-        transactionProxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-
-        transactionProxyModel->setSortRole(Qt::EditRole);
-
-        transactionView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        transactionView->setModel(transactionProxyModel);
-        transactionView->setAlternatingRowColors(true);
-        transactionView->setSelectionBehavior(QAbstractItemView::SelectRows);
-        transactionView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-        transactionView->setSortingEnabled(true);
-        transactionView->sortByColumn(TransactionTableModel::Date, Qt::DescendingOrder);
-        transactionView->verticalHeader()->hide();
-
-        transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
-        transactionView->setColumnWidth(TransactionTableModel::Watchonly, WATCHONLY_COLUMN_WIDTH);
-        transactionView->setColumnWidth(TransactionTableModel::Date, DATE_COLUMN_WIDTH);
-        transactionView->setColumnWidth(TransactionTableModel::Type, TYPE_COLUMN_WIDTH);
-        transactionView->setColumnWidth(TransactionTableModel::Amount, AMOUNT_MINIMUM_COLUMN_WIDTH);
-
-        columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(transactionView, AMOUNT_MINIMUM_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH, this);
-
-        if (_model->getOptionsModel())
+        // Add third party transaction URLs to context menu
+        QStringList listUrls = _model->getOptionsModel()->getThirdPartyTxUrls().split('|', QString::SkipEmptyParts);
+        for (int i = 0; i < listUrls.size(); ++i)
         {
-            // Add third party transaction URLs to context menu
-            QStringList listUrls = _model->getOptionsModel()->getThirdPartyTxUrls().split("|", QString::SkipEmptyParts);
-            for (int i = 0; i < listUrls.size(); ++i)
+            QString host = QUrl(listUrls[i].trimmed(), QUrl::StrictMode).host();
+            if (!host.isEmpty())
             {
-                QString host = QUrl(listUrls[i].trimmed(), QUrl::StrictMode).host();
-                if (!host.isEmpty())
-                {
-                    QAction *thirdPartyTxUrlAction = new QAction(host, this); // use host as menu item label
-                    if (i == 0)
-                        contextMenu->addSeparator();
-                    contextMenu->addAction(thirdPartyTxUrlAction);
-                    connect(thirdPartyTxUrlAction, SIGNAL(triggered()), mapperThirdPartyTxUrls, SLOT(map()));
-                    mapperThirdPartyTxUrls->setMapping(thirdPartyTxUrlAction, listUrls[i].trimmed());
-                }
+                QAction *thirdPartyTxUrlAction = new QAction(host, this); // use host as menu item label
+                if (i == 0)
+                    contextMenu->addSeparator();
+                contextMenu->addAction(thirdPartyTxUrlAction);
+                connect(thirdPartyTxUrlAction, SIGNAL(triggered()), mapperThirdPartyTxUrls, SLOT(map()));
+                mapperThirdPartyTxUrls->setMapping(thirdPartyTxUrlAction, listUrls[i].trimmed());
             }
         }
-
-        // show/hide column Watch-only
-        updateWatchOnlyColumn(_model->haveWatchOnly());
-
-        // Watch-only signal
-        connect(_model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyColumn(bool)));
     }
+
+    // show/hide column Watch-only
+    updateWatchOnlyColumn(_model->haveWatchOnly());
+
+    // Watch-only signal
+    connect(_model, SIGNAL(notifyWatchonlyChanged(bool)), this, SLOT(updateWatchOnlyColumn(bool)));
 }
 
 void TransactionView::chooseDate(int idx)

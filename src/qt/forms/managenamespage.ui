@@ -21,6 +21,44 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
+    <layout class="QHBoxLayout" name="hboxTopToolbar">
+     <item>
+      <widget class="QLabel" name="labelPrepareRecords">
+       <property name="text">
+        <string>Prepare records for:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnManageDomains">
+       <property name="toolTip">
+        <string>Host your domains in EmerDNS system</string>
+       </property>
+       <property name="text">
+        <string>DNS...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../bitcoin.qrc">
+         <normaloff>:/icons/DNS</normaloff>:/icons/DNS</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="hSpacerToolbar">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="label_4">

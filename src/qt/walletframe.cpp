@@ -83,8 +83,8 @@ bool WalletFrame::removeWallet(const QString &name)
 
 void WalletFrame::removeAllWallets()
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        walletStack->removeWidget(it.value());
+    for (auto view: mapWalletViews.values())
+        walletStack->removeWidget(view);
     mapWalletViews.clear();
 }
 
@@ -100,49 +100,38 @@ bool WalletFrame::handlePaymentRequest(const SendCoinsRecipient &recipient)
 void WalletFrame::showOutOfSyncWarning(bool fShow)
 {
     bOutOfSync = fShow;
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->showOutOfSyncWarning(fShow);
+    for (auto view: mapWalletViews.values())
+        view->showOutOfSyncWarning(fShow);
 }
 
 void WalletFrame::gotoOverviewPage()
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoOverviewPage();
+    for (auto view: mapWalletViews.values())
+        view->gotoOverviewPage();
 }
 
 void WalletFrame::gotoHistoryPage()
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoHistoryPage();
+    for (auto view: mapWalletViews.values())
+        view->gotoHistoryPage();
 }
 
 void WalletFrame::gotoReceiveCoinsPage()
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoReceiveCoinsPage();
+    for (auto view: mapWalletViews.values())
+        view->gotoReceiveCoinsPage();
 }
 
 void WalletFrame::gotoSendCoinsPage(QString addr)
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoSendCoinsPage(addr);
+    for (auto view: mapWalletViews.values())
+        view->gotoSendCoinsPage(addr);
 }
 
 void WalletFrame::gotoManageNamesPage()
 {
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoManageNamesPage();
-}
-
-void WalletFrame::parentGotoManageNamesPage()
-{
-    gui->gotoManageNamesPage();
-}
-
-void WalletFrame::gotoManageDnsPage()
-{
-    for (auto it = mapWalletViews.constBegin(); it != mapWalletViews.constEnd(); ++it)
-        it.value()->gotoManageDnsPage();
+    for (auto view: mapWalletViews.values())
+        view->gotoManageNamesPage();
 }
 
 void WalletFrame::gotoSignMessageTab(QString addr)

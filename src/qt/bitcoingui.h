@@ -98,7 +98,6 @@ private:
     QAction *sendCoinsAction = 0;
     QAction *sendCoinsMenuAction = 0;
     QAction *manageNamesAction = 0;
-    QAction *manageDnsAction = 0;
     QAction *usedSendingAddressesAction = 0;
     QAction *usedReceivingAddressesAction = 0;
     QAction *signMessageAction = 0;
@@ -176,7 +175,6 @@ public Q_SLOTS:
     void gotoSendCoinsPage(QString addr = "");
     /** Switch to manage names page */
     void gotoManageNamesPage();
-    void gotoManageDnsPage();
 
     /** Notify the user of an event from the core network or transaction handling code.
        @param[in] title     the message box / notification title
