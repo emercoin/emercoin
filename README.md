@@ -55,7 +55,7 @@ submit new unit tests for old code. Unit tests can be compiled and run (assuming
 Large changes should have a test plan, and should be tested by somebody other
 than the developer who wrote the code.
 
-See [here](https://github.com/bitcoin/QA/) for how to create a test plan.
+See [here](https://github.com/marketplace/testquality) for how to create a test plan.
 
 Development tips and tricks
 ---------------------------
