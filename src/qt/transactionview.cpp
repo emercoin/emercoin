@@ -76,10 +76,12 @@ struct TransactionView::TableView: public QTableView{
         }
         QString s;
         if(!rowToIndex.isEmpty()) {
-            CAmount amount = amountPos + amountNeg;
-            s = tr("%1 EMC selected in %2 transacions").arg(format(amount)).arg(rowToIndex.count());
-            if(amountNeg!=0)
-                s += tr(" = %1 %2").arg(format(amountPos)).arg(format(amountNeg));
+            s = tr("%1 EMC selected in %2 transactions")
+                    .arg(format(amountPos + amountNeg))
+                    .arg(rowToIndex.count());
+            if(amountNeg!=0) {
+                s += tr(" = %1 - %2").arg(format(amountPos)).arg(format(qAbs(amountNeg)));
+            }
         }
         return s;
     }
