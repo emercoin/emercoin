@@ -50,9 +50,12 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, WalletFrame *parent)
     if (platformStyle->getImagesOnButtons()) {
         exportButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
     }
+    auto labelTotal = new QLabel;
+    hbox_buttons->addWidget(labelTotal);
     hbox_buttons->addStretch();
     hbox_buttons->addWidget(exportButton);
     vbox->addLayout(hbox_buttons);
+    connect(transactionView, &TransactionView::amountSelected, labelTotal, &QLabel::setText);
     transactionsPage->setLayout(vbox);
 
     receiveCoinsPage = new ReceiveCoinsDialog(platformStyle);

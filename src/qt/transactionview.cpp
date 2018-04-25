@@ -36,7 +36,9 @@
 #include <QVBoxLayout>
 
 struct TransactionView::TableView: public QTableView{
-    TableView() {
+    TransactionView* _parent = 0;
+    WalletModel *_walletModel = 0;
+    TableView(TransactionView*parent): _parent(parent) {
         setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
         setTabKeyNavigation(false);
         setContextMenuPolicy(Qt::CustomContextMenu);
@@ -55,12 +57,36 @@ struct TransactionView::TableView: public QTableView{
         setColumnWidth(TransactionTableModel::Type, TYPE_COLUMN_WIDTH);
         setColumnWidth(TransactionTableModel::Amount, AMOUNT_MINIMUM_COLUMN_WIDTH);
     }
+    QString format(CAmount amount)const {
+        return BitcoinUnits::format(_walletModel->getOptionsModel()->getDisplayUnit(), amount, false, BitcoinUnits::separatorAlways);
+    }
+    QString formatSelectedAmount()const {
+        QMap<int, QModelIndex> rowToIndex;
+        for(const QModelIndex& index: selectionModel()->selectedIndexes()) {
+            rowToIndex[index.row()] = index;
+        }
+
+        CAmount amountPos = 0, amountNeg = 0;
+        for(auto index: rowToIndex.values()) {
+            CAmount amount = index.data(TransactionTableModel::AmountRole).toLongLong();
+            if(amount>0)
+                amountPos += amount;
+            else
+                amountNeg += amount;
+        }
+        QString s;
+        if(!rowToIndex.isEmpty()) {
+            CAmount amount = amountPos + amountNeg;
+            s = tr("%1 EMC selected in %2 transacions").arg(format(amount)).arg(rowToIndex.count());
+            if(amountNeg!=0)
+                s += tr(" = %1 %2").arg(format(amountPos)).arg(format(amountNeg));
+        }
+        return s;
+    }
     virtual void selectionChanged(const QItemSelection & selected, const QItemSelection & deselected)override {
-        //for(const QModelIndex& index: selectionModel()->selectedRows()) {
-        //    QModelIndex indexAmount = index.sibling(index.row(), TransactionTableModel::Amount);
-        //    Q_ASSERT(indexAmount.isValid());
-        //    indexAmount.data();
-        //}
+        QTableView::selectionChanged(selected, deselected);
+        if(_walletModel)
+            Q_EMIT _parent->amountSelected(formatSelectedAmount());
     }
 };
 
@@ -145,7 +171,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     vlayout->setContentsMargins(0,0,0,0);
     vlayout->setSpacing(0);
 
-    transactionView = new TableView();
+    transactionView = new TableView(this);
     vlayout->addLayout(hlayout);
     vlayout->addWidget(createDateRangeWidget());
     vlayout->addWidget(transactionView);
@@ -213,6 +239,7 @@ void TransactionView::setModel(WalletModel *_model)
     this->model = _model;
     if(!_model)
         return;
+    transactionView->_walletModel = _model;
     transactionProxyModel = new TransactionFilterProxy(this);
     transactionProxyModel->setSourceModel(_model->getTransactionTableModel());
     transactionProxyModel->setDynamicSortFilter(true);
