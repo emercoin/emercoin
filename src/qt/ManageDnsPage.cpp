@@ -22,32 +22,8 @@ class SelectableLineEdit: public QLineEdit {
 };
 ManageDnsPage::ManageDnsPage(QWidget*parent): QDialog(parent) {
 	setWindowTitle(tr("DNS names"));
-	{
-        _editName = new QLineEdit;
-        _editA = new IPv4LineEdit;
-        _editNs = new QLineEdit;
-        _editCName = new QLineEdit;
-        _editPtr = new QLineEdit;
-        _editMx = new QLineEdit;
-        _editTxt = new QLineEdit;
-        _editAAAA = new QLineEdit;
-		_resultingName = new SelectableLineEdit;
-		_resultingValue = new SelectableLineEdit;
-
-        QList<QLineEdit*> edits; edits
-            << _editName
-            << _editA
-            << _editNs
-            << _editCName
-            << _editPtr
-            << _editMx
-            << _editTxt
-            << _editAAAA;
-        for(auto e: edits) {
-            e->setClearButtonEnabled(true);
-            connect(e, &QLineEdit::textChanged, this, &ManageDnsPage::recalcValue);
-        }
-    }
+    _resultingName = new SelectableLineEdit;
+    _resultingValue = new SelectableLineEdit;
 	auto lay = new QVBoxLayout(this);
 
     auto description = new QLabel(tr(
@@ -60,14 +36,15 @@ ManageDnsPage::ManageDnsPage(QWidget*parent): QDialog(parent) {
 
 	auto form = new QFormLayout;
 	lay->addLayout(form);
-	addHtmlRow(form, tr("DNS name"), _editName, tr("Like mysite.com"));
-	addHtmlRow(form, tr("A record"), _editA, tr("IPv4 address, like 185.31.209.8"));
-	addHtmlRow(form, tr("AAAA record"), _editAAAA, tr("IPv6 address, like 2a04:5340:1:1::3"));
-    addHtmlRow(form, tr("MX record"), _editMx, tr("Mail exchanger, like mx.yandex.ru:10"));
-    addHtmlRow(form, tr("NS record"), _editNs, tr("Name server; delegates a DNS zone to use the given authoritative name servers"));
-    addHtmlRow(form, tr("CNAME"), _editCName, tr("Canonocal name; alias of one name to another: the DNS lookup will continue by retrying the lookup with the new name."));
-    addHtmlRow(form, tr("PTR"), _editPtr, tr("Pointer to a canonical name. Unlike a CNAME, DNS processing stops and just the name is returned."));
-    addHtmlRow(form, tr("TXT"), _editTxt, tr("Arbitrary human-readable text. Nowdays more often carries machine-readable data, such as Policy Framework, DKIM, DMARC, DNS-SD, etc."));
+    _editName = addLineEdit(form, "", tr("DNS name"), tr("Like mysite.com"));
+    addLineEdit(form, "A", tr("A record"), tr("IPv4 address, like 185.31.209.8"));
+    addLineEdit(form, "AAAA", tr("AAAA record"), tr("IPv6 address, like 2a04:5340:1:1::3"));
+    addLineEdit(form, "MX", tr("MX record"), tr("Mail exchanger, like mx.yandex.ru:10"));
+    addLineEdit(form, "NS", tr("NS record"), tr("Name server; delegates a DNS zone to use the given authoritative name servers"));
+    addLineEdit(form, "CNAME", tr("CNAME"), tr("Canonocal name; alias of one name to another: the DNS lookup will continue by retrying the lookup with the new name."));
+    addLineEdit(form, "PTR", tr("PTR"), tr("Pointer to a canonical name. Unlike a CNAME, DNS processing stops and just the name is returned."));
+    addLineEdit(form, "TXT", tr("TXT"), tr("Arbitrary human-readable text. Nowdays more often carries machine-readable data, such as Policy Framework, DKIM, DMARC, DNS-SD, etc."));
+    addLineEdit(form, "SD", tr("SD"), tr("Subdomain - EmerDns feature"));
 
 
 	form->addRow(new QLabel(tr("Resulting values to insert to blockchain:")));
@@ -142,33 +119,25 @@ void ManageDnsPage::recalcValue() {
     else
         _resultingName->setText("dns:" + dns);
 
-	const QString A = _editA->text().trimmed();
-	const QString AAAA = _editAAAA->text().trimmed();
-	const QString MX = _editMx->text().trimmed();
-    const QString CNAME = _editCName->text().trimmed();
-    const QString NS = _editNs->text().trimmed();
-    const QString TXT = _editTxt->text().trimmed();
-    const QString PTR = _editPtr->text().trimmed();
-	QStringList parts;
-	if(!A.isEmpty())
-		parts << "A=" + A;
-	if(!AAAA.isEmpty())
-		parts << "AAAA=" + AAAA;
-	if(!MX.isEmpty())
-		parts << "MX=" + MX;
-    if(!CNAME.isEmpty())
-        parts << "CNAME=" + CNAME;
-    if(!NS.isEmpty())
-        parts << "NS=" + NS;
-    if(!TXT.isEmpty())
-        parts << "TXT=" + TXT;
-    if(!PTR.isEmpty())
-        parts << "PTR=" + PTR;
+    QStringList parts;
+    for(auto e: _edits) {
+        if(e==_editName)
+            continue;
+        QString value = e->text().trimmed();
+        if(!value.isEmpty())
+            parts << e->_dnsRecord + "=" + value;
+    }
 	_resultingValue->setText(parts.join('|'));
 }
-void ManageDnsPage::addHtmlRow(QFormLayout*form, QString text, QLineEdit*line, QString tooltip) {
+ManageDnsPage::LineEdit* ManageDnsPage::addLineEdit(QFormLayout*form, QString dnsRecord, QString text, QString tooltip) {
+    auto edit = new LineEdit;
+    edit->_dnsRecord = dnsRecord;
+    edit->setClearButtonEnabled(true);
+    connect(edit, &QLineEdit::textChanged, this, &ManageDnsPage::recalcValue);
 	auto label = new QLabel(text);
 	label->setToolTip(tooltip);
-	line->setToolTip(tooltip);
-	form->addRow(label, line);
+    edit->setToolTip(tooltip);
+    form->addRow(label, edit);
+    _edits << edit;
+    return edit;
 }
