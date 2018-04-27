@@ -12,8 +12,13 @@ class ManageDnsPage: public QDialog {
 
         QLineEdit* _editName = 0;
         QLineEdit* _editA = 0;
-        QLineEdit* _editAAAA = 0;
+        QLineEdit* _editNs = 0;
+        QLineEdit* _editCName = 0;
+        QLineEdit* _editPtr = 0;
         QLineEdit* _editMx = 0;
+        QLineEdit* _editTxt = 0;
+        QLineEdit* _editAAAA = 0;
+
         QLineEdit* _resultingName = 0;
         QLineEdit* _resultingValue = 0;
     Q_SIGNALS:
