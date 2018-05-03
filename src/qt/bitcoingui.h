@@ -213,6 +213,7 @@ private Q_SLOTS:
 
     /** Show open dialog */
     void openClicked();
+    void playIncomingTransactionSound();
 #endif // ENABLE_WALLET
     /** Show configuration dialog */
     void optionsClicked();

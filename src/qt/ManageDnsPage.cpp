@@ -46,7 +46,6 @@ ManageDnsPage::ManageDnsPage(QWidget*parent): QDialog(parent) {
     addLineEdit(form, "TXT", tr("TXT"), tr("Arbitrary human-readable text. Nowdays more often carries machine-readable data, such as Policy Framework, DKIM, DMARC, DNS-SD, etc."));
     addLineEdit(form, "SD", tr("SD"), tr("Subdomain - EmerDns feature"));
 
-
 	form->addRow(new QLabel(tr("Resulting values to insert to blockchain:")));
 	{
 		auto w = new QWidget;

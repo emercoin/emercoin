@@ -56,6 +56,7 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
+//#include <QMediaPlayer>
 
 #if QT_VERSION < 0x050000
 #include <QTextDocument>
@@ -1008,6 +1009,19 @@ void BitcoinGUI::incomingTransaction(const QString& date, int unit, const CAmoun
         msg += tr("Address: %1\n").arg(address);
     message((amount)<0 ? tr("Sent transaction") : tr("Incoming transaction"),
              msg, CClientUIInterface::MSG_INFORMATION);
+    if(amount>0) {
+        playIncomingTransactionSound();
+    }
+}
+
+void BitcoinGUI::playIncomingTransactionSound() {
+    //struct Player: public QMediaPlayer {
+    //    Player() {
+    //        setMedia(QUrl::fromLocalFile(":/sounds/incomingTransaction.mp3"));
+    //    }
+    //};
+    //static Player player;
+    //player.play();
 }
 #endif // ENABLE_WALLET
 
