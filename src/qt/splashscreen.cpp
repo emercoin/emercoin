@@ -68,13 +68,8 @@ SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) 
     QRect rGradient(QPoint(0,0), splashSize);
     pixPaint.fillRect(rGradient, gradient);
 
-    // draw the bitcoin icon, expected size of PNG: 1024x1024
-    QRect rectIcon(QPoint(0,0), QSize(266,322));
-
-    const QSize requiredSize(439,532);
-    QPixmap icon(networkStyle->getStartScreenIcon().pixmap(requiredSize));
-
-    pixPaint.drawPixmap(rectIcon, icon);
+    // draw the emercoin logo
+    pixPaint.drawPixmap(0, 0, networkStyle->getStartScreenIcon());
 
     // check font size and drawing with
     pixPaint.setFont(QFont(font, 33*fontFactor));

@@ -84,7 +84,7 @@ NetworkStyle::NetworkStyle(const QString &_appName, const int iconColorHueShift,
 
     appIcon             = QIcon(pixmap);
     trayAndWindowIcon   = QIcon(pixmap.scaled(QSize(256,256)));
-    startScreenIcon     = QIcon(splash);
+    startScreenIcon     = splash;
 }
 
 const NetworkStyle *NetworkStyle::instantiate(const QString &networkId)
