@@ -133,7 +133,6 @@ QT_MOC_CPP = \
   qt/moc_macdockiconhandler.cpp \
   qt/moc_macnotificationhandler.cpp \
   qt/moc_managenamespage.cpp \
-  qt/moc_ManageDnsPage.cpp \
   qt/moc_nametablemodel.cpp \
   qt/moc_modaloverlay.cpp \
   qt/moc_notificator.cpp \
@@ -205,6 +204,8 @@ BITCOIN_QT_H = \
   qt/macnotificationhandler.h \
   qt/managenamespage.h \
   qt/ManageDnsPage.h \
+  qt/NameValueLineEdits.h \
+  qt/SelectableLineEdit.h \
   qt/IPv4LineEdit.h \
   qt/IPv6LineEdit.h \
   qt/nametablemodel.h \
@@ -341,6 +342,8 @@ BITCOIN_QT_WALLET_CPP = \
   qt/editaddressdialog.cpp \
   qt/managenamespage.cpp \
   qt/ManageDnsPage.cpp \
+  qt/NameValueLineEdits.cpp \
+  qt/SelectableLineEdit.cpp \
   qt/IPv4LineEdit.cpp \
   qt/IPv4LineEdit.cpp \
   qt/nametablemodel.cpp \

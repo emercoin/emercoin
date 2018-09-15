@@ -167,10 +167,11 @@ ManageNamesPage::~ManageNamesPage()
 }
 
 void ManageNamesPage::onManageDomainsClicked() {
-    ManageDnsPage manageDnsPage(this);
-    connect(&manageDnsPage, &ManageDnsPage::previewName, this, &ManageNamesPage::setDisplayedName);
-    connect(&manageDnsPage, &ManageDnsPage::previewValue, this, &ManageNamesPage::setDisplayedValue);
-    manageDnsPage.exec();
+	ManageDnsPage dlg(this);
+	if(dlg.exec()==QDialog::Accepted) {
+		setDisplayedName(dlg.name());
+		setDisplayedValue(dlg.value());
+	}
 }
 void ManageNamesPage::setModel(WalletModel *walletModel)
 {

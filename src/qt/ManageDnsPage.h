@@ -2,27 +2,21 @@
 #pragma once
 #include <QDialog>
 #include <QLineEdit>
+#include "NameValueLineEdits.h"
 class QLineEdit;
 class QFormLayout;
 class QString;
 
 class ManageDnsPage: public QDialog {
-    Q_OBJECT
     public:
-	    ManageDnsPage(QWidget*parent);
-
-        QLineEdit* _editName = 0;
-        struct LineEdit: public QLineEdit {
-            QString _dnsRecord;
-        };
-        QList<LineEdit*> _edits;
-
-        QLineEdit* _resultingName = 0;
-        QLineEdit* _resultingValue = 0;
-    Q_SIGNALS:
-        void previewName(const QString & s);
-        void previewValue(const QString & s);
+	    ManageDnsPage(QWidget*parent=0);
+		QString name()const;
+		QString value()const;
     protected:
-        void recalcValue();
-        LineEdit* addLineEdit(QFormLayout*form, QString dnsParam, QString text, QString tooltipq);
+		NameValueLineEdits* _NVPair = 0;
+		QLineEdit* _editName = 0;
+		QList<QLineEdit*> _edits;
+
+		void recalcValue();
+		QLineEdit* addLineEdit(QFormLayout*form, const QString& dnsParam, const QString& text, const QString& tooltip);
 };
