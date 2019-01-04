@@ -11,7 +11,7 @@ anyone, anywhere in the world and enables of storing information as key/value pa
 in blockchain. Emercoin uses peer-to-peer technology to operate
 with no central authority: managing transactions and issuing money are carried
 out collectively by the network. For minting Emercoin uses Proof-of-Stake,
-Proof-of-Work and Auxilary-Proof-of-Work mechanisms. Emercoin Core is the name of
+Proof-of-Work and Auxiliary-Proof-of-Work mechanisms. Emercoin Core is the name of
 open source software which enables the use of this currency.
 
 For more information, as well as an immediately useable, binary version of
