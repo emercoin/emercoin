@@ -134,6 +134,7 @@ const static char *decodeQtype(uint8_t x) {
       case 16 :return "TXT";
       case 28: return "AAAA";
       case 33:   return "SRV";
+      case 52:   return "TLSA";
       case 35:   return "-NAPTR";
       case 0xff: return "-ALL";
       default:   return "-?";
@@ -760,6 +761,7 @@ uint16_t EmcDns::HandleQuery() {
     case 15:	// MX
     case 28:	// AAAA
     case 33:	// SRV
+    case 52:	// TLSA
       Answer_ALL(qtype, strcpy(val2, m_value));
       // Not found A/AAAA - try lookup for CNAME in the default section
       // Quoth RFC 1034, Section 3.6.2:
@@ -891,7 +893,8 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
         case 12: Fill_RD_DName(tokens[tok_no], 0, 0); break; // NS,CNAME,PTR
 	case 15: Fill_RD_DName(tokens[tok_no], 2, 0); break; // MX
 	case 16: Fill_RD_DName(tokens[tok_no], 0, 1); break; // TXT
-        case 33: Fill_RD_SRV(tokens[tok_no]);                // SRV
+        case 33: Fill_RD_SRV(tokens[tok_no]);         break; // SRV
+        case 52: Fill_RD_TLSA(tokens[tok_no]);        break; // TLSA
 	default: break;
       } // switch
   } // for
@@ -989,7 +992,7 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
 } // EmcDns::Fill_RD_DName
 
 /*---------------------------------------------------*/
-// SRV record input format: SRV=Pref:Prio:domain:port
+// SRV record input format: SRV=Pref:Prio:domain:port:domain-TXT
 // Wire format: RDlen[2] Pri[2] Wei[2] Port[2] Domain[*]
 void EmcDns::Fill_RD_SRV(char *txt) {
   do {
@@ -1020,6 +1023,58 @@ void EmcDns::Fill_RD_SRV(char *txt) {
   } while(0);
   m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
 } // EmcDns::Fill_RD_SRV
+
+/*---------------------------------------------------*/
+static unsigned GetHex(uint8_t c) {
+  int rc = c - '0';
+  if(rc >= 0) {
+    if(rc > 9) 
+        rc = (c | 040) - 'a' + 10;
+  }
+  return rc;
+} // GetHex
+/*---------------------------------------------------*/
+// TLSA record input format: TLSA=Usage:Selector:Matching:TXT
+// Wire format: Usage[1] Selector[1] Matching[1] TXT[*]
+void EmcDns::Fill_RD_TLSA(char *txt) {
+  uint8_t *snd0 = m_snd;
+  m_snd += 2; // Allocate space for RR_size
+  do {
+    uint8_t usage = atoi(txt);
+    txt = strchr(txt, ':');
+    if(txt == NULL)
+        break;
+    txt++;
+    *m_snd++ = usage;
+    uint8_t selector = atoi(txt);
+    txt = strchr(txt, ':');
+    if(txt == NULL)
+        break;
+    txt++;
+    *m_snd++ = selector;
+    uint8_t matching = atoi(txt);
+    txt = strchr(txt, ':');
+    if(txt == NULL)
+        break;
+    txt++;
+    *m_snd++ = matching;
+    // Decode hex data, pack to binary
+    unsigned data1, data2;
+    while(*txt != 0) {
+      data1 = GetHex(*txt++);
+      data2 = GetHex(*txt++);
+      if((data1 | data2) > 0xf)
+          goto hex_failure;
+      *m_snd++ = (data1 << 4) | data2;
+    }
+    uint16_t len = m_snd - snd0 - 2;
+    *snd0++ = len >> 8;
+    *snd0   = len;
+    return;
+  } while(0);
+  hex_failure:
+  m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
+} // EmcDns::Fill_RD_TLSA
 
 /*---------------------------------------------------*/
 

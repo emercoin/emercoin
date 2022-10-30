@@ -104,6 +104,8 @@ class EmcDns {
     bool CheckDAP(void *key, int len, uint16_t inctemp);
 
     void Fill_RD_SRV(char *txt); 
+    // Wire format: Usage[1] Selector[1] Matching[1] TXT[*]
+    void Fill_RD_TLSA(char *txt);
 
     inline void Out2(uint16_t x) { x = htons(x); memcpy(m_snd, &x, 2); m_snd += 2; }
     inline void Out4(uint32_t x) { x = htonl(x); memcpy(m_snd, &x, 4); m_snd += 4; }
