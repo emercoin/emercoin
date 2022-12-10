@@ -3014,7 +3014,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
             if (vnti.empty())
                 return false;
             //emcTODO: redo vnti[0] for multi names
-            nNameTxInCredit = r.txNameIn->vout[vnti[0].nOut].nValue;
+            nNameTxInCredit += r.txNameIn->vout[vnti[0].nOut].nValue; // oleg: "=" to "+="
             vNameInput.push_back(CInputCoin(r.txNameIn, vnti[0].nOut));
         }
     }
