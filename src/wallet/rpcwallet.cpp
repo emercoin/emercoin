@@ -39,7 +39,7 @@
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 
-inline bool GetAvoidReuseFlag(CWallet * const pwallet, const UniValue& param) {
+bool GetAvoidReuseFlag(CWallet * const pwallet, const UniValue& param) {
     bool can_avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
     bool avoid_reuse = param.isNull() ? can_avoid_reuse : param.get_bool();
 
