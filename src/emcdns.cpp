@@ -302,7 +302,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	  *p = pos = step = 0;
 	  continue;
 	}
-	if(c == '.' || c == '$') {
+	if(c == '.' || c == '$' || c == '~') {
 	  *p = 64;
 	  if(p[1] > 040) { // if allowed domain is not empty - save it into ht
 	    step |= 1;
@@ -311,17 +311,21 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
             while(m_ht_offset[pos] != 0);
 	    m_ht_offset[pos] = p + 1 - m_allowed_base;
 	    const char *dnstype = "DNS";
-	    if(c == '$') {
+	    if(c == '$' || c == '~') {
 	      m_ht_offset[pos] |= ENUM_FLAG;
 	      char *pp = p; // ref to $
 	      while(--pp >= m_allowed_base && *pp >= '0' && *pp <= '9');
 	      if(++pp < p)
 	        *p = atoi(pp);
 	      dnstype = "ENUM";
+              if(c == '~') {
+                  *p |= 0200; // Set flag signature-no-check (sigOK)
+                  dnstype = "~ENUM";
+              }
 	    }
 	    m_allowed_qty++;
 	    if(m_verbose > 1)
-	      LogPrintf("\tEmcDns::EmcDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p);
+	      LogPrintf("\tEmcDns::EmcDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p & 0177);
 	  }
 	  pos = step = 0;
 	  continue;
@@ -774,7 +778,7 @@ uint16_t EmcDns::HandleQuery() {
       // Fill AUTH+ADDL section according https://www.ietf.org/rfc/rfc1034.txt, sec 6.2.6
 //      m_hdr->Bits &= ~m_hdr->AA_MASK;
       qtype = 2 | 0x80;
-      // go to default below
+      // go to default below [[fallthrough]]
     default:
       // All other, including (CNAME, NS)
       Answer_ALL(qtype, m_value);
@@ -1172,17 +1176,23 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
   int dom_length = domain_end - domain_start;
   const char *tld = (const char*)domain_end[-1];
 
+  bool sigOK = len & 0200; // If set no-check-sig, then signature already quasi-checked: OK
+  len &= 0177; // Cut flag no-check-sig
+
   if(m_verbose > 3)
-    LogPrintf("\tEmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u\n", 
-	    (const char*)*domain_start, dom_length, tld, len);
+    LogPrintf("\tEmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u sigOK=%u\n", 
+	    (const char*)*domain_start, dom_length, tld, len, sigOK);
 
   do {
     if(dom_length < 2)
       break; // no domains for phone number - NXDOMAIN
 
-    if(m_verifiers.empty() && m_tollfree.empty())	
-      break; // no verifier - all ENUMs untrusted
 
+    if(!sigOK && m_verifiers.empty() && m_tollfree.empty())
+      break; // no verifier/toll-free/open_zone - no sense to search
+
+    if(len > 64)
+        len = 64; // Max phone num lenght=64
     // convert reversed domain record to ITU-T number
     char itut_num[68], *pitut = itut_num, *pitutend = itut_num + len;
     for(const uint8_t *p = domain_end[-1]; --p >= *domain_start; )
@@ -1199,10 +1209,10 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
     if(m_verbose > 4)
       LogPrintf("\tEmcDns::SpfunENUM: ITU-T num=[%s]\n", itut_num);
 
-    // Itrrate all available ENUM-records, and build joined answer from them
-    if(!m_verifiers.empty()) {
+    // Iterate all available ENUM-records, and build joined answer from them
+    if(sigOK || !m_verifiers.empty()) {
       for(int16_t qno = 0; qno >= 0; qno++) {
-        char q_str[100];
+        char q_str[160];
         sprintf(q_str, "%s:%s:%u", tld, itut_num, qno); 
         if(m_verbose > 4) 
           LogPrintf("\tEmcDns::SpfunENUM Search(%s)\n", q_str);
@@ -1212,11 +1222,11 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
           break;
 
         strcpy(m_value, value.c_str());
-        Answer_ENUM(q_str);
+        Answer_ENUM(q_str, sigOK); // Body passed through m_value
       } // for 
     } // if
 
-    // If notheing found in the ENUM - try to search in the Toll-Free
+    // If nothing found in the ENUM - try to search in the Toll-Free
     m_ttl = 24 * 3600; // 24h by default
     boost::xpressive::smatch nameparts;
     for(vector<TollFree>::const_iterator tf = m_tollfree.begin(); 
@@ -1248,12 +1258,11 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
 
 /*---------------------------------------------------*/
 // Generate answewr for found EMUM NVS record
-void EmcDns::Answer_ENUM(const char *q_str) {
+void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
   char *str_val = m_value;
   const char *pttl;
   char *e2u[VAL_SIZE / 4]; // 20kb max input, and min 4 bytes per token
   uint16_t e2uN = 0;
-  bool sigOK = false;
 
   m_ttl = 24 * 3600; // 24h by default
 
