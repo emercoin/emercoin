@@ -97,7 +97,7 @@ class EmcDns {
     // to support ENUM service
     int SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end);
     // Generate answewr for found EMUM NVS record
-    void Answer_ENUM(const char *q_str);
+    void Answer_ENUM(const char *q_str, bool sigOK);
     void HandleE2U(char *e2u);
     bool CheckEnumSig(const char *q_str, char *sig_str);
     void AddTF(char *tf_tok);
