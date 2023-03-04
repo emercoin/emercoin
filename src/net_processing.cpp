@@ -33,6 +33,7 @@
 #include "pow.h"
 #include "checkpoints.h"
 
+#include <array>
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
@@ -40,6 +41,13 @@
 #endif
 
 std::atomic<int64_t> nTimeBestReceived(0); // Used only to inform the wallet of when we last received a block
+
+static int NeedBanPOS() {
+    static int ban_pos = -1;
+    if(ban_pos < 0)
+        ban_pos = Params().NetworkIDString() != "test" && GetBoolArg("-posprotect", false);
+    return ban_pos;
+}
 
 struct IteratorComparator
 {
@@ -2033,7 +2041,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
             nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
             int bantime = GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
-            if(Params().NetworkIDString() != "test")
+            if(NeedBanPOS())
               bantime *= 7;
             else
               if(IsInitialBlockDownload())
@@ -2310,7 +2318,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nTmpPoSTemperature = std::max(nTmpPoSTemperature, 0);
             if (nTmpPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
                 nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                if (Params().NetworkIDString() != "test") {
+                if (NeedBanPOS()) {
                     g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
                     return error("too many consecutive pos headers");
                 }
@@ -2377,7 +2385,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                         // This situation is very unusual, because normaly you don't get a failed PoW header with a ton of PoS headers.
                         // Probably out of memory attack. Punish peer for a long time.
                         nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                        if (Params().NetworkIDString() != "test")
+                        if (NeedBanPOS())
                             g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
                     } else {
                         nPoSTemperature *= 3;
@@ -2484,7 +2492,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
                 if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
                     nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                    if (Params().NetworkIDString() != "test") {
+                    if (NeedBanPOS()) {
                         g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving, GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
                         return error("too many consecutive pos headers");
                     }

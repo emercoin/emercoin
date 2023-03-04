@@ -54,6 +54,8 @@ const uint256 CMerkleTx::ABANDON_HASH(uint256S("00000000000000000000000000000000
 //         serves to disable the trivial sendmoney when OS account compromised
 bool fWalletUnlockMintOnly = false;
 
+// Change address from config. Used it, if specified
+CBitcoinAddress s_changeAddr;
 /** @defgroup mapWallet
  *
  * @{
@@ -489,7 +491,11 @@ bool CWallet::Verify()
         if (r == CDBEnv::RECOVER_FAIL)
             return InitError(strprintf(_("%s corrupt, salvage failed"), walletFile));
     }
-    
+   
+    string changeaddr(GetArg("-changeaddress", ""));
+    if(!changeaddr.empty() && !s_changeAddr.SetString(changeaddr))
+        return InitError(strprintf(_("changeaddress=%s: invalid change address"), changeaddr));
+
     return true;
 }
 
@@ -2698,7 +2704,9 @@ bool CWallet::CreateTransactionInner(const vector<CRecipient>& vecSend, const CW
                     // coin control: send change to custom address
                     if (coinControl && !boost::get<CNoDestination>(&coinControl->destChange))
                         scriptChange = GetScriptForDestination(coinControl->destChange);
-
+                    else
+                    if(s_changeAddr.IsValid())
+                        scriptChange = GetScriptForDestination(s_changeAddr.Get());
                     // no coin control: send change to newly generated address
                     else
                     {
