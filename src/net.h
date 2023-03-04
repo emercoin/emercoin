@@ -93,7 +93,7 @@ static const ServiceFlags REQUIRED_SERVICES = NODE_NETWORK;
 static const unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24;  // Default 24-hour ban
 
 /** emercoin: Number of consecutive PoS headers are allowed from a single peer. Used to prevent out of memory attack. */
-static const int32_t MAX_CONSECUTIVE_POS_HEADERS = 1000;
+static const int32_t MAX_CONSECUTIVE_POS_HEADERS = 10000;
 
 // const unsigned int POW_HEADER_COOLING = 70;  - defined in protocol.cpp, so that it is visible to other files
 
