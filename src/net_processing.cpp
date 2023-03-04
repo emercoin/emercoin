@@ -42,11 +42,23 @@
 
 std::atomic<int64_t> nTimeBestReceived(0); // Used only to inform the wallet of when we last received a block
 
-static int NeedBanPOS() {
-    static int ban_pos = -1;
-    if(ban_pos < 0)
-        ban_pos = Params().NetworkIDString() != "test" && GetBoolArg("-posprotect", false);
-    return ban_pos;
+
+// posprotect - protect node from PoS header attacks
+// 0 - no protection
+// 1 - Protect for realtime only, no protection at initial download
+// 2 - Full protection, including initial download
+static bool NeedBanPOS() {
+    static int posprotect = -1;
+    if(posprotect < 0) {
+        posprotect = GetArg("-posprotect", 0);
+        //if(Params().NetworkIDString() == "test")
+        //    posprotect = 0; // allow everything for testnet
+    }
+    switch(posprotect) {
+        case 0: return false;
+        case 1: return !IsInitialBlockDownload();
+        default: return true;
+    }
 }
 
 struct IteratorComparator
