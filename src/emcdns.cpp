@@ -70,7 +70,7 @@
 
 // HT offset contains it for ENUM SPFUN
 #define ENUM_FLAG	(1 << 14)
-
+#define QTYPE_ADDL      (1 << 15) // Additional with specified qtype
 /*---------------------------------------------------*/
 
 #ifdef WIN32
@@ -123,7 +123,7 @@ char *strsep(char **s, const char *ct)
 #endif
 
 /*---------------------------------------------------*/
-const static char *decodeQtype(uint8_t x) {
+const static char *decodeQtype(uint16_t x) {
   switch(x) {
       case 1: return "A";
       case 2: return "NS";
@@ -135,6 +135,7 @@ const static char *decodeQtype(uint8_t x) {
       case 28: return "AAAA";
       case 33:   return "SRV";
       case 52:   return "TLSA";
+      case 257:   return "CAA";
       case 35:   return "-NAPTR";
       case 0xff: return "-ALL";
       default:   return "-?";
@@ -247,11 +248,21 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
       m_dap_treshold = daptreshold;
     }
 
-    m_value  = (char *)malloc(VAL_SIZE + BUF_SIZE + 2 + 
-	    gw_suf_len + allowed_len + local_len + 4);
- 
-    if(m_value == NULL) 
+    // Common buffers structure:
+    m_buf = (uint8_t *)malloc(
+              BUF_SIZE // I/O buf,               1K
+            + BUF_SIZE // Sanity check O-buf,    1K
+            + VAL_SIZE // Sanity check outvalue, 20K
+            + VAL_SIZE // Blockchain value,      20K
+            + 2        // ?
+            + gw_suf_len + allowed_len + local_len + 4);
+
+    if(m_buf == NULL) 
       throw runtime_error("EmcDns::EmcDns: Cannot allocate buffer");
+
+    // Assign data buffers inside m_value hyper-array
+    m_value = (char *)m_buf + BUF_SIZE + BUF_SIZE + VAL_SIZE;
+    char *varbufs = (char *)m_buf + 2 * (VAL_SIZE + BUF_SIZE) + 2;
 
     // Temporary use m_value for parse enum-verifiers and toll-free lists, if exist
 
@@ -266,10 +277,6 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	}
     } // ENUMs completed 
 
-    // Assign data buffers inside m_value hyper-array
-    m_buf    = (uint8_t *)(m_value + VAL_SIZE);
-    m_bufend = m_buf + MAX_OUT;
-    char *varbufs = m_value + VAL_SIZE + BUF_SIZE + 2;
 
     if(gw_suf_len) {
       // Copy suffix to local storage
@@ -412,7 +419,7 @@ EmcDns::~EmcDns() {
     CloseSocket(m_sockfd);
     MilliSleep(100); // Allow 0.1s my thread to exit
     // m_thread.join();
-    free(m_value);
+    free(m_buf);
     free(m_dap_ht);
     if(m_verbose > 1)
 	 LogPrintf("EmcDns::~EmcDns: Destroyed OK\n");
@@ -479,6 +486,7 @@ int EmcDns::HandlePacket() {
 
   m_rcv = m_buf + sizeof(DNSHeader);
   m_rcvend = m_snd = m_buf + m_rcvlen;
+  m_obufend = m_snd + MAX_OUT; // ptr to output bufend - 512b from m_rcvend
 
   if(m_verbose > 4) {
     LogPrintf("\tEmcDns::HandlePacket: msgID  : %d\n", m_hdr->msgID);
@@ -542,7 +550,7 @@ int EmcDns::HandlePacket() {
     } // m_status #1
 
     // Handle questions here
-    for(uint16_t qno = 0; qno < m_hdr->QDCount && m_snd < m_bufend; qno++) {
+    for(uint16_t qno = 0; qno < m_hdr->QDCount && m_snd < m_obufend; qno++) {
       if(m_verbose > 5) 
         LogPrintf("\tEmcDns::HandlePacket: qno=%u m_hdr->QDCount=%u\n", qno, m_hdr->QDCount);
       rc = HandleQuery();
@@ -572,7 +580,7 @@ int EmcDns::HandlePacket() {
     Answer_OPT();
 
   // Truncate answer, if needed
-  if(m_snd >= m_bufend) {
+  if(m_snd >= m_buf + MAX_OUT) {
     m_hdr->Bits |= m_hdr->TC_MASK;
     m_snd = m_buf + MAX_OUT;
   }
@@ -766,6 +774,7 @@ uint16_t EmcDns::HandleQuery() {
     case 28:	// AAAA
     case 33:	// SRV
     case 52:	// TLSA
+    case 257:	// CAA
       Answer_ALL(qtype, strcpy(val2, m_value));
       // Not found A/AAAA - try lookup for CNAME in the default section
       // Quoth RFC 1034, Section 3.6.2:
@@ -778,7 +787,7 @@ uint16_t EmcDns::HandleQuery() {
       // Add Authority/Additional section here, if still no answer
       // Fill AUTH+ADDL section according https://www.ietf.org/rfc/rfc1034.txt, sec 6.2.6
 //      m_hdr->Bits &= ~m_hdr->AA_MASK;
-      qtype = 2 | 0x80;
+      qtype = 2 | QTYPE_ADDL;
       // go to default below [[fallthrough]]
     default:
       // All other, including (CNAME, NS)
@@ -860,7 +869,7 @@ int EmcDns::Tokenize(const char *key, const char *sep2, char **tokens, char *buf
 /*---------------------------------------------------*/
 
 void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
-  uint16_t needed_addl = qtype & 0x80;
+  uint16_t needed_addl = qtype & QTYPE_ADDL;
   qtype ^= needed_addl;
   const char *key = decodeQtype(qtype);
   if(key[0] == '-')
@@ -899,11 +908,12 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
 	case 16: Fill_RD_DName(tokens[tok_no], 0, 1); break; // TXT
         case 33: Fill_RD_SRV(tokens[tok_no]);         break; // SRV
         case 52: Fill_RD_TLSA(tokens[tok_no]);        break; // TLSA
+        case 257: Fill_RD_CAA(tokens[tok_no]);        break; // CAA
 	default: break;
       } // switch
   } // for
 
-  if(needed_addl) // Foll ADDL section (NS in NSCount)
+  if(needed_addl) // Fill ADDL section (NS in NSCount)
     m_hdr->NSCount += tokQty;
   else
     m_hdr->ANCount += tokQty;
@@ -953,8 +963,8 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
 
   uint8_t *bufend = m_snd + 255;
 
-  if(m_bufend < bufend)
-    bufend = m_bufend;
+  if(m_obufend < bufend)
+    bufend = m_obufend;
 
   int label_ref = (tok_sz - m_buf - (m_rcvend - m_rcv)) | 0xc000;
 
@@ -999,6 +1009,7 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
 // SRV record input format: SRV=Pref:Prio:domain:port:domain-TXT
 // Wire format: RDlen[2] Pri[2] Wei[2] Port[2] Domain[*]
 void EmcDns::Fill_RD_SRV(char *txt) {
+  uint8_t *snd0 = m_snd;
   do {
     uint16_t pri = atoi(txt);
     txt = strchr(txt, ':');
@@ -1010,7 +1021,6 @@ void EmcDns::Fill_RD_SRV(char *txt) {
     if(txt == NULL)
         break;
     txt++;
-    uint8_t *snd0 = m_snd;
     m_snd += 4; // allow space for prio/weight
     // Pseudo-MX processing
     Fill_RD_DName(txt, 2, 0);
@@ -1026,6 +1036,7 @@ void EmcDns::Fill_RD_SRV(char *txt) {
     return;
   } while(0);
   m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
+  m_snd = snd0;
 } // EmcDns::Fill_RD_SRV
 
 /*---------------------------------------------------*/
@@ -1078,7 +1089,65 @@ void EmcDns::Fill_RD_TLSA(char *txt) {
   } while(0);
   hex_failure:
   m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
+  m_snd = snd0;
 } // EmcDns::Fill_RD_TLSA
+
+/*---------------------------------------------------*/
+// CAA record input format: CAA=flag tag value
+// Wire format: flag[1] tag_len[1] tag[tag_len] value[*]
+// https://www.rfc-editor.org/rfc/rfc6844#section-5.1
+void EmcDns::Fill_RD_CAA(char *txt) {
+  uint8_t *snd0 = m_snd;
+  m_snd += 2; // Allocate space for RR_size
+  do {
+    *m_snd++ = atoi(txt); // save flags
+    // Skip possible spaces before flags
+    while(*txt <= ' ') {
+        if(*txt == 0)
+            break;
+        txt++;
+    }
+    // Skip flags intvalue
+    while(*txt >= '0' && *txt <= '9') {
+        if(*txt == 0)
+            break;
+        txt++;
+    }
+    // Skip spaces before tag
+    while(*txt <= ' ') {
+        if(*txt == 0)
+            break;
+        txt++;
+    }
+    uint8_t *taglen = m_snd;
+    m_snd++;
+    // Copy tag
+    const char *max_txt_tagend = txt + 255;
+    char c;
+    while((c = *txt++) > ' ') {
+        if(txt > max_txt_tagend || !isalnum(c))
+            goto bad_data;
+        *m_snd++ = c;
+
+    }
+    *taglen = m_snd - taglen - 1;
+
+    // Skip spaces before value
+    while(*txt <= ' ' && *txt != 0)
+        txt++;
+    // Copy value
+    while((c = *txt++) != 0)
+        *m_snd++ = c;
+
+    uint16_t len = m_snd - snd0 - 2;
+    *snd0++ = len >> 8;
+    *snd0   = len;
+    return;
+  } while(0);
+  bad_data:
+  m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
+  m_snd = snd0;
+} // EmcDns::Fill_RD_CAA
 
 /*---------------------------------------------------*/
 
@@ -1295,7 +1364,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
 
   // Generate ENUM-answers here
   for(uint16_t e2undx = 0; e2undx < e2uN; e2undx++)
-    if(m_snd < m_bufend - 24)
+    if(m_snd < m_obufend - 24)
       HandleE2U(e2u[e2undx]);
 
  } // EmcDns::Answer_ENUM
@@ -1329,7 +1398,7 @@ void EmcDns::HandleE2U(char *e2u) {
   if(m_verbose > 5)
     LogPrintf("\tEmcDns::HandleE2U: Parsed: %u %u %s %s\n", ord, pref, e2u, re);
 
-  if(m_snd + strlen(re) + strlen(e2u) + 24 >= m_bufend)
+  if(m_snd + strlen(re) + strlen(e2u) + 24 >= m_obufend)
     return;
 
   Out2(m_label_ref);

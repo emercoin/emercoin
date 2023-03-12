@@ -106,6 +106,8 @@ class EmcDns {
     void Fill_RD_SRV(char *txt); 
     // Wire format: Usage[1] Selector[1] Matching[1] TXT[*]
     void Fill_RD_TLSA(char *txt);
+    // Wire format: flag[1] tag_len[1] tag[tag_len] value[*]
+    void Fill_RD_CAA(char *txt);
 
     inline void Out2(uint16_t x) { x = htons(x); memcpy(m_snd, &x, 2); m_snd += 2; }
     inline void Out4(uint32_t x) { x = htonl(x); memcpy(m_snd, &x, 4); m_snd += 4; }
@@ -115,7 +117,7 @@ class EmcDns {
     DNSAP    *m_dap_ht;	// Hashtable for DAP; index is hash(IP)
     char     *m_value;
     char     *m_gw_suffix;
-    uint8_t  *m_buf, *m_bufend, *m_snd, *m_rcv, *m_rcvend;
+    uint8_t  *m_buf, *m_snd, *m_rcv, *m_rcvend, *m_obufend;
     SOCKET    m_sockfd;
     int       m_rcvlen;
     uint32_t  m_timestamp;
