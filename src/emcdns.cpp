@@ -1098,51 +1098,49 @@ void EmcDns::Fill_RD_TLSA(char *txt) {
 void EmcDns::Fill_RD_CAA(char *txt) {
   uint8_t *snd0 = m_snd;
   m_snd += 2; // Allocate space for RR_size
-  do {
-    *m_snd++ = atoi(txt); // save flags
-    // Skip possible spaces before flags
-    while(*txt <= ' ') {
-        if(*txt == 0)
-            break;
-        txt++;
-    }
-    // Skip flags intvalue
-    while(*txt >= '0' && *txt <= '9') {
-        if(*txt == 0)
-            break;
-        txt++;
-    }
-    // Skip spaces before tag
-    while(*txt <= ' ') {
-        if(*txt == 0)
-            break;
-        txt++;
-    }
-    uint8_t *taglen = m_snd;
-    m_snd++;
-    // Copy tag
-    const char *max_txt_tagend = txt + 255;
-    char c;
-    while((c = *txt++) > ' ') {
-        if(txt > max_txt_tagend || !isalnum(c))
-            goto bad_data;
-        *m_snd++ = c;
+  *m_snd++ = atoi(txt); // save flags
+  uint8_t *taglen;
+  uint16_t len;
+  const char *max_txt_tagend;
+  // Skip possible spaces before flags
+  while(*txt <= ' ') {
+      if(*txt == 0)
+          goto bad_data;
+      txt++;
+  }
+  // Skip flags intvalue
+  while(*txt >= '0' && *txt <= '9')
+      txt++;
+  // Skip spaces before tag
+  while(*txt <= ' ') {
+      if(*txt == 0)
+          goto bad_data;
+      txt++;
+  }
+  taglen = m_snd;
+  m_snd++;
+  // Copy tag
+  max_txt_tagend = txt + 255;
+  char c;
+  while((c = *txt++) > ' ') {
+      if(txt > max_txt_tagend || !isalnum(c))
+          goto bad_data;
+      *m_snd++ = c;
+  }
+  *taglen = m_snd - taglen - 1;
 
-    }
-    *taglen = m_snd - taglen - 1;
+  // Skip spaces before value
+  while(*txt <= ' ' && *txt != 0)
+      txt++;
+  // Copy value
+  while((c = *txt++) != 0)
+      *m_snd++ = c;
 
-    // Skip spaces before value
-    while(*txt <= ' ' && *txt != 0)
-        txt++;
-    // Copy value
-    while((c = *txt++) != 0)
-        *m_snd++ = c;
+  len = m_snd - snd0 - 2;
+  *snd0++ = len >> 8;
+  *snd0   = len;
+  return;
 
-    uint16_t len = m_snd - snd0 - 2;
-    *snd0++ = len >> 8;
-    *snd0   = len;
-    return;
-  } while(0);
   bad_data:
   m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
   m_snd = snd0;
