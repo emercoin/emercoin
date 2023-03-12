@@ -35,6 +35,8 @@
 #include <memory>
 #include <typeinfo>
 
+#include <array>
+
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
 #endif
@@ -406,6 +408,24 @@ limitedmap<uint256, std::chrono::microseconds> g_already_asked_for GUARDED_BY(cs
 
 /** Map maintaining per-node state. */
 static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
+
+// posprotect - protect node from PoS header attacks
+// 0 - no protection
+// 1 - Protect for realtime only, no protection at initial download
+// 2 - Full protection, including initial download
+static bool NeedBanPOS() {
+    static int posprotect = -1;
+    if(posprotect < 0) {
+        posprotect = gArgs.GetArg("-posprotect", 0);
+        //if(Params().NetworkIDString() == "test")
+        //    posprotect = 0; // allow everything for testnet
+    }
+    switch(posprotect) {
+        case 0: return false;
+        case 1: return !::ChainstateActive().IsInitialBlockDownload();
+        default: return true;
+    }
+}
 
 static CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
@@ -2736,7 +2756,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
             nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
             int bantime = gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
-            if (Params().NetworkIDString() != "test")
+            if (NeedBanPOS())
                 bantime *= 7;
             else if (::ChainstateActive().IsInitialBlockDownload())
                 bantime = 0;
@@ -3049,7 +3069,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nTmpPoSTemperature = std::max(nTmpPoSTemperature, 0);
             if (nTmpPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
                 nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                if (Params().NetworkIDString() != "test") {
+                if (NeedBanPOS()) {
                     g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving,gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
                     return error("too many consecutive pos headers");
                 }
@@ -3088,7 +3108,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
                 if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
                     nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                    if (Params().NetworkIDString() != "test") {
+                    if (NeedBanPOS()) {
                         g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving,gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
                         return error("too many consecutive pos headers");
                     }

@@ -91,7 +91,8 @@ static const size_t DEFAULT_MAXRECEIVEBUFFER = 5 * 1000;
 static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 
 /** emercoin: Number of consecutive PoS headers are allowed from a single peer. Used to prevent out of memory attack. */
-static const int32_t MAX_CONSECUTIVE_POS_HEADERS = 1000;
+static const int32_t MAX_CONSECUTIVE_POS_HEADERS = 174 * 90; // 90 days allowed 15660 headers
+
 
 // const unsigned int POW_HEADER_COOLING = 70;  - defined in protocol.cpp, so that it is visible to other files
 

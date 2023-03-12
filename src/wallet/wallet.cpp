@@ -57,6 +57,9 @@ static std::list<LoadWalletFn> g_load_wallet_fns GUARDED_BY(cs_wallets);
 //         serves to disable the trivial sendmoney when OS account compromised
 bool fWalletUnlockMintOnly = false;
 
+// Change address from config. Used it, if specified
+CTxDestination s_changeAddr;
+
 bool AddWallet(const std::shared_ptr<CWallet>& wallet)
 {
     LOCK(cs_wallets);
@@ -168,6 +171,15 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocati
     }
     AddWallet(wallet);
     wallet->postInitProcess();
+    // Setup change address
+    const std::string changeaddr(gArgs.GetArg("-changeaddress", ""));
+    if(!changeaddr.empty()) {
+        s_changeAddr = DecodeDestination(changeaddr);
+        if(!IsValidDestination(s_changeAddr)) {
+            error = "Invalid change address";
+            return nullptr;
+        }
+    }
     return wallet;
 }
 
@@ -3041,9 +3053,12 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
             CScript scriptChange;
 
             // coin control: send change to custom address
-            if (!boost::get<CNoDestination>(&coin_control.destChange)) {
+            if (!boost::get<CNoDestination>(&coin_control.destChange))
                 scriptChange = GetScriptForDestination(coin_control.destChange);
-            } else { // no coin control: send change to newly generated address
+            else
+            if(IsValidDestination(s_changeAddr))
+                scriptChange = GetScriptForDestination(s_changeAddr);
+            else { // no coin control: send change to newly generated address
                 // Note: We use a new key here to keep it from being obvious which side is the change.
                 //  The drawback is that by not reusing a previous key, the change may be lost if a
                 //  backup is restored, if the backup doesn't have the new private key for the change.
