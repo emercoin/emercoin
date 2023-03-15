@@ -58,19 +58,19 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, 
     // Blockchain contextual information (confirmations and blocktime) is not
     // available to code in bitcoin-common, so we query them here and push the
     // data into the returned UniValue.
-    std::vector<std::pair<std::string, std::string>>* vNameKV = nullptr;
+    std::vector<std::pair<std::string, std::string>> vNameKV;
     if (fName) {
-        vNameKV->reserve(tx.vout.size());
+        vNameKV.reserve(tx.vout.size());
         for (unsigned int i = 0; i < tx.vout.size(); i++) {
             NameTxInfo nti;
             if (DecodeNameOutput(MakeTransactionRef(std::move(tx)), i, nti))
-                vNameKV->push_back(std::make_pair(stringFromNameVal(nti.name), encodeNameVal(nti.value, "")));
+                vNameKV.push_back(std::make_pair(stringFromNameVal(nti.name), encodeNameVal(nti.value, "")));
             else
-                vNameKV->push_back(std::make_pair("", ""));
+                vNameKV.push_back(std::make_pair("", ""));
         }
     }
 
-    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags(), vNameKV);
+    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags(), fName? &vNameKV : nullptr);
 
     if (!hashBlock.IsNull()) {
         LOCK(cs_main);
@@ -228,6 +228,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
 
     UniValue result(UniValue::VOBJ);
     if (blockindex) result.pushKV("in_active_chain", in_active_chain);
+    LOCK(cs_main); // need for IsV8Enabled
     TxToJSON(*tx, hash_block, result, nVerbose == 2, IsV8Enabled(::ChainActive().Tip(), Params().GetConsensus()));
     return result;
 }

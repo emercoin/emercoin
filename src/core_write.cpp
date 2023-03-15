@@ -160,19 +160,19 @@ void ScriptPubKeyToUniv(const CScript& scriptPubKey,
     if (fIncludeHex)
         out.pushKV("hex", HexStr(scriptPubKey.begin(), scriptPubKey.end()));
 
-    if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired) || type == TX_PUBKEY) {
-        out.pushKV("type", GetTxnOutputType(type));
-        return;
-    }
-
-    out.pushKV("reqSigs", nRequired);
+    // New Bictoin does not print address for TX_PUBKEY
+    // We still print it.
+    bool destOK = ExtractDestinations(scriptPubKey, type, addresses, nRequired);
     out.pushKV("type", GetTxnOutputType(type));
+    if(destOK) {
+        out.pushKV("reqSigs", nRequired);
 
-    UniValue a(UniValue::VARR);
-    for (const CTxDestination& addr : addresses) {
-        a.push_back(EncodeDestination(addr));
+        UniValue a(UniValue::VARR);
+        for (const CTxDestination& addr : addresses) 
+            a.push_back(EncodeDestination(addr));
+
+        out.pushKV("addresses", a);
     }
-    out.pushKV("addresses", a);
 }
 
 void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry, bool include_hex, int serialize_flags, const std::vector<std::pair<std::string, std::string>>* vNameKV)
@@ -227,8 +227,8 @@ void TxToUniv(const CTransaction& tx, const uint256& hashBlock, UniValue& entry,
         out.pushKV("scriptPubKey", o);
 
         if (fPrintNames && vNameKV->operator[](i).first != "") {
-            out.pushKV("name", vNameKV->operator[](i).first);
-            out.pushKV("value", vNameKV->operator[](i).second);
+            out.pushKV("nvsname", vNameKV->operator[](i).first);
+            out.pushKV("nvsvalue", vNameKV->operator[](i).second);
         }
 
         vout.push_back(out);
