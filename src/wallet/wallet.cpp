@@ -3020,7 +3020,14 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
     // emercoin: define some values used in case of namecoin tx creation
     CAmount nNameTxInCredit = 0;
     std::vector<CInputCoin> vNameInput;
-    for (const auto& r : vecSend) {
+    for (const auto& r : vecSend) { // TODO r.txNameIn == NULL
+        NameTxInfo dummy_nti;
+        // We unable to fetch version by the old style like:
+        //    txNew.nVersion = tx->nVersion;
+        // Because of we receive NULL-ptr within tx.
+        // Instead, we will set NAMECOIN_TX_VERSION, if this TX has NAME recipient(s)
+        if(DecodeNameScript(r.scriptPubKey, dummy_nti))
+            txNew.nVersion = NAMECOIN_TX_VERSION;
         if (r.txNameIn && !r.txNameIn->IsNull()) {
             std::vector<NameTxInfo> vnti = DecodeNameTx(fMultiName, r.txNameIn);
             if (vnti.empty())
@@ -3030,13 +3037,6 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
             vNameInput.push_back(CInputCoin(r.txNameIn, vnti[0].nOut));
         }
     }
-
-    // We unable to fetch version by the old style like:
-    //    txNew.nVersion = tx->nVersion;
-    // Because of we receive NULL-ptr within tx.
-    // Instead, we will set NAMECOIN_TX_VERSION, if TX has NAME recipient(s)
-    if(!vNameInput.empty())
-        txNew.nVersion = NAMECOIN_TX_VERSION;
 
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
 
