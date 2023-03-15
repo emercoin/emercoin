@@ -3031,8 +3031,13 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         }
     }
 
+    // We unable to fetch version by the old style like:
+    //    txNew.nVersion = tx->nVersion;
+    // Because of we receive NULL-ptr within tx.
+    // Instead, we will set NAMECOIN_TX_VERSION, if TX has NAME recipient(s)
+    if(!vNameInput.empty())
+        txNew.nVersion = NAMECOIN_TX_VERSION;
 
-    txNew.nVersion = tx->nVersion;
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
 
     FeeCalculation feeCalc;
