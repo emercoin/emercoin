@@ -1787,6 +1787,13 @@ static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
 
+static int GetLastHardCheckpointHeight() {
+    static int nLastHardCheckpointHeight = 0;
+    if (nLastHardCheckpointHeight == 0)
+        nLastHardCheckpointHeight = Params().Checkpoints().mapCheckpoints.rbegin()->first;
+    return nLastHardCheckpointHeight;
+}
+
 // these checks can only be done when all previous block have been added.
 bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, CBlockIndex* pindex, bool fJustCheck)
 {
@@ -1906,6 +1913,14 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     nBlocksTotal++;
 
+    // We disable signature/scipt checks for a blocks with height lower than last
+    // hard checkpoint. If current block will be invalid, then entire descendant chain for
+    // this block will have other hashes, and download for this branch will be blocked by
+    // a next hard checkpoint.
+    bool fScriptChecks = pindex->nHeight >= GetLastHardCheckpointHeight();
+
+#if 0
+    // Ugly and slow Bitcoin code - just commented out
     bool fScriptChecks = true;
     if (!hashAssumeValid.IsNull()) {
         // We've been configured with the hash of a block which has been externally verified to have a valid history.
@@ -1936,6 +1951,7 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
             }
         }
     }
+#endif
 
     int64_t nTime1 = GetTimeMicros(); nTimeCheck += nTime1 - nTimeStart;
     LogPrint(BCLog::BENCH, "    - Sanity checks: %.2fms [%.2fs (%.2fms/blk)]\n", MILLI * (nTime1 - nTimeStart), nTimeCheck * MICRO, nTimeCheck * MILLI / nBlocksTotal);
@@ -2324,6 +2340,7 @@ void CChainState::PruneAndFlush() {
     }
 }
 
+#if 0
 static void DoWarning(const std::string& strWarning)
 {
     static bool fWarned = false;
@@ -2333,6 +2350,7 @@ static void DoWarning(const std::string& strWarning)
         fWarned = true;
     }
 }
+#endif
 
 /** Private helper function that concatenates warning messages. */
 static void AppendWarning(std::string& res, const std::string& warn)
@@ -3649,11 +3667,7 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
             pindexTmp = pindexTmp->pprev;
     }
 
-    static int nLastHardCheckpointHeight = 0;
-    if (nLastHardCheckpointHeight == 0)
-        nLastHardCheckpointHeight = chainparams.Checkpoints().mapCheckpoints.rbegin()->first;
-
-    if (pindex->nHeight > nLastHardCheckpointHeight && !CheckpointsSync::CheckSync(pindex, setDirtyBlockIndex)) {
+    if (pindex->nHeight > GetLastHardCheckpointHeight() && !CheckpointsSync::CheckSync(pindex, setDirtyBlockIndex)) {
         pindex->nStatus |= BLOCK_FAILED_VALID;
         setDirtyBlockIndex.insert(pindex);
         return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "failed-checkpoint-check", strprintf("%s: header %s at height %d was rejected by synchronized checkpoint", __func__, hash.ToString(), pindex->nHeight));
