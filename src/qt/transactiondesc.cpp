@@ -31,6 +31,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false, bool fMultiName=false);
+
 QString TransactionDesc::FormatTxStatus(const interfaces::WalletTx& wtx, const interfaces::WalletTxStatus& status, bool inMempool, int numBlocks)
 {
     if (!status.is_final)
@@ -358,7 +360,9 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
     //
     // Debug view
     //
-    if (node.getLogCategories() != BCLog::NONE)
+    //if (node.getLogCategories() != BCLog::NONE)
+    // emercoin: enable debug view print even when not debuging
+    if (true)
     {
         strHTML += "<hr><br>" + tr("Debug information") + "<br><br>";
         for (const CTxIn& txin : wtx.tx->vin)
@@ -401,6 +405,12 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
 
         strHTML += "</ul>";
     }
+
+    strHTML += "<br/><b>" + tr("Raw transaction JSON") + ":</b>";
+    uint256 hash_block; // IsNull() suppress block info printout
+    UniValue result(UniValue::VOBJ);
+    TxToJSON(*wtx.tx.get(), hash_block, result, true, true);
+    strHTML += "\n<br/><pre>" + QString::fromStdString(result.write(1, 2)) + "</pre><br/>";
 
     strHTML += "</font></html>";
     return strHTML;

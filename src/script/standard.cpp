@@ -160,26 +160,19 @@ txnouttype SolverInner(const CScript& scriptPubKey, std::vector<std::vector<unsi
     return TX_NONSTANDARD;
 }
 
-txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned char> >& vSolutionsRet)
-{
-    txnouttype typeRet = SolverInner(scriptPubKey, vSolutionsRet);
-
-    // emercoin: remove name (if any exist) and try again
+txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned char> >& vSolutionsRet) {
     CScript scriptWithoutName;
-    if (typeRet == TX_NONSTANDARD && RemoveNameScriptPrefix(scriptPubKey, scriptWithoutName))
-    {
-        typeRet = SolverInner(scriptWithoutName, vSolutionsRet);
-
-        // make return type indicate name for supported tx types
-        if (typeRet != TX_NONSTANDARD) switch (typeRet) {
-        case TX_PUBKEYHASH: {typeRet = TX_NAME_PUBKEYHASH; break;}
-        case TX_SCRIPTHASH: {typeRet = TX_NAME_SCRIPTHASH; break;}
-        case TX_WITNESS_V0_KEYHASH: {typeRet = TX_NAME_WITNESS_V0_KEYHASH; break;}
-        case TX_WITNESS_V0_SCRIPTHASH: {typeRet = TX_NAME_WITNESS_V0_SCRIPTHASH; break;}
-        default: {typeRet = TX_NONSTANDARD; break;}  // unknown name type - don't know how to process this
+    // emercoin: If this is NameTX, remove name-part for standard BTC solver
+    bool isNameScript = RemoveNameScriptPrefix(scriptPubKey, scriptWithoutName);
+    txnouttype typeRet = SolverInner(isNameScript? scriptWithoutName : scriptPubKey, vSolutionsRet);
+    if(isNameScript) 
+        switch (typeRet) {
+            case TX_PUBKEYHASH:            return TX_NAME_PUBKEYHASH;
+            case TX_SCRIPTHASH:            return TX_NAME_SCRIPTHASH;
+            case TX_WITNESS_V0_KEYHASH:    return TX_NAME_WITNESS_V0_KEYHASH;
+            case TX_WITNESS_V0_SCRIPTHASH: return TX_NAME_WITNESS_V0_SCRIPTHASH;
+            default:                       return TX_NONSTANDARD; // unknown name type - don't know how to process this
         }
-    }
-
     return typeRet;
 }
 
@@ -205,13 +198,13 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
     {
         addressRet = ScriptHash(uint160(vSolutions[0]));
         return true;
-    //emcTODO - is name support needed below?
-    } else if (whichType == TX_WITNESS_V0_KEYHASH) {
+    //emcTODO - is name support needed below? oleg fixed
+    } else if (whichType == TX_WITNESS_V0_KEYHASH || whichType == TX_NAME_WITNESS_V0_KEYHASH) {
         WitnessV0KeyHash hash;
         std::copy(vSolutions[0].begin(), vSolutions[0].end(), hash.begin());
         addressRet = hash;
         return true;
-    } else if (whichType == TX_WITNESS_V0_SCRIPTHASH) {
+    } else if (whichType == TX_WITNESS_V0_SCRIPTHASH || whichType == TX_NAME_WITNESS_V0_SCRIPTHASH) {
         WitnessV0ScriptHash hash;
         std::copy(vSolutions[0].begin(), vSolutions[0].end(), hash.begin());
         addressRet = hash;
