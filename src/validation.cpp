@@ -1873,6 +1873,13 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 
+static int GetLastHardCheckpointHeight() {
+    static int nLastHardCheckpointHeight = 0;
+    if (nLastHardCheckpointHeight == 0)
+        nLastHardCheckpointHeight = Params().Checkpoints().mapCheckpoints.rbegin()->first;
+    return nLastHardCheckpointHeight;
+}
+
 // these checks can only be done when all previous block have been added.
 bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, CBlockIndex* pindex, bool fJustCheck)
 {
@@ -1967,6 +1974,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return true;
     }
 
+    bool fScriptChecks = pindex->nHeight >= GetLastHardCheckpointHeight();
+#if 0
+    // Ugly and slow Bitcoin code - just commented out
     bool fScriptChecks = true;
     if (!hashAssumeValid.IsNull()) {
         // We've been configured with the hash of a block which has been externally verified to have a valid history.
@@ -1992,6 +2002,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             }
         }
     }
+#endif
 
     int64_t nTime1 = GetTimeMicros(); nTimeCheck += nTime1 - nTimeStart;
     LogPrint("bench", "    - Sanity checks: %.2fms [%.2fs]\n", 0.001 * (nTime1 - nTimeStart), nTimeCheck * 0.000001);
@@ -3408,11 +3419,7 @@ static bool AcceptBlockHeader(const CBlockHeader& block, bool fProofOfStake, CVa
             pindexTmp = pindexTmp->pprev;
     }
 
-    static int nLastHardCheckpointHeight = 0;
-    if (nLastHardCheckpointHeight == 0)
-        nLastHardCheckpointHeight = chainparams.Checkpoints().mapCheckpoints.rbegin()->first;
-
-    if (pindex->nHeight > nLastHardCheckpointHeight && !CheckpointsSync::CheckSync(pindex, setDirtyBlockIndex)) {
+    if (pindex->nHeight > GetLastHardCheckpointHeight() && !CheckpointsSync::CheckSync(pindex, setDirtyBlockIndex)) {
         pindex->nStatus |= BLOCK_FAILED_VALID;
         setDirtyBlockIndex.insert(pindex);
         state.DoS(10, error("%s: header %s at height %d was rejected by synchronized checkpoint", __func__, hash.ToString(), pindex->nHeight));
@@ -3453,7 +3460,7 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
                 nPoSTemperature += POW_HEADER_COOLING;
                 return false;
             }
-            if (ppindex) 
+            if (ppindex)
                 *ppindex = pindex;
 
             if(!fInitialDownload) {

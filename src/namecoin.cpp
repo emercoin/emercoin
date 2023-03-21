@@ -211,16 +211,17 @@ bool CNameDB::ScanNames(const CNameVal& name, unsigned int nMax,
 bool CNameDB::ReadName(const CNameVal& name, CNameRecord& rec)
 {
     bool ret = Read(make_pair(std::string("namei"), name), rec);
-    int s = rec.vtxPos.size();
-
-     // check if array index is out of array bounds
-    if (s > 0 && rec.nLastActiveChainIndex >= s)
-    {
-        // delete nameindex and kill the application. nameindex should be recreated on next start
-        boost::system::error_code err;
-        boost::filesystem::remove(GetDataDir() / this->strFile, err);
-        LogPrintf("Nameindex is corrupt! It will be recreated on next start.");
-        assert(rec.nLastActiveChainIndex < s);
+    if(ret) {
+        int s = rec.vtxPos.size();
+        // check if array index is out of array bounds
+        if (s > 0 && rec.nLastActiveChainIndex >= s)
+        {
+            // delete nameindex and kill the application. nameindex should be recreated on next start
+            boost::system::error_code err;
+            boost::filesystem::remove(GetDataDir() / this->strFile, err);
+            LogPrintf("Nameindex is corrupt! It will be recreated on next start.");
+            assert(rec.nLastActiveChainIndex < s);
+        }
     }
     return ret;
 }
@@ -1515,13 +1516,11 @@ bool CNamecoinHooks::CheckInputs(const CTransactionRef& tx, const CBlockIndex* p
         if (!DecodeNameTx(lastKnownNameTx, prev_nti, true, false))
             return error("CheckInputsHook() : Failed to decode existing previous name tx for %s. Your blockchain or nameindex.dat may be corrupt.", info);
 
-        for (unsigned int i = 0; i < tx->vin.size(); i++) //this scans all scripts of tx.vin
-        {
-            if (tx->vin[i].prevout.hash != lasthash)
-                continue;
-            found = true;
-            break;
-        }
+        for (unsigned int i = 0; i < tx->vin.size(); i++) // this scans all scripts of tx.vin
+            if((int)tx->vin[i].prevout.n == prev_nti.nOut && tx->vin[i].prevout.hash == lasthash) {
+                found = true;
+                break;
+            }
     }
 
     switch (nti.op)
