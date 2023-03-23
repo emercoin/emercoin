@@ -52,7 +52,7 @@ public:
     int32_t nLastActiveChainIndex;  // position in vNameOp of first tx in last active chain of name_new -> name_update -> name_update -> ....
 
     CNameRecord() : nExpiresAt(0), nLastActiveChainIndex(0) {}
-    bool deleted()
+    bool deleted() const
     {
         if (!vNameOp.empty())
             return vNameOp.back().op == OP_NAME_DELETE;

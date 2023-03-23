@@ -1652,7 +1652,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
             for (const CTxIn& txin : tx.vin)
                 if (txin.prevout.hash != randpaytx)
                     vinWithoutRandpay.push_back(txin);
-            
+
             if (txundo.vprevout.size() != vinWithoutRandpay.size()) {
                 error("DisconnectBlock(): transaction and undo data inconsistent");
                 return DISCONNECT_FAILED;
@@ -3272,7 +3272,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         uint256 hashMerkleRoot2 = BlockMerkleRoot(block, &mutated);
         if (block.hashMerkleRoot != hashMerkleRoot2)
             return state.Invalid(ValidationInvalidReason::BLOCK_MUTATED, false, REJECT_INVALID, "bad-txnmrklroot", "hashMerkleRoot mismatch");
-
         // Check for merkle tree malleability (CVE-2012-2459): repeating sequences
         // of transactions in a block without affecting the merkle root of a block,
         // while still invalidating it.
@@ -3711,7 +3710,7 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
                 nPoSTemperature += POW_HEADER_COOLING;
                 return false;
             }
-            if (ppindex) 
+            if (ppindex)
                 *ppindex = pindex;
 
             if(!fInitialDownload) {
