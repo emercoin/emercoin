@@ -26,6 +26,11 @@
 
 static const unsigned int MAX_SIZE = 0x02000000;
 
+// Optimization barrier to disable compiler move vars over
+static inline void cas_barrier() {
+    asm volatile("# cas_barrier" : : : "memory");
+}
+
 /**
  * Dummy data type to identify deserializing constructors.
  *

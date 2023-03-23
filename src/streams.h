@@ -36,16 +36,20 @@ public:
     template<typename T>
     OverrideStream<Stream>& operator<<(const T& obj)
     {
+        cas_barrier();
         // Serialize to this stream
         ::Serialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
     template<typename T>
     OverrideStream<Stream>& operator>>(T&& obj)
     {
+        cas_barrier();
         // Unserialize from this stream
         ::Unserialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
@@ -91,7 +95,9 @@ class CVectorWriter
     template <typename... Args>
     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
     {
+        cas_barrier();
         ::SerializeMany(*this, std::forward<Args>(args)...);
+        cas_barrier();
     }
     void write(const char* pch, size_t nSize)
     {
@@ -108,8 +114,10 @@ class CVectorWriter
     template<typename T>
     CVectorWriter& operator<<(const T& obj)
     {
+        cas_barrier();
         // Serialize to this stream
         ::Serialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
     int GetVersion() const
@@ -162,14 +170,18 @@ public:
                   Args&&... args)
         : VectorReader(type, version, data, pos)
     {
+        cas_barrier();
         ::UnserializeMany(*this, std::forward<Args>(args)...);
+        cas_barrier();
     }
 
     template<typename T>
     VectorReader& operator>>(T& obj)
     {
+        cas_barrier();
         // Unserialize from this stream
         ::Unserialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
@@ -255,7 +267,9 @@ public:
     CDataStream(int nTypeIn, int nVersionIn, Args&&... args)
     {
         Init(nTypeIn, nVersionIn);
+        cas_barrier();
         ::SerializeMany(*this, std::forward<Args>(args)...);
+        cas_barrier();
     }
 
     void Init(int nTypeIn, int nVersionIn)
@@ -450,16 +464,20 @@ public:
     template<typename T>
     CDataStream& operator<<(const T& obj)
     {
+        cas_barrier();
         // Serialize to this stream
         ::Serialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
     template<typename T>
     CDataStream& operator>>(T&& obj)
     {
+        cas_barrier();
         // Unserialize from this stream
         ::Unserialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
@@ -688,7 +706,9 @@ public:
         // Serialize to this stream
         if (!file)
             throw std::ios_base::failure("CAutoFile::operator<<: file handle is nullptr");
+        cas_barrier();
         ::Serialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 
@@ -698,7 +718,9 @@ public:
         // Unserialize from this stream
         if (!file)
             throw std::ios_base::failure("CAutoFile::operator>>: file handle is nullptr");
+        cas_barrier();
         ::Unserialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 };
@@ -839,8 +861,10 @@ public:
 
     template<typename T>
     CBufferedFile& operator>>(T&& obj) {
+        cas_barrier();
         // Unserialize from this stream
         ::Unserialize(*this, obj);
+        cas_barrier();
         return (*this);
     }
 

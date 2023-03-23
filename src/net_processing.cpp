@@ -3089,19 +3089,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         }
 
         std::shared_ptr<CBlock> pblock2 = std::make_shared<CBlock>();
-
-        // Seems like bug in gcc or deserlizer, deserization randomly brokem at end of headers sync.
-        // Perform 5 attempts to deserialize before fail.
-        for(int cnt = 0; ; cnt++) {
-            vRecv >> *pblock2;
-            if(!pblock2->vtx.empty()) // Deserilization OK, continue
-                break;
-            if(cnt < 5)
-                LogPrint(BCLog::ALL, "Unable deserialize block, in attempt %u\n", cnt);
-            else
-                return error("Unable deserialize block in 5 attempts, ignored");
-        }
-
+        vRecv >> *pblock2;
         int64_t nTimeNow = GetSystemTimeInSeconds();
 
         LogPrint(BCLog::NET, "received block %s peer=%d\n", pblock2->GetHash().ToString(), pfrom->GetId());
