@@ -3087,15 +3087,36 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             LogPrint(BCLog::NET, "Unexpected block message received from peer %d\n", pfrom->GetId());
             return true;
         }
-
+// DBG - TODO olegarch
+// Strange bug, realted with incorrect unserialization.
+// Went out, when added DBGcrc() into CDataStream
+// Maybe, something compiler-related
+//        CDataStream vRecv0 = vRecv;
         std::shared_ptr<CBlock> pblock2 = std::make_shared<CBlock>();
         vRecv >> *pblock2;
+        const uint256 hash2(pblock2->GetHash());
+
+        if(pblock2->vtx.empty()) {
+            //std::vector<CInv> vGetData;
+            //vGetData.push_back(CInv(MSG_BLOCK | GetFetchFlags(pfrom), hash2));
+            // connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
+            if (g_banman)
+                g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving, 5 * 60); // Ban for 5 min
+            {
+                LOCK(cs_main);
+                mapBlockSource.erase(hash2);
+                MarkBlockAsReceived(hash2); // Clear InFlight status
+            }
+            char buf[256];
+            sprintf(buf, "Cannot unserialize block %s peer=%ld, retry again\n", hash2.ToString().c_str(), pfrom->GetId());
+            return error(buf); // Stop processing right not, maybe next time will be more lucky
+        }
+
         int64_t nTimeNow = GetSystemTimeInSeconds();
 
-        LogPrint(BCLog::NET, "received block %s peer=%d\n", pblock2->GetHash().ToString(), pfrom->GetId());
+        LogPrint(BCLog::NET, "received block %s peer=%d\n", hash2.ToString(), pfrom->GetId());
 
         {
-            const uint256 hash2(pblock2->GetHash());
             LOCK(cs_main);
             bool fRequested = mapBlocksInFlight.count(hash2);
 
@@ -3190,8 +3211,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             bool fNewBlock = false;
             bool fPoSDuplicate = false;
-            ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate);
-            if (fPoSDuplicate)
+            bool blockOK = ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate);
+            if (fPoSDuplicate || !blockOK)
             {
                 LOCK(cs_main);
                 int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
@@ -3203,7 +3224,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
            }
-        }
+        } // main while
         return true;
     }
 
@@ -3565,6 +3586,7 @@ bool PeerLogicValidation::ProcessMessages(CNode* pfrom, std::atomic<bool>& inter
         fMoreWork = !pfrom->vProcessMsg.empty();
     }
     CNetMessage& msg(msgs.front());
+    /// DBG ????
 
     msg.SetVersion(pfrom->GetRecvVersion());
     // Scan for message start
@@ -4233,10 +4255,12 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
         // Message: getdata (blocks)
         //
         std::vector<CInv> vGetData;
-        if (!pto->fClient && ((fFetch && !pto->m_limited_node) || !::ChainstateActive().IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
+        // Try to use dynamic download window, depends on latency, using rational sigmoid
+        int room_allowed = MAX_BLOCKS_IN_TRANSIT_PER_PEER - (MAX_BLOCKS_IN_TRANSIT_PER_PEER * 3 / 4) * pto->nPingUsecTime / (pto->nPingUsecTime + 100000);
+        if (!pto->fClient && ((fFetch && !pto->m_limited_node) || !::ChainstateActive().IsInitialBlockDownload()) && state.nBlocksInFlight < room_allowed) {
             std::vector<const CBlockIndex*> vToDownload;
             NodeId staller = -1;
-            FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller, consensusParams);
+            FindNextBlocksToDownload(pto->GetId(), room_allowed - state.nBlocksInFlight, vToDownload, staller, consensusParams);
             for (const CBlockIndex *pindex : vToDownload) {
                 uint32_t nFetchFlags = GetFetchFlags(pto);
                 vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags, pindex->GetBlockHash()));
@@ -4357,3 +4381,12 @@ public:
     }
 };
 static CNetProcessingCleanup instance_of_cnetprocessingcleanup;
+
+// DBG
+unsigned int CDataStream::DBGcrc() {
+    unsigned int rc = 1;
+    for(unsigned c: vch)
+        rc = ((rc << 1) | (rc >> 31)) + c;
+    return rc;
+}
+

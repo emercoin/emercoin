@@ -816,7 +816,7 @@ public:
     // emercoin: used to detect branch switches
     uint256 lastAcceptedHeader{uint256()};
     // ppcoin: known sent sync-checkpoint
-    uint256 hashCheckpointKnown{uint256()}; 
+    uint256 hashCheckpointKnown{uint256()};
 private:
     const NodeId id;
     const uint64_t nLocalHostNonce;

@@ -1983,6 +1983,7 @@ void CConnman::OpenNetworkConnection(const CAddress& addrConnect, bool fCountFai
 
 void CConnman::ThreadMessageHandler()
 {
+
     while (!flagInterruptMsgProc)
     {
         std::vector<CNode*> vNodesCopy;
@@ -1993,6 +1994,8 @@ void CConnman::ThreadMessageHandler()
                 pnode->AddRef();
             }
         }
+
+        std::random_shuffle(vNodesCopy.begin(), vNodesCopy.end());
 
         bool fMoreWork = false;
 
