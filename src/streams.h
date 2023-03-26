@@ -508,7 +508,7 @@ public:
                 j = 0;
         }
     }
-    unsigned int DBGcrc();
+    // DBG tool: unsigned int DBGcrc();
 };
 
 template <typename IStream>

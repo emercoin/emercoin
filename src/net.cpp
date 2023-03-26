@@ -1310,6 +1310,9 @@ void CConnman::SocketHandler()
         for (CNode* pnode : vNodesCopy)
             pnode->AddRef();
     }
+
+    std::random_shuffle(vNodesCopy.begin(), vNodesCopy.end());
+
     for (CNode* pnode : vNodesCopy)
     {
         if (interruptNet)

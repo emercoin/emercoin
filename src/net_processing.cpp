@@ -3087,28 +3087,26 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             LogPrint(BCLog::NET, "Unexpected block message received from peer %d\n", pfrom->GetId());
             return true;
         }
-// DBG - TODO olegarch
-// Strange bug, realted with incorrect unserialization.
-// Went out, when added DBGcrc() into CDataStream
-// Maybe, something compiler-related
-//        CDataStream vRecv0 = vRecv;
         std::shared_ptr<CBlock> pblock2 = std::make_shared<CBlock>();
         vRecv >> *pblock2;
+        cas_barrier();
         const uint256 hash2(pblock2->GetHash());
 
+        // DBG - TODO olegarch
+        // Strange bug, realted with incorrect unserialization.
+        // Currently, bypass with check pblock2->vtx.empty() foolowing
+        // Maybe, something compiler-related
         if(pblock2->vtx.empty()) {
-            //std::vector<CInv> vGetData;
-            //vGetData.push_back(CInv(MSG_BLOCK | GetFetchFlags(pfrom), hash2));
-            // connman->PushMessage(pfrom, msgMaker.Make(NetMsgType::GETDATA, vGetData));
-            if (g_banman)
-                g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving, 5 * 60); // Ban for 5 min
+            pfrom->fDisconnect = true; // Drop bugged connector TODO: Remove after fix
             {
                 LOCK(cs_main);
                 mapBlockSource.erase(hash2);
                 MarkBlockAsReceived(hash2); // Clear InFlight status
             }
+            vRecv.clear();
             char buf[256];
-            sprintf(buf, "Cannot unserialize block %s peer=%ld, retry again\n", hash2.ToString().c_str(), pfrom->GetId());
+            sprintf(buf, "Unable unserialize block %s peer=%ld, dropped\n", hash2.ToString().c_str(), pfrom->GetId());
+            // fprintf(stderr, buf);
             return error(buf); // Stop processing right not, maybe next time will be more lucky
         }
 
@@ -3211,8 +3209,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             bool fNewBlock = false;
             bool fPoSDuplicate = false;
-            bool blockOK = ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate);
-            if (fPoSDuplicate || !blockOK)
+            if(!ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate))
+                pfrom->fDisconnect = true; // Drop bugged connector TODO: Remove after fix
+            if (fPoSDuplicate)
             {
                 LOCK(cs_main);
                 int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
@@ -3586,7 +3585,6 @@ bool PeerLogicValidation::ProcessMessages(CNode* pfrom, std::atomic<bool>& inter
         fMoreWork = !pfrom->vProcessMsg.empty();
     }
     CNetMessage& msg(msgs.front());
-    /// DBG ????
 
     msg.SetVersion(pfrom->GetRecvVersion());
     // Scan for message start
@@ -4382,6 +4380,7 @@ public:
 };
 static CNetProcessingCleanup instance_of_cnetprocessingcleanup;
 
+#if 0
 // DBG
 unsigned int CDataStream::DBGcrc() {
     unsigned int rc = 1;
@@ -4389,4 +4388,4 @@ unsigned int CDataStream::DBGcrc() {
         rc = ((rc << 1) | (rc >> 31)) + c;
     return rc;
 }
-
+#endif
