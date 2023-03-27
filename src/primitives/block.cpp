@@ -16,7 +16,9 @@
 
 uint256 CBlockHeader::GetHash() const
 {
-    return SerializeHash(*this);
+    if(hashMyself.IsNull())
+        (uint256&)hashMyself = SerializeHash(*this);
+    return hashMyself;
 }
 
 unsigned int CBlock::GetStakeEntropyBit(int32_t height) const

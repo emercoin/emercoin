@@ -56,6 +56,7 @@ public:
     int32_t nVersion;     // emercoin: it might contain merged mining information in higher bits. Use GetBlockVersion() to ignore it.
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
+    uint256 hashMyself;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
@@ -99,6 +100,7 @@ public:
         SetBlockVersion(CBlockHeader::CURRENT_VERSION);
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hashMyself.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
