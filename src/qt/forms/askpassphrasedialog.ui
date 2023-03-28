@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>598</width>
-    <height>222</height>
+    <height>258</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -116,7 +116,6 @@
       <widget class="QLabel" name="capsLabel">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -139,6 +138,9 @@
       <widget class="QCheckBox" name="passCheckBoxMintOnly">
        <property name="text">
         <string>Mint only mode</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

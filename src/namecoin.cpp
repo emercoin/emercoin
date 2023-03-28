@@ -1684,7 +1684,7 @@ bool CheckNameTx(const CTransactionRef& tx, const CBlockIndex* pindexBlock, vect
 
     if(!::IsNameFeeEnough(vnti, pindexBlock, txFee)) {
       // Not enough fee
-      if (pindexBlock->nHeight > RELEASE_HEIGHT) 
+      if (pindexBlock->nHeight > RELEASE_HEIGHT)
           return error("%s: rejected name_new because not enough fee for tx=%s block=%d", __func__, tx->GetHash().GetHex(), pindexBlock->nHeight);
       return false;
     }
@@ -2061,7 +2061,7 @@ UniValue name_indexinfo(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() > 1)
         throw runtime_error(
-            "gettxoutsetinfo\n"
+            "name_indexinfo\n"
             "\nReturns statistics about name index.\n"
             "Note: this call may take some time.\n"
             "\nArguments:\n"

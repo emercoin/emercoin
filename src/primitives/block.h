@@ -183,6 +183,7 @@ public:
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashMyself     = hashMyself;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
