@@ -1584,10 +1584,8 @@ void CNamecoinHooks::AddToPendingNames(const CTransactionRef& tx)
 }
 
 static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, int nHeight, nameCheckResult& nameResult, const CDiskTxPos& pos) {
-    CNameVal name = nti.name;
-    string sName = stringFromNameVal(name);
-    string info = str( boost::format("name %s, tx=%s, block=%d, value=%s") %
-        sName % tx->GetHash().GetHex() % nHeight % stringFromNameVal(nti.value));
+    const CNameVal& name = nti.name;
+    const char *errtxt = NULL;
 
     //check if last known tx on this name matches any of inputs of this tx
     CNameRecord nameRec;
@@ -1595,18 +1593,20 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, int nHei
     NameTxInfo prev_nti;
     if (pNameDB->ReadName(name, nameRec) && !nameRec.vNameOp.empty() && !nameRec.deleted()) {
         CTransactionRef lastKnownNameTx;
-        if (!g_txindex || !g_txindex->FindTx(nameRec.vNameOp.back().txPos, lastKnownNameTx))
-            return error("%s: failed to read last name tx for %s",__func__ , info);
-        uint256 lasthash = lastKnownNameTx->GetHash();
-        if (!DecodeNameOutput(lastKnownNameTx, nameRec.vNameOp.back().nOut, prev_nti, true))
-            return error("%s: failed to decode existing previous name tx for %s. Your blockchain or nameindexV3 may be corrupt", __func__, info);
-
-        for (unsigned int i = 0; i < tx->vin.size(); i++) { //this scans all scripts of tx.vin
-            if (tx->vin[i].prevout.hash != lasthash)
-                continue;
-            found = true;
-            break;
+        if (!g_txindex || !g_txindex->FindTx(nameRec.vNameOp.back().txPos, lastKnownNameTx)) {
+            errtxt = "failed to read last name tx";
+            goto reterr;
         }
+        uint256 lasthash = lastKnownNameTx->GetHash();
+        if (!DecodeNameOutput(lastKnownNameTx, nameRec.vNameOp.back().nOut, prev_nti, true)) {
+            errtxt = "failed to decode existing previous name tx. Your blockchain or nameindexV3 may be corrupt";
+            goto reterr;
+        }
+        for (const auto &in : tx->vin) // this scans all scripts of tx.vin
+            if(in.prevout.n == prev_nti.nOut && in.prevout.hash == lasthash) {
+                found = true;
+                break;
+            }
     }
 
     switch (nti.op)
@@ -1614,56 +1614,74 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, int nHei
         case OP_NAME_NEW:
         {
             if (NameActive(name, nHeight)) {
-                if (nHeight > RELEASE_HEIGHT)
-                    return error("%s: name_new on an unexpired name for %s", __func__, info);
+                if (nHeight > RELEASE_HEIGHT) {
+                    errtxt = "name_new on an unexpired name";
+                    goto reterr;
+                }
                 return false;
             }
             break;
         }
         case OP_NAME_UPDATE:
         {
-            if (!found || (prev_nti.op != OP_NAME_NEW && prev_nti.op != OP_NAME_UPDATE))
-                return error("name_update without previous new or update tx for %s", info);
+            if (!found || (prev_nti.op != OP_NAME_NEW && prev_nti.op != OP_NAME_UPDATE)) {
+                errtxt = "name_update without previous new or update tx";
+                goto reterr;
+            }
 
-            if (prev_nti.name != name)
-                return error("%s: name_update name mismatch for %s", __func__, info);
+            if (prev_nti.name != name) {
+                errtxt = "name_update name mismatch";
+                goto reterr;
+            }
 
-            if (!NameActive(name, nHeight))
-                return error("%s: name_update on an expired name for %s", __func__, info);
+            if (!NameActive(name, nHeight)) {
+                errtxt = "name_update on an expired name";
+                goto reterr;
+            }
             break;
         }
         case OP_NAME_DELETE:
         {
-            if (!found || (prev_nti.op != OP_NAME_NEW && prev_nti.op != OP_NAME_UPDATE))
-                return error("name_delete without previous new or update tx, for %s", info);
+            if (!found || (prev_nti.op != OP_NAME_NEW && prev_nti.op != OP_NAME_UPDATE)) {
+                errtxt = "name_delete without previous new or update tx";
+                goto reterr;
+            }
 
-            if (prev_nti.name != name)
-                return error("%s: name_delete name mismatch for %s", __func__, info);
+            if (prev_nti.name != name) {
+                errtxt = "name_delete name mismatch";
+                goto reterr;
+            }
 
-            if (!NameActive(name, nHeight))
-                return error("%s: name_delete on expired name for %s", __func__, info);
+            if (!NameActive(name, nHeight)) {
+                errtxt = "name_delete on expired name";
+                goto reterr;
+            }
             break;
         }
         default:
-            return error("%s: unknown name operation for %s", __func__, info);
+            errtxt = "unknown name operation";
+            goto reterr;
     }
 
     // all checks passed - record tx information to vName. It will be sorted by nTime and writen to nameindexV3 at the end of ConnectBlock
-    CNameOperation nameOp;
-    nameOp.nHeight = nHeight;
-    nameOp.value = nti.value;
-    nameOp.txPos = pos;
-    nameOp.nOut = nti.nOut;
-
     nameResult.nTime = tx->nTime;
     nameResult.name = name;
     nameResult.op = nti.op;
     nameResult.hash = tx->GetHash();
-    nameResult.nameOp = nameOp;
+    nameResult.nameOp.nHeight = nHeight;
+    nameResult.nameOp.value = nti.value;
+    nameResult.nameOp.txPos = pos;
+    nameResult.nameOp.nOut = nti.nOut;
     nameResult.address = (nti.op != OP_NAME_DELETE) ? nti.strAddress : "";                 // we are not interested in address of deleted name
     nameResult.prev_address = (prev_nti.op != OP_NAME_DELETE) ? prev_nti.strAddress : "";  // same
 
     return true;
+
+  reterr:
+    char buf[MAX_NAME_LENGTH + MAX_VALUE_LENGTH + 512];
+    snprintf(buf, sizeof(buf), "%s: %s; name=[%s] value=[%s] tx=%s, block=%d",
+        __func__, errtxt, stringFromNameVal(name).c_str(), stringFromNameVal(nti.value).c_str(), tx->GetHash().GetHex().c_str(), nHeight);
+    return error(buf);
 }
 
 // Checks name tx and save names data to vName if valid
