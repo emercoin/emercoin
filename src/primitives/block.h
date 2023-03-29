@@ -81,7 +81,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
+        hashMyself.SetNull(); // Drop RAM hash-cache after R/W
         // emercoin: do not serialize these fields when computing hash
         if (!(s.GetType() & SER_GETHASH))
         {

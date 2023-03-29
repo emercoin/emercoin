@@ -1678,10 +1678,12 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, int nHei
     return true;
 
   reterr:
-    char buf[MAX_NAME_LENGTH + MAX_VALUE_LENGTH + 512];
-    snprintf(buf, sizeof(buf), "%s: %s; name=[%s] value=[%s] tx=%s, block=%d",
-        __func__, errtxt, stringFromNameVal(name).c_str(), stringFromNameVal(nti.value).c_str(), tx->GetHash().GetHex().c_str(), nHeight);
-    return error(buf);
+    string value(stringFromNameVal(nti.value));
+    const int chomp_value_to_len = 80;
+    if(value.length() > chomp_value_to_len)
+        value = value.substr(0, chomp_value_to_len) + "...";
+    return error("%s: %s; name=[%s] value=[%s] tx=%s, block=%d",
+            __func__, errtxt, stringFromNameVal(name).c_str(), value.c_str(), tx->GetHash().GetHex().c_str(), nHeight);
 }
 
 // Checks name tx and save names data to vName if valid
