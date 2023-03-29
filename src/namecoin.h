@@ -78,11 +78,13 @@ public:
 
     bool ReadName(const CNameVal& name, CNameRecord& rec) {
         bool ret = Read(name, rec);
-        int s = rec.vNameOp.size();
-
-         // check if array index is out of array bounds
-        if (s > 0 && rec.nLastActiveChainIndex >= s) {
-            LogPrintf("Nameindex is corrupt!");
+        if(ret) {
+            int s = rec.vNameOp.size();
+            // check if array index is out of array bounds
+            if (s > 0 && rec.nLastActiveChainIndex >= s) {
+                LogPrintf("Nameindex is corrupt!");
+                ret = false;
+            }
         }
         return ret;
     }

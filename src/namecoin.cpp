@@ -1583,11 +1583,11 @@ void CNamecoinHooks::AddToPendingNames(const CTransactionRef& tx)
     }
 }
 
-static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, const CBlockIndex* pindexBlock, nameCheckResult& nameResult, const CDiskTxPos& pos, const CAmount& txFee) {
+static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, int nHeight, nameCheckResult& nameResult, const CDiskTxPos& pos) {
     CNameVal name = nti.name;
     string sName = stringFromNameVal(name);
     string info = str( boost::format("name %s, tx=%s, block=%d, value=%s") %
-        sName % tx->GetHash().GetHex() % pindexBlock->nHeight % stringFromNameVal(nti.value));
+        sName % tx->GetHash().GetHex() % nHeight % stringFromNameVal(nti.value));
 
     //check if last known tx on this name matches any of inputs of this tx
     CNameRecord nameRec;
@@ -1613,8 +1613,8 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, const CB
     {
         case OP_NAME_NEW:
         {
-            if (NameActive(name, pindexBlock->nHeight)) {
-                if (pindexBlock->nHeight > RELEASE_HEIGHT)
+            if (NameActive(name, nHeight)) {
+                if (nHeight > RELEASE_HEIGHT)
                     return error("%s: name_new on an unexpired name for %s", __func__, info);
                 return false;
             }
@@ -1628,7 +1628,7 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, const CB
             if (prev_nti.name != name)
                 return error("%s: name_update name mismatch for %s", __func__, info);
 
-            if (!NameActive(name, pindexBlock->nHeight))
+            if (!NameActive(name, nHeight))
                 return error("%s: name_update on an expired name for %s", __func__, info);
             break;
         }
@@ -1640,7 +1640,7 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, const CB
             if (prev_nti.name != name)
                 return error("%s: name_delete name mismatch for %s", __func__, info);
 
-            if (!NameActive(name, pindexBlock->nHeight))
+            if (!NameActive(name, nHeight))
                 return error("%s: name_delete on expired name for %s", __func__, info);
             break;
         }
@@ -1650,7 +1650,7 @@ static bool CheckName(const NameTxInfo& nti, const CTransactionRef& tx, const CB
 
     // all checks passed - record tx information to vName. It will be sorted by nTime and writen to nameindexV3 at the end of ConnectBlock
     CNameOperation nameOp;
-    nameOp.nHeight = pindexBlock->nHeight;
+    nameOp.nHeight = nHeight;
     nameOp.value = nti.value;
     nameOp.txPos = pos;
     nameOp.nOut = nti.nOut;
@@ -1694,7 +1694,7 @@ bool CheckNameTx(const CTransactionRef& tx, const CBlockIndex* pindexBlock, vect
         if(dup_names.count(nti.name))
           return error("%s: rejected duplicate name=%s tx=%s block=%d", __func__, stringFromNameVal(nti.name), tx->GetHash().GetHex(), pindexBlock->nHeight);
         nameCheckResult nameResult;
-        if (CheckName(nti, tx, pindexBlock, nameResult, pos, txFee)) {
+        if (CheckName(nti, tx, pindexBlock->nHeight, nameResult, pos)) {
             vNameResult.push_back(nameResult);
             dup_names.insert(nti.name);
         } else
