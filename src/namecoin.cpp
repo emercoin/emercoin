@@ -1022,10 +1022,9 @@ UniValue name_new(const JSONRPCRequest& request)
 
     UniValue names(UniValue::VARR);
     UniValue name(UniValue::VOBJ);
-    name.pushKV("name", request.params[0]);
+    name.pushKV("NEW", request.params[0]);
     name.pushKV("value", request.params[1]);
     name.pushKV("days", request.params[2].get_int());
-    name.pushKV("op", "NEW");
     if (request.params.size() > 3)
         name.pushKV("toaddress", request.params[3].get_str());
     if (request.params.size() > 4)
@@ -1072,10 +1071,9 @@ UniValue name_update(const JSONRPCRequest& request)
 
     UniValue names(UniValue::VARR);
     UniValue name(UniValue::VOBJ);
-    name.pushKV("name", request.params[0]);
+    name.pushKV("UPDATE", request.params[0]);
     name.pushKV("value", request.params[1]);
     name.pushKV("days", request.params[2].get_int());
-    name.pushKV("op", "UPDATE");
     if (request.params.size() > 3)
         name.pushKV("toaddress", request.params[3].get_str());
     if (request.params.size() > 4)
@@ -1112,15 +1110,37 @@ UniValue name_delete(const JSONRPCRequest& request)
 
     ObserveSafeMode();
 
+    UniValue name(UniValue::VOBJ);
+    name.pushKV("DELETE", request.params[0]);
+    // days, value is not set
+
     UniValue names(UniValue::VARR);
-    names.push_back(request.params[0]);
+    names.push_back(name);
 
     NameTxReturn ret = name_operation(names, pwallet);
     if (!ret.ok)
         throw JSONRPCError(ret.err_code, ret.err_msg);
     return ret.hex.GetHex();
 }
+/*---------------------------------------------------------------------------------------------*/
+const static char name_ops[][8] = { "NEW", "UPDATE", "DELETE" };
+// Returns 0,1,2 for { "NEW", "UPDATE", "DELETE" } josn key
+static int name_opndx(const UniValue &nameInfo) {
+    int opndx = -1; // undef operation
+    for(int i = 0; i < 3; i++)
+        if(nameInfo.exists(name_ops[i])) {
+            if(opndx >= 0)
+                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE] must be specified just once"));
+            if (!nameInfo[name_ops[i]].isStr())
+                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE]  param must be a string"));
+            opndx = i;
+        }
+    if(opndx < 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE]  param must be specified"));
+    return opndx;
+} // name_opndx
 
+/*---------------------------------------------------------------------------------------------*/
 UniValue name_updatemany(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -1132,20 +1152,18 @@ UniValue name_updatemany(const JSONRPCRequest& request)
     RPCHelpMan{"name_updatemany",
     "\nCreates, updates or deletes key->value pairs.\n",
     {
-        {"names", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of names", {
+        {"names", RPCArg::Type::ARR, RPCArg::Optional::NO, "A json array of name operations", {
             {"", RPCArg::Type::OBJ, RPCArg::Optional::OMITTED, "", {
-                {"name", RPCArg::Type::STR, RPCArg::Optional::NO, "Name to create"},
+                {"NEW/UPDATE/DELETE", RPCArg::Type::STR, RPCArg::Optional::NO, "NameOP and Name"},
                 {"value", RPCArg::Type::STR, RPCArg::Optional::NO, "Value to write inside name"},
                 {"days", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many days this name will be active (1 day~=175 blocks)"},
-                {"op", RPCArg::Type::STR, RPCArg::Optional::NO, "Name operation: NEW or UPDATE"},
                 {"toaddress", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "Address of recipient. Empty string = transaction to yourself"},
                 {"valuetype", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "Interpretation of value string. Can be \"hex\", \"base64\" or filepath.\n"
                     "       not specified or empty - Write value as a unicode string.\n"
                     "       \"hex\" or \"base64\" - Decode value string as a binary data in hex or base64 string format.\n"
                     "       otherwise - Decode value string as a filepath from which to read the data."
                 },
-            }},
-            {"name", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "Name to delete"}
+            }}
         }}
     },
     RPCResult{
@@ -1154,7 +1172,8 @@ UniValue name_updatemany(const JSONRPCRequest& request)
         "}\n"
     },
     RPCExamples{
-        HelpExampleCli("name_new_many", "\"[{\\\"name\\\":\\\"myname\\\",\\\"value\\\":\\\"abc\\\",\\\"days\\\":3}]\"") + HelpExampleRpc("name_new_many", "\"[{\\\"name\\\":\\\"myname\\\",\\\"value\\\":\\\"abc\\\",\\\"days\\\":3}]\"")},
+        HelpExampleCli("name_updatemany", "\"[{\\\"NEW\\\":\\\"myname\\\", \\\"value\\\":\\\"Hello\\\", \\\"days\\\":3}]\"")
+      + HelpExampleRpc("name_updatemany", "\"[{\\\"NEW\\\":\\\"myname\\\", \\\"value\\\":\\\"Hello\\\", \\\"days\\\":3}]\"")},
     }.Check(request);
 
     ObserveSafeMode();
@@ -1162,39 +1181,34 @@ UniValue name_updatemany(const JSONRPCRequest& request)
     RPCTypeCheck(request.params, {UniValue::VARR}, true);
     UniValue names = request.params[0].get_array();
 
+    // Check syntax
     for (size_t i = 0; i < names.size(); ++i) {
         const auto& nameInfo = names[i];
-        if (!nameInfo.isStr() && !nameInfo.isObject())
+        if (!nameInfo.isObject())
             throw JSONRPCError(RPC_TYPE_ERROR, std::string("Invalid array element: it has to be string or object"));
 
-        if (nameInfo.isObject()) {
-            if (!nameInfo.exists("name"))
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify name"));
-            else if (!nameInfo["name"].isStr())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Name must be string"));
+        int opndx = name_opndx(nameInfo);
+        if(opndx == 2)
+            continue; // DEL - do not need check days/value/toaddress/valuetype
 
-            if (!nameInfo.exists("value"))
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify value"));
-            else if (!nameInfo["value"].isStr())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Value must be string"));
+        // NEW or UPDATE - must check days/value/toaddress/valuetype
+        // This is not "Delete op - must be present value/days, and optional toaddress/valuetype"
+        if (!nameInfo.exists("value"))
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify value"));
+        if (!nameInfo["value"].isStr())
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("Value must be string"));
 
-            if (!nameInfo.exists("days"))
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify days"));
-            else if (!nameInfo["days"].isNum())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Days must be an integer greater than 0"));
+        if (!nameInfo.exists("days"))
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify days"));
+        if (!nameInfo["days"].isNum())
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("Days must be an integer greater than 0"));
 
-            if (!nameInfo.exists("op"))
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("You must specify name operation"));
-            else if (!nameInfo["op"].isStr())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Name operation must be a string: either \"NEW\" or \"UPDATE\""));
+        if (nameInfo.exists("toaddress") && !nameInfo["toaddress"].isStr())
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("Address must be a string"));
 
-            if (nameInfo.exists("toaddress") && !nameInfo["toaddress"].isStr())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Address must be a string"));
-
-            if (nameInfo.exists("valuetype") && !nameInfo["valuetype"].isStr())
-                throw JSONRPCError(RPC_TYPE_ERROR, std::string("Value type must be a string"));
-        }
-    }
+        if (nameInfo.exists("valuetype") && !nameInfo["valuetype"].isStr())
+            throw JSONRPCError(RPC_TYPE_ERROR, std::string("Value type must be a string"));
+    } // iterate names array
 
     NameTxReturn ret = name_operation(names, pwallet);
     if (!ret.ok)

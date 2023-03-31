@@ -329,13 +329,11 @@ void ManageNamesPage::on_submitNameButton_clicked()
 
     int64_t txFee = MIN_TX_FEE;
     string strName = qsName.toStdString();
-	const CNameVal name(strName.begin(), strName.end());
-    {
-		if (txType == STR_NAME_NEW)
-            txFee = GetNameOpFee(::ChainActive().Tip(), days, OP_NAME_NEW, name, value);
-		else if (txType == STR_NAME_UPDATE)
-            txFee = GetNameOpFee(::ChainActive().Tip(), days, OP_NAME_UPDATE, name, value);
-    }
+    const CNameVal name(strName.begin(), strName.end());
+    if (txType == STR_NAME_NEW)
+        txFee = GetNameOpFee(::ChainActive().Tip(), days, OP_NAME_NEW, name, value);
+    else if (txType == STR_NAME_UPDATE)
+        txFee = GetNameOpFee(::ChainActive().Tip(), days, OP_NAME_UPDATE, name, value);
 
     if (QMessageBox::Yes != QMessageBox::question(this, tr("Confirm name registration"),
           tr("This will issue a %1. Tx fee is at least %2 emc.").arg(txType).arg(txFee / (float)COIN, 0, 'f', 4),
@@ -352,49 +350,35 @@ void ManageNamesPage::on_submitNameButton_clicked()
     QString err_msg;
     try
     {
-        NameTxReturn res;
-        int nHeight = 0;
+        int nHeight = NameTableEntry::NAME_NON_EXISTING;
         ChangeType status = CT_NEW;
-		if (txType == STR_NAME_NEW)
-        {
+        UniValue oName(UniValue::VOBJ);
+        if (txType == STR_NAME_NEW) {
             nHeight = NameTableEntry::NAME_NEW;
             status = CT_NEW;
-
-            UniValue names(UniValue::VARR);
-            UniValue oName(UniValue::VOBJ);
-            oName.pushKV("name", strName);
+            oName.pushKV("NEW", strName);
             oName.pushKV("value", stringFromNameVal(value));
             oName.pushKV("days", days);
-            oName.pushKV("op", "NEW");
             oName.pushKV("toaddress", newAddress.toStdString());
-            names.push_back(oName);
-
-            res = name_operation(names, walletModel->wallet().getWallet().get());
         }
-		else if (txType == STR_NAME_UPDATE)
-        {
+        else if (txType == STR_NAME_UPDATE) {
             nHeight = NameTableEntry::NAME_UPDATE;
             status = CT_UPDATED;
-
-            UniValue names(UniValue::VARR);
-            UniValue oName(UniValue::VOBJ);
-            oName.pushKV("name", strName);
+            oName.pushKV("UPDATE", strName);
             oName.pushKV("value", stringFromNameVal(value));
             oName.pushKV("days", days);
-            oName.pushKV("op", "UPDATE");
             oName.pushKV("toaddress", newAddress.toStdString());
-            names.push_back(oName);
-
-            res = name_operation(names, walletModel->wallet().getWallet().get());
         }
-		else if (txType == STR_NAME_DELETE)
-        {
+        else if (txType == STR_NAME_DELETE) {
             nHeight = NameTableEntry::NAME_DELETE;
             status = CT_UPDATED; //we still want to display this name until it is deleted
+            oName.pushKV("DELETE", strName);
+        }
 
+        NameTxReturn res;
+        if(nHeight != NameTableEntry::NAME_NON_EXISTING) {
             UniValue names(UniValue::VARR);
-            names.push_back(strName);
-
+            names.push_back(oName);
             res = name_operation(names, walletModel->wallet().getWallet().get());
         }
 
