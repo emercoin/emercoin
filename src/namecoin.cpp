@@ -1123,22 +1123,23 @@ UniValue name_delete(const JSONRPCRequest& request)
     return ret.hex.GetHex();
 }
 /*---------------------------------------------------------------------------------------------*/
-const static char name_ops[][8] = { "NEW", "UPDATE", "DELETE" };
+const static int  opndx2OP[]   = { OP_NAME_NEW, OP_NAME_UPDATE, OP_NAME_DELETE };
+const static char name_OP[][8] = { "NEW",       "UPDATE",       "DELETE"       };
 // Returns 0,1,2 for { "NEW", "UPDATE", "DELETE" } josn key
 static int name_opndx(const UniValue &nameInfo) {
     int opndx = -1; // undef operation
     for(int i = 0; i < 3; i++)
-        if(nameInfo.exists(name_ops[i])) {
+        if(nameInfo.exists(name_OP[i])) {
             if(opndx >= 0)
                 throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE] must be specified just once"));
-            if (!nameInfo[name_ops[i]].isStr())
+            if (!nameInfo[name_OP[i]].isStr())
                 throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE]  param must be a string"));
             opndx = i;
         }
     if(opndx < 0)
         throw JSONRPCError(RPC_TYPE_ERROR, std::string("Opcode [NEW/UPDATE/DELETE]  param must be specified"));
     return opndx;
-} // name_opndx
+} // name_OP
 
 /*---------------------------------------------------------------------------------------------*/
 UniValue name_updatemany(const JSONRPCRequest& request)
@@ -1187,8 +1188,7 @@ UniValue name_updatemany(const JSONRPCRequest& request)
         if (!nameInfo.isObject())
             throw JSONRPCError(RPC_TYPE_ERROR, std::string("Invalid array element: it has to be string or object"));
 
-        int opndx = name_opndx(nameInfo);
-        if(opndx == 2)
+        if(opndx2OP[name_opndx(nameInfo)] == OP_NAME_DELETE)
             continue; // DEL - do not need check days/value/toaddress/valuetype
 
         // NEW or UPDATE - must check days/value/toaddress/valuetype
@@ -1218,8 +1218,7 @@ UniValue name_updatemany(const JSONRPCRequest& request)
 }
 
 // this function does not verify the existance of json input fields - it just assumes that they were correctly set
-NameTxReturn name_operation(UniValue names, CWallet* pwallet)
-{
+NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     NameTxReturn ret;
     ret.err_code = RPC_INTERNAL_ERROR; // default value in case of abnormal exit
     ret.err_msg = "unkown error";
@@ -1242,83 +1241,26 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
     }
 
     CAmount nameFee = 0;
+    std::set<CNameVal> dup_names; // Name duplicate within transaction is not allowed
     std::vector<CScript> vNameScript;
+
     for (size_t i = 0; i < names.size(); ++i) {
         const auto& nameInfo = names[i];
-
         // try to read inputs
-        int op = -1;
-        if (nameInfo.isStr())
-            op = OP_NAME_DELETE;
-        else if (nameInfo.isObject()) {
-            if (nameInfo["op"].get_str() == "NEW")
-                op = OP_NAME_NEW;
-            else if (nameInfo["op"].get_str() == "UPDATE")
-                op = OP_NAME_UPDATE;
-        }
-        CNameVal name = nameValFromValue(nameInfo["name"]);
-        CNameVal value = nameValFromValue(nameInfo["value"]);
-        int nRentalDays = nameInfo["days"].get_int();
-        string strAddress = nameInfo.exists("toaddress") ? nameInfo["toaddress"].get_str() : "";
-        string strValueType = nameInfo.exists("valuetype") ? nameInfo["valuetype"].get_str() : "";
+        int opndx = name_opndx(nameInfo);
 
-        if (op == OP_NAME_NEW && value.empty()) {
-            ret.err_msg = "value must not be empty";
+        // Extract name by op-key NEW/UPDATE/DELETE
+        CNameVal name = nameValFromValue(nameInfo[name_OP[opndx]]);
+        if(dup_names.count(name)) {
+            ret.err_msg = "Name duplicate is not allowed";
             return ret;
         }
+        dup_names.insert(name);
 
-        // currently supports only new, update and delete operations.
-        if (op != OP_NAME_NEW && op != OP_NAME_UPDATE && op != OP_NAME_DELETE) {
-            ret.err_msg = "illegal name op";
-            return ret;
-        }
-
-        // decode value or leave it as is
-        if (!strValueType.empty() && !value.empty()) {
-            string strValue = stringFromNameVal(value);
-            if (strValueType == "hex") {
-                if (!IsHex(strValue)) {
-                    ret.err_msg = "failed to decode value as hex";
-                    return ret;
-                }
-                value = ParseHex(strValue);
-            }
-            else if (strValueType == "base64") {
-                bool fInvalid = false;
-                value = DecodeBase64(strValue.c_str(), &fInvalid);
-                if (fInvalid) {
-                    ret.err_msg = "failed to decode value as base64";
-                    return ret;
-                }
-            } else { // decode as filepath
-                std::ifstream ifs;
-                ifs.open(strValue.c_str(), std::ios::binary | std::ios::ate);
-                if (!ifs) {
-                    ret.err_msg = "failed to open file";
-                    return ret;
-                }
-                std::streampos fileSize = ifs.tellg();
-                if (fileSize > MAX_VALUE_LENGTH) {
-                    ret.err_msg = "file is larger than maximum allowed size";
-                    return ret;
-                }
-
-                ifs.clear();
-                ifs.seekg(0, std::ios::beg);
-
-                value.resize(fileSize);
-                if (!ifs.read(reinterpret_cast<char*>(&value[0]), fileSize)) {
-                    ret.err_msg = "failed to read file";
-                    return ret;
-                }
-            }
-        }
-
-        stringstream ss;
-        CScript scriptPubKey;
-
+        int op = opndx2OP[opndx];
         // wait until other name operation on this name are completed
         if (mapNamePending.count(name) && mapNamePending[name].size()) {
+            stringstream ss;
             ss << "there are " << mapNamePending[name].size() <<
                   " pending operations on that name, including " << mapNamePending[name].begin()->hash.GetHex();
             ret.err_msg = ss.str();
@@ -1338,43 +1280,88 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
             }
         }
 
-        // grab last tx in name chain and check if it can be spent by us
-        CTransactionRef txIn;
-        if (op == OP_NAME_UPDATE || op == OP_NAME_DELETE) {
+        CNameVal value;
+        int      nRentalDays = 0;
+        string   strAddress, strValueType;
+
+        if(op != OP_NAME_DELETE) {
+            value = nameValFromValue(nameInfo["value"]);
+            if (value.empty()) {
+                ret.err_msg = "value must not be empty";
+                return ret;
+            }
+            nRentalDays = nameInfo["days"].get_int();
+            if(nameInfo.exists("toaddress"))
+                strAddress = nameInfo["toaddress"].get_str();
+            if(nameInfo.exists("valuetype"))
+                strValueType = nameInfo["valuetype"].get_str();
+
+            // decode value or leave it as is
+            if (!strValueType.empty()) {
+                const string strValue(stringFromNameVal(value));
+                if (strValueType == "hex") {
+                    if (!IsHex(strValue)) {
+                        ret.err_msg = "failed to decode value as hex";
+                        return ret;
+                    }
+                    value = ParseHex(strValue);
+                }
+                else if (strValueType == "base64") {
+                    bool fInvalid = false;
+                    value = DecodeBase64(strValue.c_str(), &fInvalid);
+                    if (fInvalid) {
+                        ret.err_msg = "failed to decode value as base64";
+                        return ret;
+                    }
+                } else { // decode as filepath
+                    std::ifstream ifs;
+                    ifs.open(strValue.c_str(), std::ios::binary | std::ios::ate);
+                    if (!ifs) {
+                        ret.err_msg = "failed to open file";
+                        return ret;
+                    }
+                    std::streampos fileSize = ifs.tellg();
+                    if (fileSize > MAX_VALUE_LENGTH) {
+                        ret.err_msg = "file is larger than maximum allowed size";
+                        return ret;
+                    }
+
+                    ifs.clear();
+                    ifs.seekg(0, std::ios::beg);
+
+                    value.resize(fileSize);
+                    if (!ifs.read(reinterpret_cast<char*>(&value[0]), fileSize)) {
+                        ret.err_msg = "failed to read file";
+                        return ret;
+                    }
+                } // decode as filepath
+            } // if (!strValueType.empty())
+        } // if(op != OP_NAME_DELETE)
+
+        if (op != OP_NAME_NEW) {
+            // Fetch previous TX output and attach to this TX as input
             CTransactionRef prevTx;
             CNameRecord nameRec;
             if (!GetLastTxOfName(name, prevTx, nameRec)) {
-                ret.err_msg = "could not find tx with this name";
+                ret.err_msg = "could not find prev txIn with this name";
+                return ret;
+            }
+            int prevTxnOut = nameRec.vNameOp.back().nOut;
+            NameTxInfo prev_nti;
+            if (!DecodeNameOutput(prevTx, prevTxnOut, prev_nti, true, pwallet)) {
+                ret.err_msg = "failed to decode txIn UTXO";
                 return ret;
             }
 
-            // empty value == reuse old value
-            if (op == OP_NAME_UPDATE && value.empty())
-                value = nameRec.vNameOp.back().value;
-
-            uint256 txInHash = prevTx->GetHash();
-            auto it = pwallet->mapWallet.find(txInHash);
-            if (it == pwallet->mapWallet.end()) {
-                ret.err_msg = "this name tx is not in your wallet: " + txInHash.GetHex();
+            if (!prev_nti.fIsMine) {
+                ret.err_msg = "prev name tx is not yours or is not spendable";
                 return ret;
             }
-            txIn = it->second.tx;
-            //emcTODO: remove dependency on transaction history of wallet.dat. Having only a private key that can spend it should be enough.
-
-
-            NameTxInfo nti;
-            if (!DecodeNameOutput(txIn, nameRec.vNameOp.back().nOut, nti)) {
-                ret.err_msg = "failed to decode txIn";
-                return ret;
-            }
-
-            if (::IsMine(*pwallet, txIn->vout[nti.nOut].scriptPubKey) != ISMINE_SPENDABLE) {
-                ret.err_msg = "this name tx is not yours or is not spendable: " + txInHash.GetHex();
-                return ret;
-            }
-        }
+            // Inputs will be attached within CreateTransaction()
+        } // if (op != OP_NAME_NEW)
 
         // create namescript
+        CScript scriptPubKey;
         CScript nameScript;
         string prevMsg = ret.err_msg;
         if (!createNameScript(nameScript, name, value, nRentalDays, op, ret.err_msg)) {
@@ -1384,7 +1371,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
         }
 
         // add destination to namescript
-        if ((op == OP_NAME_UPDATE || op == OP_NAME_NEW) && strAddress != "") {
+        if (!strAddress.empty()) {
             CTxDestination dest = DecodeDestination(strAddress);
             if (!IsValidDestination(dest)) {
                 ret.err_code = RPC_INVALID_ADDRESS_OR_KEY;
@@ -1411,7 +1398,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
 
         nameFee += GetNameOpFee(::ChainActive().Tip(), nRentalDays, op, name, value);
         vNameScript.push_back(nameScript);
-    } // for nameOP list
+    } // for nameOP/nameInfo list
 
     // set fee and send!
     std::vector<CRecipient> vecSend;
@@ -1435,6 +1422,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
     tmpTx.nVersion = NAMECOIN_TX_VERSION;
     CTransactionRef tx = MakeTransactionRef(std::move(tmpTx));
 
+    // Necessary inputs will be attached within CreateTransaction()
     if (!pwallet->CreateTransaction(nameFee, fMultiName, *locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
             ret.err_msg = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
@@ -1449,6 +1437,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
 
     //success! collect info and return
     //emcTODO - return a list of addresses? (currently addressed aren't used)
+    // Used in GUI only, there is single address
     CTxDestination address;
     if (ExtractDestination(vNameScript[0], address)) {
         ret.address = EncodeDestination(address);
@@ -1456,7 +1445,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet)
     ret.hex = tx->GetHash();
     ret.ok = true;
     return ret;
-}
+} // name_operation
 
 bool reindexNameIndex()
 {

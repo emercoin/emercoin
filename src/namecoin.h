@@ -163,7 +163,7 @@ struct NameTxReturn
      bool ok;
      std::string err_msg;
      RPCErrorCode err_code;
-     std::string address;
+     std::string address; // Used in GUI only
      uint256 hex;   // Transaction hash in hex
 };
 NameTxReturn name_operation(UniValue names, CWallet* pwallet);
