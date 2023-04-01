@@ -1244,6 +1244,11 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     std::set<CNameVal> dup_names; // Name duplicate within transaction is not allowed
     std::vector<CScript> vNameScript;
 
+    // This TX will be convertee to TxRef, and passed to CreateTransaction.
+    // Vinst of this TX will ve used for add to nameTX vins for spend name coins
+    CMutableTransaction tmpTx;
+    tmpTx.nVersion = NAMECOIN_TX_VERSION;
+
     for (size_t i = 0; i < names.size(); ++i) {
         const auto& nameInfo = names[i];
         // try to read inputs
@@ -1357,7 +1362,10 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
                 ret.err_msg = "prev name tx is not yours or is not spendable";
                 return ret;
             }
-            // Inputs will be attached within CreateTransaction()
+            // Attach name input into tmpTx, and add credit from this UTXO
+            CInputCoin name_utxo(prevTx, prevTxnOut);
+            tmpTx.vin.push_back(CTxIn(name_utxo.outpoint, CScript()));
+            nameFee -= name_utxo.effective_value;
         } // if (op != OP_NAME_NEW)
 
         // create namescript
@@ -1418,11 +1426,9 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     CAmount nFeeRequired;
     std::string strError;
     int nChangePosRet = -1;
-    CMutableTransaction tmpTx;
-    tmpTx.nVersion = NAMECOIN_TX_VERSION;
+    // Pass accumulated NameVINs into CreateTransaction(), get return final name TX
     CTransactionRef tx = MakeTransactionRef(std::move(tmpTx));
 
-    // Necessary inputs will be attached within CreateTransaction()
     if (!pwallet->CreateTransaction(nameFee, fMultiName, *locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control)) {
         if (!fSubtractFeeFromAmount && nValue + nFeeRequired > curBalance)
             ret.err_msg = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
