@@ -2308,7 +2308,7 @@ CAmount CWalletTx::GetAvailableCredit(interfaces::Chain::Lock& locked_chain, boo
         NameTxInfo nti;
         if (tx->nVersion == NAMECOIN_TX_VERSION && DecodeNameScript(tx->vout[i].scriptPubKey, nti))
             continue;
-    
+
         if (!pwallet->IsSpent(locked_chain, hashTx, i) && (allow_used_addresses || !pwallet->IsUsedDestination(hashTx, i))) {
             const CTxOut &txout = tx->vout[i];
             nCredit += pwallet->GetCredit(txout, filter);
@@ -2551,7 +2551,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<
         if (nDepth < min_depth || nDepth > max_depth) {
             continue;
         }
-        
+
         //? uint256  randpayTXkey(pcoin->tx->GetHash());
         uint256  rpLockTXkey(wtxid);
         uint32_t &rpLockTXn(((uint32_t*)rpLockTXkey.GetDataPtr())[0]);
@@ -2568,7 +2568,7 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<
                     continue;
                 g_RandPayLockUTXO.MarkDel(p);
             }
-        
+
             if (wtx.tx->vout[i].nValue < nMinimumAmount || wtx.tx->vout[i].nValue > nMaximumAmount)
                 continue;
 
@@ -2787,7 +2787,7 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
             ++it;
     }
 
-    bool res = nTargetValue <= nValueFromPresetInputs || SelectCoinsDP(vCoins, nTargetValue - nValueFromPresetInputs, setCoinsRet, nValueRet); 
+    bool res = nTargetValue <= nValueFromPresetInputs || SelectCoinsDP(vCoins, nTargetValue - nValueFromPresetInputs, setCoinsRet, nValueRet);
 
     if(!res) { // DP unable to select or fails, go to classic bitcoin algos
         // form groups from remaining coins; note that preset coins will not
@@ -2807,15 +2807,15 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
         res = nTargetValue <= nValueFromPresetInputs ||
         /*    SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 6, 0), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used) || */
             SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, CoinEligibilityFilter(1, 1, 0), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used) ||
-            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, 
+            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                 CoinEligibilityFilter(0, 1, 2), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used)) ||
-            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, 
+            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                 CoinEligibilityFilter(0, 1, std::min((size_t)4, max_ancestors/3), std::min((size_t)4, max_descendants/3)), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used)) ||
-            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, 
+            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                 CoinEligibilityFilter(0, 1, max_ancestors/2, max_descendants/2), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used)) ||
-            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, 
+            (m_spend_zero_conf_change && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                 CoinEligibilityFilter(0, 1, max_ancestors-1, max_descendants-1), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used)) ||
-            (m_spend_zero_conf_change && !fRejectLongChains && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs, 
+            (m_spend_zero_conf_change && !fRejectLongChains && SelectCoinsMinConf(nTargetValue - nValueFromPresetInputs,
                 CoinEligibilityFilter(0, 1, std::numeric_limits<uint64_t>::max()), groups, setCoinsRet, nValueRet, coin_selection_params, bnb_used));
     }
     // because SelectCoinsMinConf clears the setCoinsRet, we now add the possible inputs to the coinset
@@ -3018,24 +3018,14 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
     CMutableTransaction txNew;
 
     // emercoin: define some values used in case of namecoin tx creation
-    CAmount nNameTxInCredit = 0;
-    std::vector<CInputCoin> vNameInput;
     for (const auto& r : vecSend) { // TODO r.txNameIn == NULL
         NameTxInfo dummy_nti;
         // We unable to fetch version by the old style like:
         //    txNew.nVersion = tx->nVersion;
-        // Because of we receive NULL-ptr within tx.
+        // Because of we can receive NULL-ptr within tx.
         // Instead, we will set NAMECOIN_TX_VERSION, if this TX has NAME recipient(s)
         if(DecodeNameScript(r.scriptPubKey, dummy_nti))
             txNew.nVersion = NAMECOIN_TX_VERSION;
-        if (r.txNameIn && !r.txNameIn->IsNull()) {
-            std::vector<NameTxInfo> vnti = DecodeNameTx(fMultiName, r.txNameIn);
-            if (vnti.empty())
-                return false;
-            //emcTODO: redo vnti[0] for multi names
-            nNameTxInCredit += r.txNameIn->vout[vnti[0].nOut].nValue; // oleg: "=" to "+="
-            vNameInput.push_back(CInputCoin(r.txNameIn, vnti[0].nOut));
-        }
     }
 
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
@@ -3108,6 +3098,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 txNew.vout.clear();
                 bool fFirst = true;
 
+                // emercoin: add name input
+                if(tx)
+                    txNew.vin = tx->vin;
+
                 CAmount nValueToSelect = nValue;
                 if (nSubtractFeeFromAmount == 0)
                     nValueToSelect += nFeeRet;
@@ -3150,7 +3144,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     coin_selection_params.effective_fee = nFeeRateNeeded;
                     // emercoin: in case of name tx we have already supplied input
                     //           skip coin selection if we have enough money in name input
-                    if (nValueToSelect - nNameTxInCredit > 0 &&
+                    if (nValueToSelect > 0 &&
                         !SelectCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coin_control, coin_selection_params, bnb_used))
                     {
                         // If BnB was used, it was the first pass. No longer the first pass and continue loop with knapsack.
@@ -3166,12 +3160,6 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 } else {
                     bnb_used = false;
                 }
-
-                // emercoin: add name input
-                for (const auto& nameInput : vNameInput) {
-                    setCoins.insert(nameInput);
-                }
-                nValueIn += nNameTxInCredit;
 
                 CAmount nChange = nValueIn - nValueToSelect;
 
@@ -3290,11 +3278,16 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 nFeeRet = nFeeNeeded;
                 coin_selection_params.use_bnb = false;
                 continue;
-            }
+            } // while(true) -- select coins
         }
 
-        // Shuffle selected coins and fill in final vin
+        // Final transaction build
         txNew.vin.clear();
+        // emercoin: add name inputs, and sign them before selected signing
+        if(tx)
+            txNew.vin = tx->vin;
+
+        // Shuffle selected coins and fill in final vin
         std::vector<CInputCoin> selected_coins(setCoins.begin(), setCoins.end());
         Shuffle(selected_coins.begin(), selected_coins.end(), FastRandomContext());
 
@@ -3305,24 +3298,9 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
             txNew.vin.push_back(CTxIn(coin.outpoint, CScript(), nSequence));
         }
 
-        if (sign)
-        {
-            int nIn = 0;
-            for (const auto& coin : selected_coins)
-            {
-                const CScript& scriptPubKey = coin.txout.scriptPubKey;
-                SignatureData sigdata;
-
-                if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&txNew, nIn, coin.txout.nValue, SIGHASH_ALL), scriptPubKey, sigdata))
-                {
-                    strFailReason = _("Signing transaction failed").translated;
-                    return false;
-                } else {
-                    UpdateInput(txNew.vin.at(nIn), sigdata);
-                }
-
-                nIn++;
-            }
+        if (sign && !SignTransaction(txNew)) {
+            strFailReason = _("Unable to sign transaction").translated;
+            return false;
         }
 
         // Return the constructed transaction data.

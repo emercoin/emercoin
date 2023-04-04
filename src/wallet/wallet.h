@@ -345,10 +345,9 @@ struct CRecipient
     CScript scriptPubKey;
     CAmount nAmount;
     bool fSubtractFeeFromAmount;
-    CTransactionRef txNameIn;  //emercoin : used for names, leave as blank otherwise
 
     CRecipient(CScript scriptPubKey_, CAmount nAmount_, bool fSubtractFeeFromAmount_) :
-        scriptPubKey(scriptPubKey_), nAmount(nAmount_), fSubtractFeeFromAmount(fSubtractFeeFromAmount_), txNameIn(nullptr) {}
+        scriptPubKey(scriptPubKey_), nAmount(nAmount_), fSubtractFeeFromAmount(fSubtractFeeFromAmount_)  {}
 };
 
 typedef std::map<std::string, std::string> mapValue_t;
