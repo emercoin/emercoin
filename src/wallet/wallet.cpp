@@ -3024,8 +3024,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         //    txNew.nVersion = tx->nVersion;
         // Because of we can receive NULL-ptr within tx.
         // Instead, we will set NAMECOIN_TX_VERSION, if this TX has NAME recipient(s)
-        if(DecodeNameScript(r.scriptPubKey, dummy_nti))
+        if(DecodeNameScript(r.scriptPubKey, dummy_nti)) {
             txNew.nVersion = NAMECOIN_TX_VERSION;
+            break;
+        }
     }
 
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
@@ -3098,7 +3100,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 txNew.vout.clear();
                 bool fFirst = true;
 
-                // emercoin: add name input
+                // emercoin: add copy of name inputs
                 if(tx)
                     txNew.vin = tx->vin;
 
@@ -3194,7 +3196,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 // Dummy fill vin for maximum size estimation
                 //
                 for (const auto& coin : setCoins) {
-                    txNew.vin.push_back(CTxIn(coin.outpoint,CScript()));
+                    txNew.vin.push_back(CTxIn(coin.outpoint, CScript()));
                 }
 
                 nBytes = CalculateMaximumSignedTxSize(CTransaction(txNew), this, coin_control.fAllowWatchOnly);
@@ -3285,7 +3287,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         txNew.vin.clear();
         // emercoin: add name inputs, and sign them before selected signing
         if(tx)
-            txNew.vin = tx->vin;
+            txNew.vin = std::move(tx->vin);
 
         // Shuffle selected coins and fill in final vin
         std::vector<CInputCoin> selected_coins(setCoins.begin(), setCoins.end());
