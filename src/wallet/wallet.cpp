@@ -2993,42 +2993,37 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         interfaces::Chain::Lock& locked_chain, const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
         int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
 {
-    CAmount nValue = 0;
-    ReserveDestination reservedest(this);
-    int nChangePosRequest = nChangePosInOut;
-    unsigned int nSubtractFeeFromAmount = 0;
-    for (const auto& recipient : vecSend)
-    {
-        if (nValue < 0 || recipient.nAmount < 0)
-        {
-            strFailReason = _("Transaction amounts must not be negative").translated;
-            return false;
-        }
-        nValue += recipient.nAmount;
-
-        if (recipient.fSubtractFeeFromAmount)
-            nSubtractFeeFromAmount++;
-    }
-    if (vecSend.empty())
-    {
+    if (vecSend.empty()) {
         strFailReason = _("Transaction must have at least one recipient").translated;
         return false;
     }
 
+    CAmount nValue = 0;
+    ReserveDestination reservedest(this);
+    int nChangePosRequest = nChangePosInOut;
+    unsigned int nSubtractFeeFromAmount = 0;
+
     CMutableTransaction txNew;
 
     // emercoin: define some values used in case of namecoin tx creation
-    for (const auto& r : vecSend) { // TODO r.txNameIn == NULL
-        NameTxInfo dummy_nti;
+    for (const auto& r : vecSend) {
+        if (nValue < 0 || r.nAmount < 0)  {
+            strFailReason = _("Transaction amounts must not be negative").translated;
+            return false;
+        }
+        nValue += r.nAmount;
+        if (r.fSubtractFeeFromAmount)
+            nSubtractFeeFromAmount++;
         // We unable to fetch version by the old style like:
         //    txNew.nVersion = tx->nVersion;
         // Because of we can receive NULL-ptr within tx.
         // Instead, we will set NAMECOIN_TX_VERSION, if this TX has NAME recipient(s)
-        if(DecodeNameScript(r.scriptPubKey, dummy_nti)) {
+        if(txNew.nVersion == NAMECOIN_TX_VERSION)
+            continue;
+        NameTxInfo dummy_nti;
+        if(DecodeNameScript(r.scriptPubKey, dummy_nti))
             txNew.nVersion = NAMECOIN_TX_VERSION;
-            break;
-        }
-    }
+    } // for vecSend
 
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
 
@@ -3205,10 +3200,15 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     return false;
                 }
 
-                //emcTODO - redo GetMinimumFee
-                nFeeNeeded = GetMinimumFee(*this, nBytes, coin_control, &feeCalc);
-
-                // emc - in case of name input we never want to get bellow the fee needed for name
+                // emercoin: disabled dynamic fee
+                // nFeeNeeded = GetMinimumFee(*this, nBytes, coin_control, &feeCalc);
+                // emcTODOne - redo GetMinimumFee
+                nFeeNeeded = GetMinFee(nBytes); // The simple is best!
+                if(nFeeNeeded > m_default_max_tx_fee) {
+                    strFailReason = _("nFeeNeeded is over maxtxfee, transaction cancelled").translated;
+                    return false;
+                }
+                // emc - in case of name input we never want to get below the fee needed for name
                 if (nFeeInput != 0)
                     nFeeNeeded = std::max(nFeeNeeded, nFeeRet);
 
