@@ -92,6 +92,7 @@ std::shared_ptr<CBlock> FinalizeBlock(std::shared_ptr<CBlock> pblock)
     GenerateCoinbaseCommitment(*pblock, LookupBlockIndex(pblock->hashPrevBlock), Params().GetConsensus());
 
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+    pblock->hashMyself.SetNull(); // emercoin: Clear cache
 
     while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
         ++(pblock->nNonce);

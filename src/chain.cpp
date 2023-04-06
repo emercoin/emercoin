@@ -195,6 +195,7 @@ CBlockHeader CBlockIndex::GetBlockHeader() const {
     if (pprev)
         block.hashPrevBlock = pprev->GetBlockHash();
     block.hashMerkleRoot = hashMerkleRoot;
+    block.hashMyself.SetNull(); // emercoin: Clear cache
     block.nTime          = nTime;
     block.nBits          = nBits;
     block.nNonce         = nNonce;

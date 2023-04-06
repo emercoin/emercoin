@@ -56,6 +56,7 @@ static void DuplicateInputs(benchmark::State& state)
     block.vtx.push_back(MakeTransactionRef(std::move(naughtyTx)));
 
     block.hashMerkleRoot = BlockMerkleRoot(block);
+    block.hashMyself.SetNull(); // emercoin: Clear cache
 
     while (state.KeepRunning()) {
         CValidationState cvstate{};

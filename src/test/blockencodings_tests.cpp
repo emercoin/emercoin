@@ -47,6 +47,7 @@ static CBlock BuildBlockTestCase() {
 
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
+    block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
     while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
     return block;
@@ -295,6 +296,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
 
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
+    block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
     while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
 

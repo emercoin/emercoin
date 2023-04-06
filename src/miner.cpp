@@ -553,6 +553,7 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
 
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+    pblock->hashMyself.SetNull(); // Changed header, need reset cache!
 }
 
 static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainparams)
