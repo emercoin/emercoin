@@ -966,6 +966,7 @@ public:
 
     int64_t nOrderPosNext GUARDED_BY(cs_wallet) = 0;
     uint64_t nAccountingEntryNumber = 0;
+    uint32_t m_nCommitCnt = 0; // Committed TXes through this wallet during current run
 
     std::map<CTxDestination, CAddressBookData> mapAddressBook GUARDED_BY(cs_wallet);
 

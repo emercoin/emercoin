@@ -570,8 +570,12 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         return false;
     std::vector<CTransactionRef> vtxPrev;
     CAmount nValueIn = 0;
-    std::set<CInputCoin> setCoins;
-    {
+    static std::set<CInputCoin> setCoins;
+    static uint32_t prev_committed_txes = ~0; // Undef, need reload setCoins
+    if(pwallet->m_nCommitCnt != prev_committed_txes || GetRand(3 * 3600) == 0) {
+        // Something changed in the wallet, reload setCoins
+        // Also, randomly every ~3 hours to refresh possible unsynch UTXOs (i.e. sent from another wallet)
+        setCoins.clear();
         std::vector<COutput> vAvailableCoins;
         bool include_unsafe = false;
         CCoinControl cctl;
@@ -591,6 +595,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         if (!pwallet->SelectCoins(vAvailableCoins, nBalance - nReserveBalance, setCoins, nValueIn, cctl, coin_selection_params, bnb_used)) {
             return false;
         }
+        prev_committed_txes = pwallet->m_nCommitCnt;
     }
 
     if (setCoins.empty())
@@ -815,5 +820,6 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     delete pbo->value.first;
     pbo->value.first = NULL; // Set "temporary removed"
     CacheBlockOffset.MarkDel(pbo);
+    prev_committed_txes = ~0; // Reload coinset next time, after stake
     return true;
 }

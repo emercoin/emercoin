@@ -3358,7 +3358,7 @@ bool CWallet::CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::ve
     {
         auto locked_chain = chain().lock();
         LOCK(cs_wallet);
-
+        m_nCommitCnt++;
         CWalletTx wtxNew(this, std::move(tx));
         wtxNew.mapValue = std::move(mapValue);
         wtxNew.vOrderForm = std::move(orderForm);
