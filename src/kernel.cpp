@@ -96,7 +96,7 @@ static bool SelectBlockFromCandidates(
             itemSelected = &item;
         }
     } // for
- 
+
     if (itemSelected) {
         if (gArgs.GetBoolArg("-printstakemodifier", false))
             LogPrintf("%s: selection hash=%s\n", __func__, itemSelected->second.ToString());
@@ -118,9 +118,9 @@ static void SwapSort(vector<pair<const CBlockIndex*, arith_uint256> > &v, unsign
 
   if (a.first->GetBlockTime() < b.first->GetBlockTime())
     return;
-  
+
   if (a.first->GetBlockTime() == b.first->GetBlockTime()) {
- 
+
     const uint256& ha = a.first->GetBlockHash(); // needed because of weird g++ (5.4.0 20160609) bug
     const uint256& hb = b.first->GetBlockHash();
     const uint32_t *pa = ha.GetDataPtr();
@@ -130,7 +130,7 @@ static void SwapSort(vector<pair<const CBlockIndex*, arith_uint256> > &v, unsign
       --cnt;
       if(pa[cnt] < pb[cnt])
 	return;
-      if(pa[cnt] > pb[cnt]) 
+      if(pa[cnt] > pb[cnt])
         break; // go to swap
       if(cnt == 0)
 	return;
@@ -152,7 +152,7 @@ static void SwapSort(vector<pair<const CBlockIndex*, arith_uint256> > &v, unsign
 // selected block of a given block group in the past.
 // The selection of a block is based on a hash of the block's proof-hash and
 // the previous stake modifier.
-// Stake modifier is recomputed at a fixed time interval instead of every 
+// Stake modifier is recomputed at a fixed time interval instead of every
 // block. This is to make it difficult for an attacker to gain control of
 // additional bits in the stake modifier, even after generating a chain of
 // blocks.
@@ -336,7 +336,7 @@ static bool GetKernelStakeModifierV03(CBlockIndex* pindexPrev, uint256 hashBlock
     while (nStakeModifierTime < pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval)
     {
         const CBlockIndex* old_pindex = pindex;
-        pindex = (!tmpChain.empty() && pindex->nHeight >= tmpChain[0]->nHeight - 1)? tmpChain[n++] : ::ChainActive().Next(pindex); 
+        pindex = (!tmpChain.empty() && pindex->nHeight >= tmpChain[0]->nHeight - 1)? tmpChain[n++] : ::ChainActive().Next(pindex);
         if (n > tmpChain.size() || pindex == NULL) // check if tmpChain[n+1] exists
         {   // reached best block; may happen if node is behind on block chain
             auto cat = old_pindex->GetBlockTime() + params.nStakeMinAge - nStakeModifierSelectionInterval > GetAdjustedTime() ? BCLog::NONE : BCLog::STAKE;
@@ -371,7 +371,7 @@ static bool GetKernelStakeModifier(CBlockIndex* pindexPrev, uint256 hashBlockFro
 // this ensures that the chance of getting a coinstake is proportional to the
 // amount of coin age one owns.
 // The reason this hash is chosen is the following:
-//   nStakeModifier: 
+//   nStakeModifier:
 //       (v0.5) uses dynamic stake modifier around 21 days before the kernel,
 //              versus static stake modifier about 9 days after the staked
 //              coin (txPrev) used in v0.3
@@ -380,7 +380,7 @@ static bool GetKernelStakeModifier(CBlockIndex* pindexPrev, uint256 hashBlockFro
 //       (v0.2) nBits (deprecated): encodes all past block timestamps
 //   txPrev.block.nTime: prevent nodes from guessing a good timestamp to
 //                       generate transaction for future advantage
-//   txPrev.offset: offset of txPrev inside block, to reduce the chance of 
+//   txPrev.offset: offset of txPrev inside block, to reduce the chance of
 //                  nodes generating coinstake at the same time
 //   txPrev.nTime: reduce the chance of nodes generating coinstake at the same
 //                 time
@@ -430,7 +430,8 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
 
     // Now check if proof-of-stake hash meets target protocol
     bool fPass = !(UintToArith256(hashProofOfStake) > bnCoinDayWeight * bnTargetPerCoinDay);
-
+#if 0
+    // This is debug code, deactivate here
     if (IsProtocolV03(nTimeTx))
         LogPrint(fPass ? BCLog::NONE : BCLog::STAKE, "%s: using modifier 0x%016x at height=%d timestamp=%s for block from height=%d timestamp=%s\n", __func__,
             nStakeModifier, nStakeModifierHeight,
@@ -442,7 +443,7 @@ bool CheckStakeKernelHash(unsigned int nBits, CBlockIndex* pindexPrev, const CBl
         IsProtocolV03(nTimeTx)? nStakeModifier : (uint64_t) nBits,
         nTimeBlockFrom, nTxPrevOffset, txPrev->nTime, prevout.n, nTimeTx,
         hashProofOfStake.ToString());
-
+#endif
     return fPass;
 }
 
@@ -626,7 +627,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
           delete cbh;
           cbh = (CBlockHeader *)0x1; // Error
             }
-      } // ReadTxIndex()
+          } // ReadTxIndex()
 
           if (pbo == NULL) {
               std::pair<CBlockHeader*, unsigned int> bo(cbh, postx.nTxOffset + CBlockHeader::NORMAL_SERIALIZE_SIZE);
@@ -652,43 +653,55 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         if (!g_txindex->FindTx(tx_hash, hashBlock, tx))
             return error("failed to find tx");
 
+        uint256 hashProofOfStake; // Dummy, write only
         bool fKernelFound = false;
         for (unsigned int n=0; n<std::min(nSearchInterval,(int64_t)nMaxStakeSearchInterval) && !fKernelFound; n++)
         {
             // Search backward in time from the given txNew timestamp
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
-            uint256 hashProofOfStake = uint256();
             if (CheckStakeKernelHash(nBits, ::ChainActive().Tip(), header, offset, tx, pcoin.outpoint, txNew.nTime - n, hashProofOfStake))
             {
                 // Found a kernel
-                if (gArgs.GetBoolArg("-printcoinstake", false))
+                bool f_printcoinstake = gArgs.GetBoolArg("-printcoinstake", false);
+                if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : kernel found\n");
                 std::vector<valtype> vSolutions;
                 scriptPubKeyKernel = pcoin.txout.scriptPubKey;
                 txnouttype whichType = Solver(scriptPubKeyKernel, vSolutions);
                 CScript scriptPubKeyOut;
-                if (gArgs.GetBoolArg("-printcoinstake", false))
+                if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : parsed kernel type=%d\n", whichType);
-                if (whichType != TX_PUBKEY && whichType != TX_PUBKEYHASH)
-                {
-                    if (gArgs.GetBoolArg("-printcoinstake", false))
-                        LogPrintf("CreateCoinStake : no support for kernel type=%d\n", whichType);
-                    break;  // only support pay to public key and pay to address
-                }
-                if (whichType == TX_PUBKEYHASH) // pay to address type
-                {
+               if (whichType == TX_PUBKEYHASH             || // was before
+                   whichType == TX_WITNESS_V0_KEYHASH     || // OK on testnet
+                   whichType == TX_WITNESS_V0_SCRIPTHASH  ||
+                   whichType == TX_SCRIPTHASH
+                  ) { // pay to address type
                     // convert to pay to public key type
+                    // we need natural key for sign/verify PoS block
                     CKey key;
                     if (!pwallet->GetKey(CKeyID(uint160(vSolutions[0])), key))
                     {
-                        if (gArgs.GetBoolArg("-printcoinstake", false))
+                        if (f_printcoinstake)
                             LogPrintf("CreateCoinStake : failed to get key for kernel type=%d\n", whichType);
                         break;  // unable to find corresponding public key
                     }
                     scriptPubKeyOut << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
                 }
                 else
+                if(whichType == TX_PUBKEY) {
+                    // Copy as is,
+                    // output like:
+                    // "asm": "026c8805d86bce7a0dd40a0bb5164e071b835beadbccd30fad162130622f7a25be OP_CHECKSIG"
                     scriptPubKeyOut = scriptPubKeyKernel;
+                }
+                else {
+                    // We cannot run minting on TX_MULTISIG or such transaction, since this is
+                    // cannot be modified.
+                    // Also, other TX types are ignored
+                    if (f_printcoinstake)
+                        LogPrintf("CreateCoinStake : no support for kernel type=%d\n", whichType);
+                    break;  // only support pay to public key and pay to address
+                }
 
                 txNew.nTime -= n;
                 txNew.vin.push_back(CTxIn(pcoin.outpoint));
@@ -697,7 +710,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
                 if ((nSplitPos < 0) || (nSplitPos && header.GetBlockTime() + nStakeSplitAge > txNew.nTime && nCredit > nPoWReward))
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake if (age < 90 && value > POW)
-                if (gArgs.GetBoolArg("-printcoinstake", false))
+                if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : added kernel type=%d\n", whichType);
                 fKernelFound = true;
                 break;

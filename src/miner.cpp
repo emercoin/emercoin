@@ -647,7 +647,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                     LOCK2(cs_main, pwallet->cs_wallet);
                     if (!SignBlock(*pblock, *pwallet))
                     {
-                        LogPrintf("PoSMiner(): failed to sign PoS block");
+                        LogPrintf("PoSMiner(): failed to sign PoS block\n");
                         continue;
                     }
                 }
@@ -793,7 +793,7 @@ void static EmercoinMiner(const CChainParams& chainparams)
                         LOCK2(cs_main, pwalletMain->cs_wallet);
                         if (!SignBlock(*pblock, *pwalletMain))
                         {
-                            LogPrintf("PoSMiner(): failed to sign PoS block");
+                            LogPrintf("PoSMiner(): failed to sign PoS block\n");
                             continue;
                         }
 
