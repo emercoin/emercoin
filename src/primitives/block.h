@@ -52,7 +52,7 @@ class CBlockHeader
 public:
     // header
     static const int32_t NORMAL_SERIALIZE_SIZE=80;
-    static const int32_t CURRENT_VERSION=8;
+    static const int32_t CURRENT_VERSION=9; // 0.8.0
     int32_t nVersion;     // emercoin: it might contain merged mining information in higher bits. Use GetBlockVersion() to ignore it.
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
