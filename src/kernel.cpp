@@ -678,7 +678,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 txnouttype whichType = Solver(scriptPubKeyKernel, vSolutions);
                 CScript scriptPubKeyOut;
                 if (f_printcoinstake)
-                    LogPrintf("CreateCoinStake : parsed kernel type=%d\n", whichType);
+                    LogPrintf("CreateCoinStake : parsed kernel type=%s\n", GetTxnOutputType(whichType));
 
                 // On ScriptHash - unpack external P2SH layer, to extract script for future processing
                 if (whichType == TX_WITNESS_V0_SCRIPTHASH || whichType == TX_SCRIPTHASH) {
@@ -691,13 +691,13 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                      // Unpack p2sh and rewrite scriptPubKeyKernel
                      if (!pwallet->GetCScript(scriptID, scriptPubKeyKernel)) {
                         if (f_printcoinstake)
-                            LogPrintf("CreateCoinStake : failed unpack P2SH/P2WSH script for type=%d\n", whichType);
+                            LogPrintf("CreateCoinStake : failed unpack P2SH/P2WSH script for type=%s\n", GetTxnOutputType(whichType));
                         break;  // unable to find corresponding nested p2sh script
                      }
                      // Re-solve nested P2SH/P2WSH script again
                      whichType = Solver(scriptPubKeyKernel, vSolutions);
                         if (f_printcoinstake)
-                            LogPrintf("CreateCoinStake : unpacked P2SH/P2WSH to type=%d\n", whichType);
+                            LogPrintf("CreateCoinStake : unpacked P2SH/P2WSH to type=%s\n", GetTxnOutputType(whichType));
                 } // P2SH/P2WSH
 
                 if (whichType == TX_PUBKEYHASH          || // was before
@@ -709,7 +709,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                     if (!pwallet->GetKey(CKeyID(uint160(vSolutions[0])), key))
                     {
                         if (f_printcoinstake)
-                            LogPrintf("CreateCoinStake : failed to get key for kernel type=%d\n", whichType);
+                            LogPrintf("CreateCoinStake : failed to get key for kernel type=%s\n", GetTxnOutputType(whichType));
                         break;  // unable to find corresponding public key
                     }
                     scriptPubKeyOut << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
@@ -726,7 +726,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                     // cannot be modified.
                     // Also, other TX types are ignored
                     if (f_printcoinstake)
-                        LogPrintf("CreateCoinStake : no support for kernel type=%d\n", whichType);
+                        LogPrintf("CreateCoinStake : no support for kernel type=%d:%s\n", whichType, GetTxnOutputType(whichType));
                     break;  // only support pay to public key and pay to address
                 }
 
@@ -738,7 +738,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 if ((nSplitPos < 0) || (nSplitPos && header.GetBlockTime() + nStakeSplitAge > txNew.nTime && nCredit > nPoWReward))
                     txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake if (age < 90 && value > POW)
                 if (f_printcoinstake)
-                    LogPrintf("CreateCoinStake : added kernel type=%d\n", whichType);
+                    LogPrintf("CreateCoinStake : added kernel type=%s\n", GetTxnOutputType(whichType));
                 fKernelFound = true;
                 break;
             }
