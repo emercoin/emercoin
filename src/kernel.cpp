@@ -550,7 +550,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     static unsigned int nStakeSplitAge = (60 * 60 * 24 * 90);
     LOCK2(cs_main, pwallet->cs_wallet);
     CAmount nPoWReward = GetProofOfWorkReward(GetLastBlockIndex(::ChainActive().Tip(), false)->nBits);
-    CAmount nCombineThreshold = nPoWReward / 3;
+    // used within coinstake collector, disabled since 0.8.0     CAmount nCombineThreshold = nPoWReward / 3;
 
     arith_uint256 bnTargetPerCoinDay;
     bnTargetPerCoinDay.SetCompact(nBits);
@@ -676,10 +676,29 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 CScript scriptPubKeyOut;
                 if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : parsed kernel type=%d\n", whichType);
-               if (whichType == TX_PUBKEYHASH             || // was before
-                   whichType == TX_WITNESS_V0_KEYHASH     || // OK on testnet
-                   whichType == TX_WITNESS_V0_SCRIPTHASH  ||
-                   whichType == TX_SCRIPTHASH
+
+                // On ScriptHash - unpack external P2SH layer, to extract script for future processing
+                if (whichType == TX_WITNESS_V0_SCRIPTHASH || whichType == TX_SCRIPTHASH) {
+                    uint160 hash;
+                    if(whichType == TX_SCRIPTHASH)
+                        hash = uint160(vSolutions[0]);
+                    else
+                        CRIPEMD160().Write(&vSolutions[0][0], vSolutions[0].size()).Finalize(hash.begin());
+                     CScriptID scriptID(hash);
+                     // Unpack p2sh and rewrite scriptPubKeyKernel
+                     if (!pwallet->GetCScript(scriptID, scriptPubKeyKernel)) {
+                        if (f_printcoinstake)
+                            LogPrintf("CreateCoinStake : failed unpack P2SH/P2WSH script for type=%d\n", whichType);
+                        break;  // unable to find corresponding nested p2sh script
+                     }
+                     // Re-solve nested P2SH/P2WSH script again
+                     whichType = Solver(scriptPubKeyKernel, vSolutions);
+                        if (f_printcoinstake)
+                            LogPrintf("CreateCoinStake : unpacked P2SH/P2WSH to type=%d\n", whichType);
+                } // P2SH/P2WSH
+
+                if (whichType == TX_PUBKEYHASH          || // was before
+                    whichType == TX_WITNESS_V0_KEYHASH     // OK on testnet
                   ) { // pay to address type
                     // convert to pay to public key type
                     // we need natural key for sign/verify PoS block
@@ -726,6 +745,12 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     }
     if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
         return false;
+
+#if 0
+    // Disable collect dust into Coinstake TX since 0.8.0, because of:
+    // - practically, it almost never happening
+    // - dust is useful in DP TX optimizer
+    // - after unpack p2sh/p2wsh scriptPubKeyKernel is changed, need control it
     for (const auto& pcoin : setCoins)
     {
         // Attempt to add more inputs
@@ -758,6 +783,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
             vtxPrev.push_back(tx);
         }
     }
+#endif
+
     // Calculate coin age reward
     CAmount nReward = 0;
     {
