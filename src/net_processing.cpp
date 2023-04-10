@@ -3219,14 +3219,23 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 nPoSTemperature += 100;
             }
             if (fNewBlock) {
-                pfrom->nLastBlockTime = GetTime();
+                int64_t blocktime = pblock->nTime;
+                int64_t now = pfrom->nLastBlockTime = GetTime();
+                // Re-broadcast mempool TXes, inserted before this block
+                if(blocktime > now - nMaxClockDrift && g_connman)
+                    LOCK2(::cs_main, ::mempool.cs);
+                    for (const CTxMemPoolEntry& entry : ::mempool.mapTx) {
+                        const CTransaction& tx = entry.GetTx();
+                        if(tx.nTime < blocktime)
+                            RelayTransaction(tx.GetHash(), *g_connman); // Block ahead of our mempool TX -> rebroadcast TX
+                    }
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
-           }
+            }
         } // main while
         return true;
-    }
+    } // if (strCommand == NetMsgType::BLOCK)
 
     if (strCommand == NetMsgType::GETADDR) {
         // This asymmetric behavior for inbound and outbound connections was introduced
