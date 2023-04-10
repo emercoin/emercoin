@@ -1393,7 +1393,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
                 ret.err_msg = "failed to get key from pool";
                 return ret;
             }
-            scriptPubKey = GetScriptForDestination(PKHash(vchPubKey));
+            scriptPubKey = GetScriptForDestination(WitnessV0KeyHash(PKHash(vchPubKey)));
         }
         nameScript += scriptPubKey;
 

@@ -2974,6 +2974,10 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
         return OutputType::LEGACY;
     }
 
+    // Oleg: always change to SegWit in this version
+    return OutputType::BECH32;
+
+#if 0
     // if any destination is P2WPKH or P2WSH, use P2WPKH for the change
     // output.
     for (const auto& recipient : vecSend) {
@@ -2984,7 +2988,7 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
             return OutputType::BECH32;
         }
     }
-
+#endif
     // else use m_default_address_type for change
     return m_default_address_type;
 }
@@ -3006,6 +3010,8 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
     int nChangePosRequest = nChangePosInOut;
     unsigned int nSubtractFeeFromAmount = 0;
 
+    int op_single_name = -1; // Undef NAME_OP
+
     CMutableTransaction txNew;
 
     // emercoin: define some values used in case of namecoin tx creation
@@ -3024,8 +3030,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         if(txNew.nVersion == NAMECOIN_TX_VERSION)
             continue;
         NameTxInfo dummy_nti;
-        if(DecodeNameScript(r.scriptPubKey, dummy_nti))
+        if(DecodeNameScript(r.scriptPubKey, dummy_nti)) {
             txNew.nVersion = NAMECOIN_TX_VERSION;
+            op_single_name = dummy_nti.op;
+        }
     } // for vecSend
 
     txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
@@ -3164,7 +3172,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 CAmount nChange = nValueIn - nValueToSelect;
 
                 // emercoin: For name_udate for single name, move change to name output UTXO
-                if (nChange > 0 && setCoins.empty() && txNew.nVersion == NAMECOIN_TX_VERSION && txNew.vin.size() == 1 && txNew.vout.size() == 1) {
+                if (nChange > 0 && op_single_name == OP_NAME_UPDATE && setCoins.empty() && txNew.vin.size() == 1 && txNew.vout.size() == 1) {
                     std::vector<CTxOut>::iterator change_position = txNew.vout.begin();
                     change_position->nValue += nChange;
                     nChange = 0;

@@ -33,6 +33,9 @@ CAmount GetMinFee(size_t nBytes)
 
 CAmount CFeeRate::GetFee(size_t nBytes_) const
 {
+    // emercoin: return fixed fee
+    return GetMinFee(nBytes_);
+#if 0
     assert(nBytes_ <= uint64_t(std::numeric_limits<int64_t>::max()));
     int64_t nSize = int64_t(nBytes_);
 
@@ -46,6 +49,7 @@ CAmount CFeeRate::GetFee(size_t nBytes_) const
     }
 
     return std::max(nFee, GetMinFee(nSize));
+#endif
 }
 
 std::string CFeeRate::ToString() const

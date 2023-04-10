@@ -165,7 +165,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
     // emercoin: If this is NameTX, remove name-part for standard BTC solver
     bool isNameScript = RemoveNameScriptPrefix(scriptPubKey, scriptWithoutName);
     txnouttype typeRet = SolverInner(isNameScript? scriptWithoutName : scriptPubKey, vSolutionsRet);
-    if(isNameScript) 
+    if(isNameScript)
         switch (typeRet) {
             case TX_PUBKEYHASH:            return TX_NAME_PUBKEYHASH;
             case TX_SCRIPTHASH:            return TX_NAME_SCRIPTHASH;
@@ -198,7 +198,7 @@ bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
     {
         addressRet = ScriptHash(uint160(vSolutions[0]));
         return true;
-    //emcTODO - is name support needed below? oleg fixed
+    //emcTODOne - is name support needed below? oleg fixed
     } else if (whichType == TX_WITNESS_V0_KEYHASH || whichType == TX_NAME_WITNESS_V0_KEYHASH) {
         WitnessV0KeyHash hash;
         std::copy(vSolutions[0].begin(), vSolutions[0].end(), hash.begin());
