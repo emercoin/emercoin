@@ -1411,10 +1411,19 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     // set fee and send!
     std::vector<CRecipient> vecSend;
     CAmount nValue = 0;
+    CAmount nNameTxoutAmount = 0;
+    if (gArgs.IsArgSet("-nametxoutamount") &&
+       (!ParseMoney(gArgs.GetArg("-nametxoutamount", ""), nNameTxoutAmount) || !MoneyRange(nNameTxoutAmount))
+       ) {
+        ret.err_msg = strprintf("Error: Unable to ParseMoney(-nametxoutamount)");
+        return ret;
+    }
+    if(nNameTxoutAmount < MIN_TXOUT_AMOUNT)
+        nNameTxoutAmount = MIN_TXOUT_AMOUNT;
     bool fSubtractFeeFromAmount = false;
     for (const auto& script : vNameScript) {
-        CRecipient recipient = {script, MIN_TXOUT_AMOUNT, fSubtractFeeFromAmount};
-        nValue += MIN_TXOUT_AMOUNT;
+        CRecipient recipient = {script, nNameTxoutAmount, fSubtractFeeFromAmount};
+        nValue += nNameTxoutAmount;
         vecSend.push_back(recipient);
     }
 

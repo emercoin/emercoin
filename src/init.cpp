@@ -593,6 +593,7 @@ void SetupServerArgs()
     gArgs.AddArg("-staketimio", "Stake creation timeout (default: 530 * sqrt(number of wallet txs))", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-checkpointkey", "Checkpoint master key, used to print checkpoints (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printcoinstake", "Print to debug log coinstake kernel processing", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-nametxoutamount", "Amount for attach to NameUTXO. By default, MIN_TX_AMOUNT=0.0001EMC", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // emcdns stuff
     gArgs.AddArg("-emcdns", "Enable emcdns (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);

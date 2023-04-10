@@ -2998,6 +2998,9 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         return false;
     }
 
+    // To keep code more clear, split nFeeInput to credit or debit part
+    CAmount nNameInCredit = (nFeeInput < 0)? -nFeeInput : 0;
+
     CAmount nValue = 0;
     ReserveDestination reservedest(this);
     int nChangePosRequest = nChangePosInOut;
@@ -3077,8 +3080,8 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
             CTxOut change_prototype_txout(0, scriptChange);
             coin_selection_params.change_output_size = GetSerializeSize(change_prototype_txout, PROTOCOL_VERSION);
 
-            // Get the fee rate to use effective values in coin selection
-            CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coin_control, &feeCalc);
+//            // Get the fee rate to use effective values in coin selection
+//            CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coin_control, &feeCalc);
 
             nFeeRet = std::max(nFeeInput, MIN_TX_FEE);  // emercoin: a good starting point, probably...
             bool pick_new_inputs = true;
@@ -3099,7 +3102,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 if(tx)
                     txNew.vin = tx->vin;
 
-                CAmount nValueToSelect = nValue;
+                CAmount nValueToSelect = nValue - nNameInCredit; // Sum of output amounts without NameCredits
                 if (nSubtractFeeFromAmount == 0)
                     nValueToSelect += nFeeRet;
 
@@ -3138,7 +3141,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     } else {
                         coin_selection_params.change_spend_size = (size_t)change_spend_size;
                     }
-                    coin_selection_params.effective_fee = nFeeRateNeeded;
+                    coin_selection_params.effective_fee = MIN_TX_FEE; // emercoin: oleg - fixed rate, no nFeeRateNeeded;
                     // emercoin: in case of name tx we have already supplied input
                     //           skip coin selection if we have enough money in name input
                     if (nValueToSelect > 0 &&
@@ -3159,6 +3162,13 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 }
 
                 CAmount nChange = nValueIn - nValueToSelect;
+
+                // emercoin: For name_udate for single name, move change to name output UTXO
+                if (nChange > 0 && setCoins.empty() && txNew.nVersion == NAMECOIN_TX_VERSION && txNew.vin.size() == 1 && txNew.vout.size() == 1) {
+                    std::vector<CTxOut>::iterator change_position = txNew.vout.begin();
+                    change_position->nValue += nChange;
+                    nChange = 0;
+                }
 
                 // ppcoin: sub-cent change is moved to fee
                 if (nChange > 0 && nChange < MIN_TXOUT_AMOUNT) {
@@ -3209,7 +3219,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     return false;
                 }
                 // emc - in case of name input we never want to get below the fee needed for name
-                if (nFeeInput != 0)
+                if (nFeeInput > 0)
                     nFeeNeeded = std::max(nFeeNeeded, nFeeRet);
 
                 if (feeCalc.reason == FeeReason::FALLBACK && !m_allow_fallback_fee) {
@@ -3342,7 +3352,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
               100 * feeCalc.est.fail.withinTarget / (feeCalc.est.fail.totalConfirmed + feeCalc.est.fail.inMempool + feeCalc.est.fail.leftMempool),
               feeCalc.est.fail.withinTarget, feeCalc.est.fail.totalConfirmed, feeCalc.est.fail.inMempool, feeCalc.est.fail.leftMempool);
     return true;
-}
+} // CreateTransaction
 
 bool CWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
                          int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)

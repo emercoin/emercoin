@@ -28,7 +28,8 @@ static const CAmount MIN_TXOUT_AMOUNT = MIN_TX_FEE;
  * critical; in unusual circumstances like a(nother) overflow bug that allowed
  * for the creation of coins out of thin air modification could lead to a fork.
  * */
-static const CAmount MAX_MONEY = 1000000000 * COIN;
+// emercoin: 10 billions limit (1e+16 coins < 2^63 = 9+e18)
+static const CAmount MAX_MONEY = 10000000000LL * COIN;
 inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
 
 #endif //  BITCOIN_AMOUNT_H
