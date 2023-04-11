@@ -3221,14 +3221,15 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (fNewBlock) {
                 int64_t blocktime = pblock->nTime;
                 int64_t now = pfrom->nLastBlockTime = GetTime();
-                // Re-broadcast mempool TXes, inserted before this block
-                if(blocktime > now - nMaxClockDrift && g_connman)
+                // Re-broadcast mine (my own generated) mempool TXes, inserted before this block
+                // if was not included into this block, and block was not full
+                if(blocktime > now - nMaxClockDrift && pblock->vtx.size() < 2000 && g_connman)
                     LOCK2(::cs_main, ::mempool.cs);
                     for (const CTxMemPoolEntry& entry : ::mempool.mapTx) {
                         const CTransaction& tx = entry.GetTx();
-                        if(tx.nTime < blocktime)
+                        if(entry.IsMine() && tx.nTime < blocktime)
                             RelayTransaction(tx.GetHash(), *g_connman); // Block ahead of our mempool TX -> rebroadcast TX
-                    }
+                    } // for CTxMemPoolEntry& entry
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
