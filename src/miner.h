@@ -176,7 +176,7 @@ private:
     /** Clear the block's state and prepare for assembling a new block */
     void resetBlock();
     /** Add a tx to the block */
-    void AddToBlock(CTxMemPool::txiter iter);
+    bool AddToBlock(CTxMemPool::txiter iter);
 
     // Methods for how to add transactions to a block.
     bool isStillDependent(CTxMemPool::txiter iter);

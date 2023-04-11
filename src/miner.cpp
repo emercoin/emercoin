@@ -228,7 +228,7 @@ void BlockAssembler::onlyUnconfirmed(CTxMemPool::setEntries& testSet)
         }
     }
 }
-
+#if 0
 bool BlockAssembler::TestPackage(uint64_t packageSize, int64_t packageSigOpsCost) const
 {
     // TODO: switch to weight-based accounting for packages instead of vsize-based accounting.
@@ -257,13 +257,17 @@ bool BlockAssembler::TestPackageTransactions(const CTxMemPool::setEntries& packa
     }
     return true;
 }
+#endif
 
-void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
+bool BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
 {
+    size_t new_block_weight = nBlockWeight + iter->GetTxWeight();
+    if(new_block_weight >= nBlockMaxWeight)
+        return false; // Block is full, do not add TX
     pblock->vtx.emplace_back(iter->GetSharedTx());
     pblocktemplate->vTxFees.push_back(iter->GetFee());
     pblocktemplate->vTxSigOpsCost.push_back(iter->GetSigOpCost());
-    nBlockWeight += iter->GetTxWeight();
+    nBlockWeight = new_block_weight;
     ++nBlockTx;
     nBlockSigOpsCost += iter->GetSigOpCost();
     nFees += iter->GetFee();
@@ -275,6 +279,7 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
                   CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
                   iter->GetTx().GetHash().ToString());
     }
+    return true;
 }
 
 int BlockAssembler::UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded,
@@ -329,7 +334,8 @@ void BlockAssembler::SortForBlock(const CTxMemPool::setEntries& package, std::ve
     sortedEntries.insert(sortedEntries.begin(), package.begin(), package.end());
     std::sort(sortedEntries.begin(), sortedEntries.end(), CompareTxIterByAncestorCount());
 }
-
+#if 0
+/// Oleg: anyway, not used
 // This transaction selection algorithm orders the mempool based
 // on feerate of a transaction including all unconfirmed ancestors.
 // Since we don't remove transactions from the mempool as we select them
@@ -469,6 +475,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
         nDescendantsUpdated += UpdatePackagesForAdded(ancestors, mapModifiedTx);
     }
 }
+#endif
 
 bool BlockAssembler::isStillDependent(CTxMemPool::txiter iter)
 {
@@ -521,7 +528,8 @@ void BlockAssembler::addTxs()
         if (iter->GetTx().nTime > GetAdjustedTime() || (pblock->IsProofOfStake() && iter->GetTx().nTime > pblock->vtx[1]->nTime))
             continue;
 
-        AddToBlock(iter);
+        if(!AddToBlock(iter))
+            break; // Block is full
 
         // This tx was successfully added, so
         // add transactions that depend on this one to the stack to try again
@@ -533,8 +541,8 @@ void BlockAssembler::addTxs()
                 waitSet.erase(witer);
             }
         }
-    }
-}
+    } //  while (!stack.empty())
+} // BlockAssembler::addTxs()
 
 void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned int& nExtraNonce)
 {
