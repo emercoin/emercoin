@@ -129,7 +129,7 @@ bool AcceptPendingSyncCheckpoint()
         return false;
     }
 
-    //emcTODO - redo this somehow
+    //emcTODOne - redo this somehow [EM: not implemented in 0.7.x]
 //    CBlockIndex* pindexCheckpoint = mapBlockIndex[hashPendingCheckpoint];
 //    if (pindexCheckpoint->nStatus & BLOCK_HAVE_DATA && !::ChainActive().Contains(mapBlockIndex[hashPendingCheckpoint])) {
 //        CValidationState state;
@@ -352,7 +352,7 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint()
         LogPrintf("ProcessSyncCheckpoint: pending for sync-checkpoint %s\n", hashCheckpoint.ToString());
         // Ask this guy to fill in what we're missing
 //        if (pfrom) {
-            //emcTODO - redo this somehow
+            //emcTODOne - redo this somehow [EM: not implemented in 0.7.x]
 //            pfrom->PushGetBlocks(pindexBest, hashCheckpoint);
 //            // ask directly as well in case rejected earlier by duplicate
 //            // proof-of-stake because getblocks may not get it this time
@@ -364,7 +364,7 @@ bool CSyncCheckpoint::ProcessSyncCheckpoint()
     if (!CheckpointsSync::ValidateSyncCheckpoint(hashCheckpoint))
         return false;
 
-    //emcTODO - redo this somehow
+    //emcTODOne - redo this somehow [EM: not implemented in 0.7.x]
 //    if (pindexCheckpoint->nStatus & BLOCK_HAVE_DATA && !::ChainActive().Contains(pindexCheckpoint))
 //    {
 //        // checkpoint chain received but not yet main chain

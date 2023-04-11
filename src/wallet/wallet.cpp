@@ -3250,7 +3250,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     if (nChangePosInOut == -1 && nSubtractFeeFromAmount == 0 && pick_new_inputs) {
                         unsigned int tx_size_with_change = nBytes + coin_selection_params.change_output_size + 2; // Add 2 as a buffer in case increasing # of outputs changes compact size
                         CAmount fee_needed_with_change = GetMinimumFee(*this, tx_size_with_change, coin_control, nullptr);
-                        CAmount minimum_value_for_change = MIN_TXOUT_AMOUNT;  //emcTODO - perhaps tweak this value to be larger?
+                        CAmount minimum_value_for_change = MIN_TXOUT_AMOUNT;  //emcTODOne [EM] - perhaps tweak this value to be larger?
                         if (nFeeRet >= fee_needed_with_change + minimum_value_for_change) {
                             pick_new_inputs = false;
                             nFeeRet = fee_needed_with_change;
@@ -4792,7 +4792,7 @@ void CWallet::LearnRelatedScripts(const CPubKey& key, OutputType type)
         CTxDestination witdest = WitnessV0KeyHash(key.GetID());
         CScript witprog = GetScriptForDestination(witdest);
         // Make sure the resulting program is solvable.
-        assert(IsSolvable(*this, witprog, 0));  //emcTODO - compress new name transactions by default
+        assert(IsSolvable(*this, witprog, 0));  //emcTODOne - compress new name transactions by default [EM]
         AddCScript(witprog);
     }
 }

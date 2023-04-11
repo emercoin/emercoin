@@ -504,7 +504,7 @@ QString MintingTableModel::formatTxBalance(const KernelRecord *wtx) const
 
 QVariant MintingTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-//    section = std::max(0, section);  //emcTODO: bug: section == -1 when pressing refresh button after minting
+//    section = std::max(0, section);  //emcTODOne: bug: section == -1 when pressing refresh button after minting [EM moved from 0.7.x]
 
     if(orientation == Qt::Horizontal)
     {

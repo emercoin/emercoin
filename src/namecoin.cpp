@@ -1451,7 +1451,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     }
 
     //success! collect info and return
-    //emcTODO - return a list of addresses? (currently addressed aren't used)
+    //emcTODOne - return a list of addresses? (currently addressed aren't used)
     // Used in GUI only, there is single address
     CTxDestination address;
     if (ExtractDestination(vNameScript[0], address)) {
