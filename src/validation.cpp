@@ -826,7 +826,8 @@ bool MemPoolAccept::Finalize(ATMPArgs& args, Workspace& ws)
 
 bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef& ptx, ATMPArgs& args)
 {
-    //emcTODO - make sure that randpay check is used inside calls that accepts args when it is needed
+    //emcTODOne - make sure that randpay check is used inside calls that accepts args when it is needed
+    // both blockchain downloaded OK, including randpay TXes
     AssertLockHeld(cs_main);
     LOCK(m_pool.cs); // mempool "read lock" (held through GetMainSignals().TransactionAddedToMempool())
 
@@ -1093,7 +1094,7 @@ CAmount GetProofOfWorkReward(unsigned int nBits)
 
     CAmount nSubsidy = bnUpperBound.getuint64();
     //nSubsidy = fV7Enabled ? (nSubsidy / TX_DP_AMOUNT) * TX_DP_AMOUNT : (nSubsidy / CENT) * CENT;
-    //emcTODO - see if this code works without fV7Enabled flag
+    //emcTODOne - see if this code works without fV7Enabled flag: seems work
     nSubsidy = (nSubsidy / TX_DP_AMOUNT) * TX_DP_AMOUNT;
 
     if (gArgs.GetBoolArg("-printcreation", false))
@@ -1143,16 +1144,14 @@ void CChainState::InitCoinsCache()
 //
 bool CChainState::IsInitialBlockDownload() const
 {
-    //emcTODO - maybe re-add Oleg optimizations
+    //emcTODOne - maybe re-add Oleg optimizations
     // Optimization: pre-test latch before taking the lock.
-    if (m_cached_finished_ibd.load(std::memory_order_relaxed))
-        return false;
-
-    LOCK(cs_main);
+    // ibd == InitialBlocksDone. False, when started, true when done
     if (m_cached_finished_ibd.load(std::memory_order_relaxed))
         return false;
     if (fImporting || fReindex)
         return true;
+    LOCK(cs_main);
     if (m_chain.Tip() == nullptr)
         return true;
     if (m_chain.Tip()->nChainTrust < nMinimumChainTrust)
@@ -1594,7 +1593,9 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
         if (!alternate.IsSpent()) {
             undo.nHeight = alternate.nHeight;
             undo.fCoinBase = alternate.fCoinBase;
-            //emcTODO - do we need undo.fCoinStake and undo.nTime?
+            //emcTODOne - do we need undo.fCoinStake and undo.nTime? I think, YES. Added. Need check more.
+            undo.fCoinStake = alternate.fCoinStake;
+            undo.nTime      = alternate.nTime;
         } else {
             return DISCONNECT_FAILED; // adding output for transaction without known metadata
         }
@@ -5133,7 +5134,7 @@ bool LoadMempool(CTxMemPool& pool)
             if (nTime + nExpiryTimeout > nNow) {
                 LOCK(cs_main);
                 AcceptToMemoryPoolWithTime(chainparams, pool, state, tx, nullptr /* pfMissingInputs */, nTime,
-                                           false /* bypass_limits */, 0 /* nAbsurdFee */, false /* test_accept */); //emcTODO - is randpay check needed here?
+                                           false /* bypass_limits */, 0 /* nAbsurdFee */, false /* test_accept */); //emcTODOne - is randpay check needed here? NO.
                 if (state.IsValid()) {
                     ++count;
                 } else {
