@@ -295,9 +295,10 @@ void UnlinkPrunedFiles(const std::set<int>& setFilesToPrune);
 void PruneBlockFilesManual(int nManualPruneHeight);
 
 /** (try to) add transaction to memory pool */
-//emcTODO - check places from where AcceptToMemoryPool should be called with fRandPayCheck = true
+//emcTODOne - check places from where AcceptToMemoryPool should be called with fRandPayCheck = true
+// UPD: fRandPayCheck always true, parm removed
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool* pfMissingInputs,
-                        bool bypass_limits, const CAmount nAbsurdFee, bool test_accept=false, bool fRandPayCheck=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+                        bool bypass_limits, const CAmount nAbsurdFee, bool test_accept=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight);

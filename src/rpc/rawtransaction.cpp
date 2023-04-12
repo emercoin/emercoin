@@ -1816,7 +1816,7 @@ UniValue randpay_createaddrchap(const JSONRPCRequest& request)
     int32_t nTimio = request.params[1].get_int();
 
     arith_uint256 barrier = ((arith_uint256(1) << 160) / nRisk) * nRisk;
-    RandKeyT keyt; 
+    RandKeyT keyt;
     arith_uint256 X;
     do {
         keyt.key.MakeNewKey(true);
@@ -1937,7 +1937,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     return result[(err.isNull() || err.get_str().empty())? "hex" : "error"].get_str();
 }
 
-#endif   // #ifdef ENABLE_WALLET 
+#endif   // #ifdef ENABLE_WALLET
 
 UniValue randpay_submittx(const JSONRPCRequest& request)
 {
@@ -1976,7 +1976,7 @@ UniValue randpay_submittx(const JSONRPCRequest& request)
     LOCK2(cs_main, pwallet->cs_wallet);
 
     //emcTODO - following commented code is not need, if AcceptToMemoryPool() rejects adding already existing TXID. Need check.
-#if 0    
+#if 0
     CCoinsView viewDummy;
     CCoinsViewCache view(&viewDummy);
     //emcTODO redo this
@@ -1995,7 +1995,7 @@ UniValue randpay_submittx(const JSONRPCRequest& request)
     CAmount nMaxRawTxFee = 0;
     bool fRandPayCheck = true;
     // note: if (fRandPayCheck == true) it will do all checks but it will not accept tx to the pool at the end
-    bool fPass = AcceptToMemoryPool(mempool, state, tx, &fMissingInputs, NULL, false, nMaxRawTxFee, fRandPayCheck);
+    bool fPass = AcceptToMemoryPool(mempool, state, tx, &fMissingInputs, false /* bypass limits */ , nMaxRawTxFee, fRandPayCheck /* test_accept */);
 
     int32_t rpn = -1; // randpay-in index in the vin[]
     if (!fPass) {

@@ -74,7 +74,7 @@ private:
     const int64_t nTime;            //!< Local time when entering the mempool
     const unsigned int entryHeight; //!< Chain height when entering the mempool
     const bool spendsCoinbase;      //!< keep track of transactions that spend a coinbase
-    const bool is_mine;             //!< TX generated in this wallet, will re-broadcvast, if need
+    const bool is_mine;             //!< TX generated in this wallet, will re-broadcast, if need
     const int64_t sigOpCost;        //!< Total sigop cost
     int64_t feeDelta;          //!< Used for determining the priority of the transaction for mining in a block
     LockPoints lockPoints;     //!< Track the height and time at which tx was final

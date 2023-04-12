@@ -202,7 +202,8 @@ static void FindFilesToPrune(std::set<int>& setFilesToPrune, uint64_t nPruneAfte
 // emercoin:
 // If fRandPayLast is passed it will do a seperate check for randpay at last step and it if failed it will use REJECT_RANDPAY code.
 // This is used to understand why tx failed - because randpay check or because of other reasons.
-bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, unsigned int flags, bool cacheSigStore, bool cacheFullScriptStore, PrecomputedTransactionData& txdata, std::vector<CScriptCheck> *pvChecks = nullptr, bool fRandPayLast=false);
+// UPD: fRandPayLast performed ALWAYS, flag deleted
+bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, unsigned int flags, bool cacheSigStore, bool cacheFullScriptStore, PrecomputedTransactionData& txdata, std::vector<CScriptCheck> *pvChecks = nullptr);
 static FILE* OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false);
 static FlatFileSeq BlockFileSeq();
 static FlatFileSeq UndoFileSeq();
@@ -473,8 +474,7 @@ public:
          * the mempool.
          */
         std::vector<COutPoint>& m_coins_to_uncache;
-        const bool m_test_accept;
-        bool fRandPayCheck;
+        const bool m_test_accept; // Used for testmempoolaccept & Randpay
     };
 
     // Single transaction acceptance
@@ -733,7 +733,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     }
 
     return true;
-    //emcTODO - add code somewhere that deals with fRandPayCheck
+    //emcTODOne - add code somewhere that deals with fRandPayCheck: fixed: MemPoolAccept::AcceptSingleTransaction handles args.m_test_accept
 }
 
 bool MemPoolAccept::PolicyScriptChecks(ATMPArgs& args, Workspace& ws, PrecomputedTransactionData& txdata)
@@ -861,10 +861,10 @@ bool MemPoolAccept::AcceptSingleTransaction(const CTransactionRef& ptx, ATMPArgs
 
 /** (try to) add transaction to memory pool with a specified acceptance time **/
 static bool AcceptToMemoryPoolWithTime(const CChainParams& chainparams, CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx,
-                        bool* pfMissingInputs, int64_t nAcceptTime, bool bypass_limits, const CAmount nAbsurdFee, bool test_accept, bool fRandPayCheck=false) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+                        bool* pfMissingInputs, int64_t nAcceptTime, bool bypass_limits, const CAmount nAbsurdFee, bool test_accept) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     std::vector<COutPoint> coins_to_uncache;
-    MemPoolAccept::ATMPArgs args { chainparams, state, pfMissingInputs, nAcceptTime, bypass_limits, nAbsurdFee, coins_to_uncache, test_accept, fRandPayCheck };
+    MemPoolAccept::ATMPArgs args { chainparams, state, pfMissingInputs, nAcceptTime, bypass_limits, nAbsurdFee, coins_to_uncache, test_accept };
     bool res = MemPoolAccept(pool).AcceptSingleTransaction(tx, args);
     if (!res) {
         // Remove coins that were not present in the coins cache before calling ATMPW;
@@ -882,10 +882,10 @@ static bool AcceptToMemoryPoolWithTime(const CChainParams& chainparams, CTxMemPo
 }
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool* pfMissingInputs,
-                        bool bypass_limits, const CAmount nAbsurdFee, bool test_accept, bool fRandPayCheck)
+                        bool bypass_limits, const CAmount nAbsurdFee, bool test_accept)
 {
     const CChainParams& chainparams = Params();
-    return AcceptToMemoryPoolWithTime(chainparams, pool, state, tx, pfMissingInputs, GetTime(), bypass_limits, nAbsurdFee, test_accept, fRandPayCheck);
+    return AcceptToMemoryPoolWithTime(chainparams, pool, state, tx, pfMissingInputs, GetTime(), bypass_limits, nAbsurdFee, test_accept);
 }
 
 /**
@@ -1391,7 +1391,7 @@ void InitScriptExecutionCache() {
  *
  * Non-static (and re-declared) in src/test/txvalidationcache_tests.cpp
  */
-bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, unsigned int flags, bool cacheSigStore, bool cacheFullScriptStore, PrecomputedTransactionData& txdata, std::vector<CScriptCheck> *pvChecks, bool fRandPayLast) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
+bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsViewCache &inputs, unsigned int flags, bool cacheSigStore, bool cacheFullScriptStore, PrecomputedTransactionData& txdata, std::vector<CScriptCheck> *pvChecks) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     if (tx.IsCoinBase()) return true;
 
@@ -1421,7 +1421,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         assert(!coin.IsSpent());
 
         // emercoin: skip randpay check to do it as a last step
-        if (fRandPayLast && prevout.hash == randpaytx) {
+        if (prevout.hash == randpaytx) {
             nRandPayPos = i;
             continue;
         }
@@ -1465,7 +1465,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         }
     }
     // emercoin: copy of above checks for randpay tx
-    if (fRandPayLast && nRandPayPos != -1) {
+    if (nRandPayPos != -1) {
         unsigned int i = nRandPayPos;
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);
@@ -1480,9 +1480,9 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 CScriptCheck check2(coin.out, tx, i,
                         flags & ~STANDARD_NOT_MANDATORY_VERIFY_FLAGS, cacheSigStore, &txdata);
                 if (check2())
-                    return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_NONSTANDARD, strprintf("non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
+                    return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_RANDPAY, strprintf("randpay: non-mandatory-script-verify-flag (%s)", ScriptErrorString(check.GetScriptError())));
             }
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, strprintf("mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_RANDPAY, strprintf("randpay: mandatory-script-verify-flag-failed (%s)", ScriptErrorString(check.GetScriptError())));
         }
     }
 
