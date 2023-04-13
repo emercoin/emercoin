@@ -1421,6 +1421,9 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
 
         // emercoin: skip randpay check to do it as a last step
         if (prevout.hash == randpaytx) {
+            // Must not happen, because this already validated within CheckTransaction. But let it will be for sanity.
+            if(nRandPayPos >= 0)
+                return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_RANDPAY, strprintf("randpay: duplicate RanpayIn, positions: %d, %d", nRandPayPos, i));
             nRandPayPos = i;
             continue;
         }
@@ -1464,7 +1467,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         }
     }
     // emercoin: copy of above checks for randpay tx
-    if (nRandPayPos != -1) {
+    if (nRandPayPos >= 0) {
         unsigned int i = nRandPayPos;
         const COutPoint &prevout = tx.vin[i].prevout;
         const Coin& coin = inputs.AccessCoin(prevout);

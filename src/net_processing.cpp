@@ -3223,13 +3223,19 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 int64_t now = pfrom->nLastBlockTime = GetTime();
                 // Re-broadcast mine (my own generated) mempool TXes, inserted before this block
                 // if was not included into this block, and block was not full
-                if(blocktime > now - nMaxClockDrift && pblock->vtx.size() < 2000 && g_connman)
-                    LOCK2(::cs_main, ::mempool.cs);
-                    for (const CTxMemPoolEntry& entry : ::mempool.mapTx) {
-                        const CTransaction& tx = entry.GetTx();
-                        if(entry.IsMine() && tx.nTime < blocktime)
-                            RelayTransaction(tx.GetHash(), *g_connman); // Block ahead of our mempool TX -> rebroadcast TX
-                    } // for CTxMemPoolEntry& entry
+                if(blocktime > now - nMaxClockDrift && pblock->vtx.size() < 2000 && g_connman) {
+                    std::vector<uint256> abandoned_txes;
+                    {
+                        LOCK(::mempool.cs);
+                        for (const CTxMemPoolEntry& entry : ::mempool.mapTx) {
+                            const CTransaction& tx = entry.GetTx();
+                            if(entry.IsMine() && tx.nTime < blocktime)
+                                abandoned_txes.push_back(tx.GetHash());
+                        } // for CTxMemPoolEntry& entry
+                    } // LOCK(::mempool.cs);
+                    for(const uint256 &txid : abandoned_txes)
+                        RelayTransaction(txid, *g_connman); // Block ahead of our mempool TX -> rebroadcast TX
+                } // fresh and incomplete block
             } else {
                 LOCK(cs_main);
                 mapBlockSource.erase(pblock->GetHash());
