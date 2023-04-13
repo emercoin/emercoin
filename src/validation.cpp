@@ -1596,9 +1596,12 @@ int ApplyTxInUndo(Coin&& undo, CCoinsViewCache& view, const COutPoint& out)
         if (!alternate.IsSpent()) {
             undo.nHeight = alternate.nHeight;
             undo.fCoinBase = alternate.fCoinBase;
-            //emcTODOne - do we need undo.fCoinStake and undo.nTime? I think, YES. Added. Need check more.
+            //emcTODO - do we need undo.fCoinStake and undo.nTime? I think, YES. Added. Need check more.
             undo.fCoinStake = alternate.fCoinStake;
-            undo.nTime      = alternate.nTime;
+            // Tried undo.nTime, got the error on TX=0d049e122d0adf4d993b9a5e5a0f2ebaebf74d016416d3dc8db19d2ae508b743
+            // bad-txns-spent-too-early
+            // Checked TX times - they are OK. Thus, seems like this undo generates error
+            /// !!!!! undo.nTime      = alternate.nTime;
         } else {
             return DISCONNECT_FAILED; // adding output for transaction without known metadata
         }
