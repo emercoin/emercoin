@@ -184,7 +184,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
         // ppcoin: check transaction timestamp
         if (coin.nTime > tx.nTime)
-            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-spent-too-early");
+            return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-spent-too-early",
+                    strprintf("coin.nTime=%d > tx.nTime=%d", coin.nTime, tx.nTime));
 
         // Check for negative or overflow input values
         nValueIn += coin.out.nValue;
