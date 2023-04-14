@@ -414,19 +414,33 @@ static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
 // 0 - no protection
 // 1 - Protect for realtime only, no protection at initial download
 // 2 - Full protection, including initial download
-static bool NeedBanPOS() {
+static bool MaybeBanPoS(const CNetAddr &addr) {
     static int posprotect = -1;
-    if(posprotect < 0) {
+    if(posprotect < 0)
         posprotect = gArgs.GetArg("-posprotect", 0);
-        //if(Params().NetworkIDString() == "test")
-        //    posprotect = 0; // allow everything for testnet
-    }
     switch(posprotect) {
         case 0: return false;
-        case 1: return !::ChainstateActive().IsInitialBlockDownload();
-        default: return true;
-    }
-}
+        case 1: if(::ChainstateActive().IsInitialBlockDownload())
+                    return false;
+                // Force cooling after initial download: drop temp to 1/2 of max on testnet or another case,
+                // when temperature increased too high during initial download.
+                // It is need to preventing ban peers with initial high temperature
+                for(auto it : mapPoSTemperature)
+                    if(it.second >= MAX_CONSECUTIVE_POS_HEADERS)
+                        it.second = MAX_CONSECUTIVE_POS_HEADERS / 2;
+                posprotect = 2; // next time, skip this force cooling
+                // IsInitialBlockDownload ends - passthroug to 2
+        default:
+                int32_t& nPoSTemperature = mapPoSTemperature[addr];
+                if(nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
+                    nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS * 3) / 4;
+                    if(g_banman)
+                        g_banman->Ban(addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
+                    return true;
+                 }
+                 return false;
+    } // switch
+} // MaybeBanPoS
 
 static CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
@@ -1040,20 +1054,6 @@ static bool TxRelayMayResultInDisconnect(const CValidationState& state)
  * Changes here may need to be reflected in TxRelayMayResultInDisconnect().
  */
 static bool MaybePunishNode(NodeId nodeid, const CValidationState& state, bool via_compact_block, const std::string& message = "") {
-//emcTODO: add this code
-//                    if (nPoSTemperature >= 200) {
-//                        // A lot of PoS headers followed by some failed header (most likely PoW).
-//                        // This situation is very unusual, because normaly you don't get a failed PoW header with a ton of PoS headers.
-//                        // Probably out of memory attack. Punish peer for a long time.
-//                        nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-//                        if (Params().NetworkIDString() != "test")
-//                            g_connman->Ban(pfrom->addr, BanReasonNodeMisbehaving,gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-//                    } else {
-//                        nPoSTemperature *= 3;
-//                        Misbehaving(pfrom->GetId(), nDoS);
-//                    }
-
-
     switch (state.GetReason()) {
     case ValidationInvalidReason::NONE:
         break;
@@ -1731,6 +1731,8 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
             return false;
         }
     }
+    if(MaybeBanPoS(pfrom->addr))
+        return false;
     pfrom->lastAcceptedHeader = headers.back().GetHash();
 
     {
@@ -1965,8 +1967,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
     if (strCommand == NetMsgType::VERSION) {
         auto it = mapPoSTemperature.find(pfrom->addr);
-        if (it == mapPoSTemperature.end())
-            mapPoSTemperature[pfrom->addr] = MAX_CONSECUTIVE_POS_HEADERS/4;
+        if (it == mapPoSTemperature.end()) {
+            LOCK(cs_main);
+            mapPoSTemperature[pfrom->addr] = MAX_CONSECUTIVE_POS_HEADERS / 4; // Initial suspicious
+        }
         // Each connection can only send one version message
         if (pfrom->nVersion != 0)
         {
@@ -2754,18 +2758,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         }
 
-        if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-            nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-            int bantime = gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME);
-            if (NeedBanPOS())
-                bantime *= 7;
-            else if (::ChainstateActive().IsInitialBlockDownload())
-                bantime = 0;
-            if (bantime) {
-              g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving, bantime);
+        if(MaybeBanPoS(pfrom->addr))
               return error("too many consecutive pos headers");
-            }
-        }
 
         // When we succeed in decoding a block's txids from a cmpctblock
         // message we typically jump to the BLOCKTXN handling code, with a
@@ -3052,13 +3046,14 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         headers.resize(nCount);
         {
         LOCK(cs_main);
-        int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-        int nTmpPoSTemperature = nPoSTemperature;
+        // int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
+        // int nTmpPoSTemperature = nPoSTemperature;
         for (unsigned int n = 0; n < nCount; n++) {
             vRecv >> headers[n];
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
             ReadCompactSize(vRecv); // ignore vchBlockSig.
-
+#if 0
+            // Oleg: Moved pos temperature check into ProcessNewBlockHeaders()
             // emercoin: quick check to see if we should ban peers for PoS spam
             // note: at this point we don't know if PoW headers are valid - we just assume they are
             // so we need to update pfrom->nPoSTemperature once we actualy check them
@@ -3069,14 +3064,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                 nTmpPoSTemperature += POW_HEADER_COOLING;
             nTmpPoSTemperature = std::max(nTmpPoSTemperature, 0);
             if (nTmpPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                if (NeedBanPOS()) {
-                    g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving,gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
+                nPoSTemperature = nTmpPoSTemperature; // Activate ban, if need for MaybeBanPoS()
+                if(MaybeBanPoS(pfrom->addr))
                     return error("too many consecutive pos headers");
-                }
             }
-        }
-        }
+#endif
+        } // for
+        } // lock
 
         return ProcessHeadersMessage(pfrom, connman, headers, chainparams, /*via_compact_block=*/false);
     }
@@ -3125,17 +3119,13 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
 
             if (!fRequested) {
-                int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-                if (nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                    nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS*3)/4;
-                    if (NeedBanPOS()) {
-                        g_banman->Ban(pfrom->addr, BanReasonNodeMisbehaving,gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-                        return error("too many consecutive pos headers");
-                    }
+                if (pblock2->IsProofOfStake() && !::ChainstateActive().IsInitialBlockDownload()) {
+                    int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
+                    nPoSTemperature += 1;
                 }
 
-                if (pblock2->IsProofOfStake() && !::ChainstateActive().IsInitialBlockDownload())
-                    nPoSTemperature += 1;
+                if(MaybeBanPoS(pfrom->addr))
+                    return error("too many consecutive pos headers");
 
                 if (!headerPrev->IsValid(BLOCK_VALID_TRANSACTIONS)) {
                     MarkBlockAsReceived(hash2);

@@ -68,6 +68,8 @@
 #define MICRO 0.000001
 #define MILLI 0.001
 
+#include <net.h> // for MAX_CONSECUTIVE_POS_HEADERS
+
 bool CBlockIndexWorkComparator::operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
     // First sort by most total work, ...
     if (pa->nChainTrust > pb->nChainTrust) return false;
@@ -3690,23 +3692,24 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
 // Exposed wrapper for AcceptBlockHeader
 bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAcceptedHeader, const std::vector<CBlockHeader>& headers, CValidationState& state, const CChainParams& chainparams, const CBlockIndex** ppindex, CBlockHeader *first_invalid)
 {
-    if (first_invalid != nullptr) first_invalid->SetNull();
-    {
-        int  nCooling         = POW_HEADER_COOLING;
-        bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
+    if (first_invalid != nullptr)
+        first_invalid->SetNull();
+    int  nCooling         = POW_HEADER_COOLING;
+    bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
 
+    const uint256 *prev_block_hash = lastAcceptedHeader.IsNull()? &headers[0].hashPrevBlock : &lastAcceptedHeader;
+
+    if (headers[0].hashPrevBlock != *prev_block_hash) {
+        nPoSTemperature += 3;
+        nCooling         = POW_HEADER_COOLING / 8;
+    }
+
+    int nLastCheckpointHeight = GetLastHardCheckpointHeight();
+    CBlockIndex *pindex; // Use a temp pindex instead of ppindex to avoid a const_cast
+
+    {
         LOCK(cs_main);
 
-        if (headers[0].hashPrevBlock != lastAcceptedHeader && !lastAcceptedHeader.IsNull()) {
-            nPoSTemperature += 3;
-            nCooling         = 0;
-        }
-
-        static int nLastCheckpointHeight = 0;
-        if (nLastCheckpointHeight == 0)
-            nLastCheckpointHeight = chainparams.Checkpoints().mapCheckpoints.rbegin()->first;
-
-        CBlockIndex *pindex; // Use a temp pindex instead of ppindex to avoid a const_cast
         for (const CBlockHeader& header : headers) {
             bool fPoS = header.nFlags & BLOCK_PROOF_OF_STAKE;
             bool fHaveHeader = LookupBlockIndex(header.GetHash()) != nullptr;
@@ -3729,6 +3732,10 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
                 }
             }
 
+            if(header.hashPrevBlock != *prev_block_hash)
+                nPoSTemperature += POW_HEADER_COOLING;
+            prev_block_hash = &header.hashMyself; // Micro-hack - remeber ptr to inner cache of BlockHash
+
             // emercoin: sometimes multiple peers will send us the same headers
             // this is not necessarily an attack, so we don't want end up banning honest peers
             if (fHaveHeader)
@@ -3736,7 +3743,12 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
 
             if (!fPoS) { // PoW - cooling
                 nPoSTemperature = std::max((int)nPoSTemperature - nCooling, 0);
-            } // PoW
+            } else { // PoS - increase temperature
+                nPoSTemperature++; // Maybe add floating temp-rate
+            }
+             // fprintf(stderr, "nPoSTemperature=%d cool=%d fpos=%d\n", nPoSTemperature, nCooling, fPoS);
+             // ATTN: Do not abort accepting headers or make another decision here!
+             // On testnet, this is normal situation, when temperature is over!
         } // for
         CleanMapBlockIndex();
     } // LOCK
