@@ -1139,6 +1139,14 @@ void CChainState::InitCoinsCache()
     m_coins_views->InitCache();
 }
 
+
+static int GetLastHardCheckpointHeight() {
+    static int nLastHardCheckpointHeight = 0;
+    if (nLastHardCheckpointHeight == 0)
+        nLastHardCheckpointHeight = Params().Checkpoints().mapCheckpoints.rbegin()->first;
+    return nLastHardCheckpointHeight;
+}
+
 // Note that though this is marked const, we may end up modifying `m_cached_finished_ibd`, which
 // is a performance-related implementation detail. This function must be marked
 // `const` so that `CValidationInterface` clients (which are given a `const CChainState*`)
@@ -1146,6 +1154,37 @@ void CChainState::InitCoinsCache()
 //
 bool CChainState::IsInitialBlockDownload() const
 {
+    int64_t nextChecktime = m_NextCheckTime.load(std::memory_order_relaxed);
+    if(nextChecktime == 0)
+        return false; // Alredy downloaded - always false
+    const int nBlocksPerSec = 500;
+    int64_t now = GetTimeMicros();
+    if(now < nextChecktime)
+        return true; // timio 2+s is not elapsed from previous full check
+    nextChecktime = now + 2000000ULL; // 2s from now will be "initial download, despite real state"
+    do {
+      if (fImporting || fReindex)
+        break;
+      LOCK(cs_main);
+      if (m_chain.Tip() == NULL) {
+        nextChecktime += GetLastHardCheckpointHeight() / nBlocksPerSec;
+        break;
+      }
+      int64_t tdepth = now - 1000000ULL * (nMaxTipAge + m_chain.Tip()->GetBlockTime());
+      if(tdepth > 0) {
+        nextChecktime += tdepth / 600 / nBlocksPerSec;
+        break;
+      }
+      if (m_chain.Tip()->nChainTrust < nMinimumChainTrust)
+        break;
+      nextChecktime = 0; // Initial download ends
+    } while(false);
+
+    m_NextCheckTime.store(nextChecktime, std::memory_order_relaxed);
+    return nextChecktime != 0;
+
+#if 0
+    // Old code from EM & BTC
     //emcTODOne - maybe re-add Oleg optimizations
     // Optimization: pre-test latch before taking the lock.
     // ibd == InitialBlocksDone. False, when started, true when done
@@ -1163,6 +1202,7 @@ bool CChainState::IsInitialBlockDownload() const
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
     m_cached_finished_ibd.store(true, std::memory_order_relaxed);
     return false;
+#endif
 }
 
 static CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
@@ -1797,13 +1837,6 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 static int64_t nBlocksTotal = 0;
-
-static int GetLastHardCheckpointHeight() {
-    static int nLastHardCheckpointHeight = 0;
-    if (nLastHardCheckpointHeight == 0)
-        nLastHardCheckpointHeight = Params().Checkpoints().mapCheckpoints.rbegin()->first;
-    return nLastHardCheckpointHeight;
-}
 
 // these checks can only be done when all previous block have been added.
 bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, CBlockIndex* pindex, bool fJustCheck)

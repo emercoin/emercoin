@@ -584,7 +584,7 @@ private:
      * Mutable because we need to be able to mark IsInitialBlockDownload()
      * const, which latches this for caching purposes.
      */
-    mutable std::atomic<bool> m_cached_finished_ibd{false};
+    mutable std::atomic<int64_t> m_NextCheckTime{1};
 
     //! Reference to a BlockManager instance which itself is shared across all
     //! CChainState instances. Keeping a local reference allows us to test more

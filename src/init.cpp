@@ -945,11 +945,12 @@ std::set<BlockFilterType> g_enabled_filter_types;
     std::terminate();
 };
 
+#if 0
 static void TrigerABRT(int x)
 {
     fprintf(stderr, "Function ABRT triger\n");
 }
-
+#endif
 bool AppInitBasicSetup()
 {
 // signal(SIGABRT, TrigerABRT);

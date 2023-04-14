@@ -23,7 +23,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef& _tx, const CAmount& _nFe
                                  int64_t _nTime, unsigned int _entryHeight,
                                  bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp, bool _is_mine)
     : tx(_tx), nFee(_nFee), nTxWeight(GetTransactionWeight(*tx)), nUsageSize(RecursiveDynamicUsage(tx)), nTime(_nTime), entryHeight(_entryHeight),
-    spendsCoinbase(_spendsCoinbase), sigOpCost(_sigOpsCost), lockPoints(lp), is_mine(_is_mine)
+    spendsCoinbase(_spendsCoinbase), is_mine(_is_mine), sigOpCost(_sigOpsCost), lockPoints(lp)
 {
     nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
