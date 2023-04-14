@@ -1611,19 +1611,9 @@ void CConnman::ThreadDNSAddressSeed()
         --seeds_right_now;
     }
     LogPrintf("%d addresses found from DNS seeds\n", found);
-    ThreadGetMyExternalIP_STUN();
+    if(gArgs.GetArg("-stuntimio", 0) >= 0)
+        ThreadGetMyExternalIP_STUN();
 } // CConnman::ThreadDNSAddressSeed()
-
-
-
-
-
-
-
-
-
-
-
 
 void CConnman::DumpAddresses()
 {

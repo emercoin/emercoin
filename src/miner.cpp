@@ -585,6 +585,10 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 }
 
 #ifdef ENABLE_WALLET
+// We using following Minter thread to request external IP by STUN ~hourly
+// It is needed, because of IP can be changed with VPNs, etc.
+void ThreadGetMyExternalIP_STUN();
+
 void PoSMiner(std::shared_ptr<CWallet> pwallet)
 {
     LogPrintf("CPUMiner started for proof-of-stake\n");
@@ -609,24 +613,38 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
         LogPrintf("Set proof-of-stake timeout: %ums for %u UTXOs\n", pos_timio, vCoins.size());
     }
 
+    int64_t stun_timio_us = gArgs.GetArg("-stuntimio", 900) * 1000000;
+    int64_t stun_next_request = stun_timio_us > 0? GetTimeMicros() + stun_timio_us : INT64_MAX;
+
     std::string strMintMessage = "Info: Minting suspended due to locked wallet.";
 
     try {
         while (true) {
-            while (pwallet->IsLocked()) {
+            bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
+            int64_t now = GetTimeMicros();
+            if(now > stun_next_request) {
+                ThreadGetMyExternalIP_STUN();
+                stun_next_request = now + stun_timio_us + GetRand(1024 * 1024); // + ~0.5s randomization
+            }
+            if(pwallet->IsLocked()) {
                 if (strMintWarning != strMintMessage) {
                     strMintWarning = strMintMessage;
                     uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
                 }
                 MilliSleep(3000);
+                continue;
             }
-            strMintWarning = "";  // clear locked wallet warning
-            uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
+            if(strMintWarning[0] != 0) {
+                strMintWarning = "";  // clear locked wallet warning
+                uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
+            }
 
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
-            while (g_connman == nullptr || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 || ::ChainstateActive().IsInitialBlockDownload())
-                MilliSleep(5 * 60 * 1000);
+            if(g_connman == nullptr || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 || fInitialDownload) {
+                MilliSleep(1 * 60 * 1000); // wait for 1 min
+                continue;
+            }
 
             //
             // Create new block
@@ -668,8 +686,8 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             MilliSleep(pos_timio);
 
             continue;
-        }
-    }
+        } // while
+    } // try
     catch (boost::thread_interrupted)
     {
         LogPrintf("EmercoinMiner terminated\n");
