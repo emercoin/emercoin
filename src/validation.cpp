@@ -1157,31 +1157,31 @@ bool CChainState::IsInitialBlockDownload() const
     int64_t nextChecktime = m_NextCheckTime.load(std::memory_order_relaxed);
     if(nextChecktime == 0)
         return false; // Alredy downloaded - always false
-    const int nBlocksPerSec = 500;
+    const int     nBlocksPerSec = 600000 / (15 * 60); // Optimistic assume, 15min for 600K chain
+    const int64_t nUsecInSec    = 1000000LL;
     int64_t now = GetTimeMicros();
     if(now < nextChecktime)
         return true; // timio 2+s is not elapsed from previous full check
-    nextChecktime = now + 2000000ULL; // 2s from now will be "initial download, despite real state"
+    nextChecktime = now; //  + 2 * nUsecInSec; // 2s from now will be "initial download, despite real state"
     do {
       if (fImporting || fReindex)
         break;
       LOCK(cs_main);
       if (m_chain.Tip() == NULL) {
-        nextChecktime += GetLastHardCheckpointHeight() / nBlocksPerSec;
+        nextChecktime += nUsecInSec * GetLastHardCheckpointHeight() / nBlocksPerSec;
         break;
       }
-      int64_t tdepth = now - 1000000ULL * (nMaxTipAge + m_chain.Tip()->GetBlockTime());
+      int64_t tdepth = now - nUsecInSec * (nMaxTipAge + m_chain.Tip()->GetBlockTime());
       if(tdepth > 0) {
         nextChecktime += tdepth / 600 / nBlocksPerSec;
         break;
       }
-      if (m_chain.Tip()->nChainTrust < nMinimumChainTrust)
-        break;
       nextChecktime = 0; // Initial download ends
+      LogPrintf("Leaving InitialBlockDownload (m_NextCheckTime set to 0)\n");
     } while(false);
 
     m_NextCheckTime.store(nextChecktime, std::memory_order_relaxed);
-    return nextChecktime != 0;
+    return !!nextChecktime;
 
 #if 0
     // Old code from EM & BTC
