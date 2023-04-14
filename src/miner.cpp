@@ -624,7 +624,9 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             int64_t now = GetTimeMicros();
             if(now > stun_next_request) {
                 ThreadGetMyExternalIP_STUN();
-                stun_next_request = now + stun_timio_us + GetRand(1024 * 1024); // + ~0.5s randomization
+                // Seqientially add ~1% to stun_timio_us, for slowly increase STUN request intervals
+                stun_timio_us += stun_timio_us / 128 + GetRand(1024 * 1024); // + ~0.5s randomization
+                stun_next_request = now + stun_timio_us;
             }
             if(pwallet->IsLocked()) {
                 if (strMintWarning != strMintMessage) {
