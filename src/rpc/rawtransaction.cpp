@@ -107,7 +107,7 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
                 "If verbose is 'false' or omitted, returns a string that is serialized, hex-encoded data for 'txid'.\n",
                 {
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id"},
-                    //emcTODO - make sure that this parameters accepts both number and bool values, for bitcoin backward compatability
+                    //emcTODOne - make sure that this parameters accepts both number and bool values, for bitcoin backward compatability: works OK
                     {"verbose", RPCArg::Type::NUM, /* default */ "false", "If 0, return a string, if 1 return a json object, if 2 return a json object with name information (if this is name tx)"},
                     {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED_NAMED_ARG, "The block in which to look for the transaction"},
                 },
@@ -1795,17 +1795,18 @@ static void InitMapRandKeyT() {
 
 UniValue randpay_createaddrchap(const JSONRPCRequest& request)
 {
-    //emcTODO fill this
+    //emcTODOne fill this
     RPCHelpMan{"randpay_createaddrchap",
-    "\nCreates privkey/pubkey pair for a given risk. Does not write anything into wallet.dat.\n",
+    "\nGenerates challenge (payment request) from payee to payer by creating privkey/pubkey pair for a given risk. Does not write anything into wallet.dat.\n",
     {
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
-        {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"}
+        {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Remember in memory private key for this challenge for timeout seconds; forget thereafter"}
     },
-    RPCResult{"???"},
+            RPCResult{ "\"hex\"             (string) 24-chars hex challenge in hex\n" },
+
     RPCExamples{
-        HelpExampleCli("randpay_createaddrchap", "") + HelpExampleRpc("randpay_createaddrchap", "")},
-    }.Check(request);
+        HelpExampleCli("randpay_createaddrchap", "1000 60") /* + HelpExampleRpc("randpay_createaddrchap", "1000 60")}, */
+    }}.Check(request);
 
     if (!request.params[0].isNum())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. risk parameter must be numeric.");
@@ -1844,20 +1845,20 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         return NullUniValue;
     }
 
-    //emcTODO fill this
+    //emcTODOne fill this
     RPCHelpMan{"randpay_createtx",
-    "\nCreates randpay tx.\n",
+    "\nCreates randpay tx for sending to payer. Try to [not] guess payment address, based on a pair (addrchap, risk)\n",
     {
         {"amount", RPCArg::Type::NUM, RPCArg::Optional::NO, "Amount of emc to send"},
-        {"addrchap", RPCArg::Type::STR, RPCArg::Optional::NO, "???"},
+        {"addrchap", RPCArg::Type::STR, RPCArg::Optional::NO, "Challenge, received from payee (generated with createaddrchap on his side)"},
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
         {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"},
         {"naive", RPCArg::Type::BOOL, RPCArg::Optional::OMITTED_NAMED_ARG, "Generate naive randpay-transaction, without randpay-in"},
     },
-    RPCResult{"???"},
+    RPCResult{"\"transaction\"      (string) Hex string of the transaction, need send to payee"},
     RPCExamples{
-        HelpExampleCli("randpay_createtx", "") + HelpExampleRpc("randpay_createtx", "")},
-    }.Check(request);
+        HelpExampleCli("randpay_createtx", "3.141 abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_createtx", "")}, */
+    }}.Check(request);
 
     CAmount nAmount = AmountFromValue(request.params[0]);
     if (nAmount <= 0)
@@ -1946,18 +1947,17 @@ UniValue randpay_submittx(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
-
-    //emcTODO fill this
+    //emcTODOne fill this
     RPCHelpMan{"randpay_submittx",
-    "\nVerifies and submits randpaytx.\n",
+    "\nVerifies and submits randpaytx, received from payer\n",
     {
         {"hexstring", RPCArg::Type::NUM, RPCArg::Optional::NO, "The hex string of the randpay transaction"},
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
     },
-    RPCResult{"\"transaction\"              (string) hex string of the transaction"},
+    RPCResult{"\n{ \"amount\" : 3.141, \"won\" : true }\n" },
     RPCExamples{
-        HelpExampleCli("randpay_submittx", "") + HelpExampleRpc("randpay_submittx", "")},
-    }.Check(request);
+        HelpExampleCli("randpay_submittx", "1234...ecec 1000") /* + HelpExampleRpc("randpay_submittx", "1234...ecec 1000")}, */
+    }}.Check(request);
 
 #ifdef ENABLE_WALLET
     InitMapRandKeyT();
