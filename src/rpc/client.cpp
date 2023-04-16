@@ -202,7 +202,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "randpay_createtx", 0, "amount"},
     { "randpay_createtx", 2, "risk" },
     { "randpay_createtx", 3, "timio" },
-    { "randpay_createtx", 4, "naive" },
+    { "randpay_createtx", 4, "flags" },
     { "randpay_submittx", 1, "risk" },
 };
 // clang-format on

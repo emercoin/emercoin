@@ -1847,7 +1847,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         {"addrchap", RPCArg::Type::STR, RPCArg::Optional::NO, "Challenge, received from payee (generated with createaddrchap on his side)"},
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
         {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"},
-        {"naive", RPCArg::Type::NUM, /* default */ "false", "Generate naive randpay-transaction, without randpay-in"},
+        {"flags", RPCArg::Type::NUM, /* default */ "0", "Flags for TX generation: 0=rp_in/naive 2=p2wpkh/p2pkh 4=sign/unsign"},
     },
     RPCResult{"\"transaction\"      (string) Hex string of the transaction, need send to payee"},
     RPCExamples{
@@ -1874,9 +1874,8 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. timeout parameter must be numeric.");
     int32_t nTimio = request.params[3].get_int();
 
-    int naive = 0;
-    if (!request.params[4].isNull())
-        naive = request.params[4].isNum() ? request.params[4].get_int() : request.params[4].get_bool();
+    // bool 0/1 (naive): keep compatibility with 0.7.X RPC API
+    int flags = request.params[4].isNull()? 0 : request.params[4].isNum() ? request.params[4].get_int() : request.params[4].get_bool();
 
     uint160 rand_addr;
     rand_addr.SetHex( (nRisk * addrchap + GetRand(nRisk)).ToString() );
@@ -1884,7 +1883,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     CAmount curBalance = pwallet->GetBalance().m_mine_trusted;
     SendMoneyCheck(nAmount, curBalance);
     CTransactionRef tx;
-    if(!naive) { // Non naive - attach RP-in
+    if((flags & 1) == 0) { // Non naive - attach RP-in
         // Form input TX for CreateTransaction
         CMutableTransaction tmpTx;
         // Attach the RandpayOut as input[0] into tmpTx
@@ -1892,10 +1891,11 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         tx = MakeTransactionRef(std::move(tmpTx));
     }
 
+    // Out script type: 2=p2pkh 0=witness
+    CScript rp_out_script = (flags & 2)? GetScriptForDestination(PKHash(rand_addr)) : GetScriptForDestination(WitnessV0KeyHash(rand_addr));
     std::vector<CRecipient> vecSend;
-    // Generate SegWit P2WPKH destination
-    CScript witnessscript = GetScriptForDestination(WitnessV0KeyHash(rand_addr));
-    vecSend.push_back(CRecipient(witnessscript, nAmount, false /* fSubtractFeeFromAmount */));
+    vecSend.push_back(CRecipient(rp_out_script, nAmount, false /* fSubtractFeeFromAmount */));
+
     CAmount nFeeRequired = 0;
     int nChangePosRet    = 1; // Keep position 0 for RP-out
     std::string strError;
@@ -1903,7 +1903,8 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     {
         LOCK2(cs_main, pwallet->cs_wallet);
         auto locked_chain = pwallet->chain().lock();
-        if (!pwallet->CreateTransaction(0, false /*multiname*/, *locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control)) {
+        // (flags & 4): 0=sign, 4=not-sign TX
+        if (!pwallet->CreateTransaction(0, false /*multiname*/, *locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control, !(flags & 4)) ) {
             if (nAmount + nFeeRequired > curBalance)
                 strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
             throw JSONRPCError(RPC_WALLET_ERROR, strError);
