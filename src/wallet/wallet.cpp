@@ -1892,7 +1892,17 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wall
     // Look up the inputs.  We should have already checked that this transaction
     // IsAllFromMe(ISMINE_SPENDABLE), so every input should already be in our
     // wallet, with a valid index into the vout array, and the ability to sign.
+    int randpay_addition = 0;
     for (const CTxIn& input : tx.vin) {
+        if(input.prevout.hash == randpaytx) {
+            // We unable to sing randpaytx here.
+            // Thus, as a temp solution, used estimate for P2PKH/P2WPKH from
+            // https://medium.com/coinmonks/on-bitcoin-transaction-sizes-97e31bc9d816
+            randpay_addition += 132; // Max total size, including lock-script for safety.
+            // emcTODO: Maybe tune more precise, using change vout (we can sign it here)
+            // txouts.emplace_back(tx.vout[1]);
+            continue;
+        }
         const auto mi = wallet->mapWallet.find(input.prevout.hash);
         if (mi == wallet->mapWallet.end()) {
             return -1;
@@ -1900,7 +1910,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wall
         assert(input.prevout.n < mi->second.tx->vout.size());
         txouts.emplace_back(mi->second.tx->vout[input.prevout.n]);
     }
-    return CalculateMaximumSignedTxSize(tx, wallet, txouts, use_max_sig);
+    return CalculateMaximumSignedTxSize(tx, wallet, txouts, use_max_sig) + randpay_addition;
 }
 
 // txouts needs to be in the order of tx.vin
@@ -2501,15 +2511,15 @@ CAmount CWallet::GetAvailableBalance(const CCoinControl* coinControl) const
     return balance;
 }
 
+// Guardes by cs_wallet from current wallet
 uint256HashMap<time_t> g_RandPayLockUTXO;
-CCriticalSection cs_g_RandPayLockUTXO;
 
 void CWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<COutput>& vCoins, bool fOnlySafe, const CCoinControl* coinControl, const CAmount& nMinimumAmount, const CAmount& nMaximumAmount, const CAmount& nMinimumSumAmount, const uint64_t nMaximumCount, const uint32_t nSpendTime) const
 {
     AssertLockHeld(cs_wallet);
 
     vCoins.clear();
-    time_t cur_time = time(NULL);
+    time_t cur_time = GetSystemTimeInSeconds();
     CAmount nTotal = 0;
     // Either the WALLET_FLAG_AVOID_REUSE flag is not set (in which case we always allow), or we default to avoiding, and only in the case where
     // a coin control object is provided, and has the avoid address reuse flag set to false, do we allow already used addresses
@@ -2555,13 +2565,13 @@ void CWallet::AvailableCoins(interfaces::Chain::Lock& locked_chain, std::vector<
         //? uint256  randpayTXkey(pcoin->tx->GetHash());
         uint256  rpLockTXkey(wtxid);
         uint32_t &rpLockTXn(((uint32_t*)rpLockTXkey.GetDataPtr())[0]);
-        LOCK(cs_g_RandPayLockUTXO);
         for (unsigned int i = 0; i < wtx.tx->vout.size(); i++, rpLockTXn++) {
             // ignore namecoin TxOut
             NameTxInfo nti;
             if (wtx.tx->nVersion == NAMECOIN_TX_VERSION && DecodeNameScript(wtx.tx->vout[i].scriptPubKey, nti))
                 continue;
 
+            // Guarded by cs_wallet
             uint256HashMap<time_t>::Data *p = g_RandPayLockUTXO.Search(rpLockTXkey);
             if (p) {
                 if (p->value > cur_time)
@@ -2830,23 +2840,25 @@ bool CWallet::SelectCoins(const std::vector<COutput>& vAvailableCoins, const CAm
 bool CWallet::SignTransaction(CMutableTransaction& tx)
 {
     AssertLockHeld(cs_wallet);
-
     // sign the new tx
     int nIn = 0;
     for (auto& input : tx.vin) {
-        std::map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(input.prevout.hash);
-        if(mi == mapWallet.end() || input.prevout.n >= mi->second.tx->vout.size()) {
-            return false;
-        }
-        const CScript& scriptPubKey = mi->second.tx->vout[input.prevout.n].scriptPubKey;
-        const CAmount& amount = mi->second.tx->vout[input.prevout.n].nValue;
-        SignatureData sigdata;
-        if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&tx, nIn, amount, SIGHASH_ALL), scriptPubKey, sigdata)) {
-            return false;
-        }
-        UpdateInput(input, sigdata);
+        // We do not sign Randpay out here, will be specially signed within randpay_submittx, if needed
+        if(input.prevout.hash != randpaytx) {
+            std::map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(input.prevout.hash);
+            if(mi == mapWallet.end() || input.prevout.n >= mi->second.tx->vout.size()) {
+                return false;
+            }
+            const CScript& scriptPubKey = mi->second.tx->vout[input.prevout.n].scriptPubKey;
+            const CAmount& amount = mi->second.tx->vout[input.prevout.n].nValue;
+            SignatureData sigdata;
+            if (!ProduceSignature(*this, MutableTransactionSignatureCreator(&tx, nIn, amount, SIGHASH_ALL), scriptPubKey, sigdata)) {
+                return false;
+            }
+            UpdateInput(input, sigdata);
+        } // if not randpay
         nIn++;
-    }
+    } // for
     return true;
 }
 
@@ -3211,8 +3223,8 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 for (const auto& coin : setCoins) {
                     txNew.vin.push_back(CTxIn(coin.outpoint, CScript()));
                 }
-
                 nBytes = CalculateMaximumSignedTxSize(CTransaction(txNew), this, coin_control.fAllowWatchOnly);
+                // coin_control.fAllowWatchOnly fills var use_max_sig. Maybe, this is incorrect
                 if (nBytes < 0) {
                     strFailReason = _("Signing transaction failed").translated;
                     return false;
@@ -3303,7 +3315,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
 
         // Final transaction build
         txNew.vin.clear();
-        // emercoin: add name inputs, and sign them before selected signing
+        // emercoin: add name/randpay inputs 1st, and sign them before selected signing
         if(tx)
             txNew.vin = std::move(tx->vin);
 

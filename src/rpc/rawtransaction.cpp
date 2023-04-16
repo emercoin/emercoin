@@ -1777,8 +1777,8 @@ UniValue analyzepsbt(const JSONRPCRequest& request)
 }
 
 #ifdef ENABLE_WALLET
+// Guarded by cs_wallet
 extern uint256HashMap<time_t> g_RandPayLockUTXO;
-extern CCriticalSection cs_g_RandPayLockUTXO;
 
 uint256HashMap<RandKeyT> MapRandKeyT;
 CCriticalSection cs_MapRandKeyT;
@@ -1827,7 +1827,7 @@ UniValue randpay_createaddrchap(const JSONRPCRequest& request)
     InitMapRandKeyT();
 
     arith_uint256 addrchap = X / nRisk;
-    time_t t = time(NULL);
+    time_t t = GetSystemTimeInSeconds();
     // remove expired entries
     LOCK(cs_MapRandKeyT);
     for(uint256HashMap<RandKeyT>::Data *p = MapRandKeyT.First(); p && p->value.expire < t; p = MapRandKeyT.Next(p))
@@ -1839,12 +1839,6 @@ UniValue randpay_createaddrchap(const JSONRPCRequest& request)
 
 UniValue randpay_createtx(const JSONRPCRequest& request)
 {
-    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    CWallet* const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
-        return NullUniValue;
-    }
-
     //emcTODOne fill this
     RPCHelpMan{"randpay_createtx",
     "\nCreates randpay tx for sending to payer. Try to [not] guess payment address, based on a pair (addrchap, risk)\n",
@@ -1853,12 +1847,18 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         {"addrchap", RPCArg::Type::STR, RPCArg::Optional::NO, "Challenge, received from payee (generated with createaddrchap on his side)"},
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
         {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"},
-        {"naive", RPCArg::Type::BOOL, RPCArg::Optional::OMITTED_NAMED_ARG, "Generate naive randpay-transaction, without randpay-in"},
+        {"naive", RPCArg::Type::NUM, /* default */ "false", "Generate naive randpay-transaction, without randpay-in"},
     },
     RPCResult{"\"transaction\"      (string) Hex string of the transaction, need send to payee"},
     RPCExamples{
-        HelpExampleCli("randpay_createtx", "3.141 abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_createtx", "")}, */
+        HelpExampleCli("randpay_createtx", "3.141 abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_createtx", ""), */
     }}.Check(request);
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = wallet.get();
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
 
     CAmount nAmount = AmountFromValue(request.params[0]);
     if (nAmount <= 0)
@@ -1874,7 +1874,9 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. timeout parameter must be numeric.");
     int32_t nTimio = request.params[3].get_int();
 
-    bool naive = request.params.size() == 5 && request.params[4].isBool() && request.params[4].isTrue();
+    int naive = 0;
+    if (!request.params[4].isNull())
+        naive = request.params[4].isNum() ? request.params[4].get_int() : request.params[4].get_bool();
 
     uint160 rand_addr;
     rand_addr.SetHex( (nRisk * addrchap + GetRand(nRisk)).ToString() );
@@ -1882,7 +1884,63 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     CAmount curBalance = pwallet->GetBalance().m_mine_trusted;
     SendMoneyCheck(nAmount, curBalance);
     CTransactionRef tx;
+    if(!naive) { // Non naive - attach RP-in
+        // Form input TX for CreateTransaction
+        CMutableTransaction tmpTx;
+        // Attach the RandpayOut as input[0] into tmpTx
+        tmpTx.vin.push_back(CTxIn(COutPoint(randpaytx, 0), CScript()));
+        tx = MakeTransactionRef(std::move(tmpTx));
+    }
 
+    std::vector<CRecipient> vecSend;
+    // Generate SegWit P2WPKH destination
+    CScript witnessscript = GetScriptForDestination(WitnessV0KeyHash(rand_addr));
+    vecSend.push_back(CRecipient(witnessscript, nAmount, false /* fSubtractFeeFromAmount */));
+    CAmount nFeeRequired = 0;
+    int nChangePosRet    = 1; // Keep position 0 for RP-out
+    std::string strError;
+    CCoinControl coin_control;
+    {
+        LOCK2(cs_main, pwallet->cs_wallet);
+        auto locked_chain = pwallet->chain().lock();
+        if (!pwallet->CreateTransaction(0, false /*multiname*/, *locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control)) {
+            if (nAmount + nFeeRequired > curBalance)
+                strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
+            throw JSONRPCError(RPC_WALLET_ERROR, strError);
+        }
+        // Iterate payment vins, and add into g_RandPayLockUTXO
+        time_t lock_time = GetSystemTimeInSeconds() + nTimio;
+        for (const CTxIn &txin : tx->vin) {
+            if(txin.prevout.hash == randpaytx)
+                continue; // maybe, always start from [1] for !naive
+            uint256 rpLockTXkey(txin.prevout.hash);
+            *((uint32_t*)rpLockTXkey.GetDataPtr()) += txin.prevout.n; // hacked mix (TXID,n)
+            g_RandPayLockUTXO.Insert(rpLockTXkey, lock_time); // Guarded by pwallet->cs_wallet
+        } // for
+    } // LOCK2
+
+    return EncodeHexTx(*tx);
+} // randpay_createtx
+
+#if 0
+    // Debug reference
+    // Naive:
+    // 0 = RP-in, signed     2 = RP-in, unsigned
+    // 1 = Naive, signed     3 = Naive, unsigned
+    // Accept either a bool (true) or a num (>=1) to indicate naive.
+    if(naive & 2)
+        return EncodeHexTx(*tx);
+    // and sing other inputs by signrawtransactionwithkey
+    UniValue params(UniValue::VARR);
+    params.push_back(EncodeHexTx(*tx));
+    JSONRPCRequest req;
+    req.params = params;
+    req.fHelp = false;
+    const UniValue result(signrawtransactionwithwallet(req));
+    const UniValue& err = find_value(result, "error");
+    return result[(err.isNull() || err.get_str().empty())? "hex" : "error"].get_str();
+#
+// Old code from EM, just for reference
     {
         LOCK2(cs_main, pwallet->cs_wallet);
         auto locked_chain = pwallet->chain().lock();
@@ -1937,6 +1995,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     const UniValue& err = find_value(result, "error");
     return result[(err.isNull() || err.get_str().empty())? "hex" : "error"].get_str();
 }
+#endif
 
 #endif   // #ifdef ENABLE_WALLET
 
