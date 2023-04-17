@@ -197,11 +197,11 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "name_history", 1, "fullhistory" },
     { "name_indexinfo", 0, "indextype" },
     { "sendtoname", 1, "amount" },
-    { "randpay_mkchap", 0, "risk" },
-    { "randpay_mkchap", 1, "timio" },
-    { "randpay_mktx", 0, "amount"},
-    { "randpay_mktx", 2, "timio" },
-    { "randpay_mktx", 3, "flags" },
+    { "randpay_mkchap", 0, "amount" },
+    { "randpay_mkchap", 1, "risk" },
+    { "randpay_mkchap", 2, "timeout" },
+    { "randpay_mktx", 1, "timeout" },
+    { "randpay_mktx", 2, "flags" },
     { "randpay_submittx", 1, "flags" },
 };
 // clang-format on

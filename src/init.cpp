@@ -178,6 +178,8 @@ void Interrupt()
     ForEachBlockFilterIndex([](BlockFilterIndex& index) { index.Interrupt(); });
 }
 
+extern void shutdown_randpay();
+
 void Shutdown(InitInterfaces& interfaces)
 {
     LogPrintf("%s: In progress...\n", __func__);
@@ -205,6 +207,8 @@ void Shutdown(InitInterfaces& interfaces)
         client->flush();
     }
     StopMapPort();
+
+    shutdown_randpay();
 
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.

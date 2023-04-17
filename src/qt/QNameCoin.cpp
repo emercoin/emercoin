@@ -119,7 +119,6 @@ QString QNameCoin::randPayCreateTx(const RandPayRequest & r, QString & error) {
 	try {
 		JSONRPCRequest request;
 		request.params.setArray();
-		request.params.push_back(UniValue(r._amount));
 		request.params.push_back(UniValue(r._chap.toStdString()));
 		request.params.push_back(UniValue((double)r._timeout));
 		UniValue res = randpay_mktx(request);

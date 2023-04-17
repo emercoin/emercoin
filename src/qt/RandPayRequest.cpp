@@ -26,7 +26,7 @@ RandPayRequest::RandPayRequest(const QUrl & u, PaymentServer* server): QUrlQuery
 }
 QString RandPayRequest::parse() {
 	bool ok;
-
+#if 0
 	const QString amount = queryItemValue("amount");
 	if(amount.isEmpty())
 		return "No 'amount' specified";
@@ -35,14 +35,14 @@ QString RandPayRequest::parse() {
 		return "'amount' is not number";
 	if(_amount<=0)
 		return "'amount' is negative";
-
-	const QString chap = queryItemValue("chap");//hex
+#endif
+	const QString chap = queryItemValue("chap"); // amount:risk:hex
 	if(chap.isEmpty())
 		return "'chap' is empty";
 	for(QChar ch : chap) {
 		if(ch.isDigit())
 			continue;
-                if(ch == ':')
+                if(ch == ':' || ch == '.' )
                     continue; // Separator risk:challenge
 		if('a'<=ch && ch<='f')
 			continue;
