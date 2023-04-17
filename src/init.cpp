@@ -201,7 +201,6 @@ void Shutdown(InitInterfaces& interfaces)
     StopREST();
     StopRPC();
     StopHTTPServer();
-    MapRandKeyT.Set(0);
     for (const auto& client : interfaces.chain_clients) {
         client->flush();
     }

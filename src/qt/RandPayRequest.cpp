@@ -42,6 +42,8 @@ QString RandPayRequest::parse() {
 	for(QChar ch : chap) {
 		if(ch.isDigit())
 			continue;
+                if(ch == ':')
+                    continue; // Separator risk:challenge
 		if('a'<=ch && ch<='f')
 			continue;
 		if('A'<=ch && ch<='F')
@@ -49,7 +51,8 @@ QString RandPayRequest::parse() {
 		return "'chap' is not hex string";
 	}
 	_chap = chap;//QByteArray::fromHex(chap.toLatin1());
-	
+        _risk = 0; // Deprecated
+#if 0
 	const QString risk = queryItemValue("risk");//INT
 	if(risk.isEmpty())
 		return "'risk' is empty";
@@ -58,7 +61,7 @@ QString RandPayRequest::parse() {
 		return "'risk' is not positive integer";
 	if(_risk==0)
 		return "'risk' is 0";
-	
+#endif
 	const QString timeout = queryItemValue("timeout");//optional int
 	if(!timeout.isEmpty()) {
 		_timeout = timeout.toULongLong(&ok);

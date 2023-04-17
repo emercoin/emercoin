@@ -45,6 +45,7 @@
 
 #include <univalue.h>
 
+
 /** Maximum fee rate for sendrawtransaction and testmempoolaccept.
  * By default, a transaction with a fee rate higher than this will be rejected
  * by the RPCs. This can be overridden with the maxfeerate argument.
@@ -1777,35 +1778,36 @@ UniValue analyzepsbt(const JSONRPCRequest& request)
 }
 
 #ifdef ENABLE_WALLET
+
+// emercoin Randpay stuff
 // Guarded by cs_wallet
 extern uint256HashMap<time_t> g_RandPayLockUTXO;
 
-uint256HashMap<RandKeyT> MapRandKeyT;
-CCriticalSection cs_MapRandKeyT;
+struct RandpayKeydata {
+    CKey     key;
+    time_t   expire;
+    uint32_t nRisk;
+};
 
+CCriticalSection cs_RandpayKeysMempool;
+// Index in RandpayKeysMempool is 1st possible address of challenge.
+// Thus, upper limit is (map-key + nRisk)
+// We using here arith_uint256, because is not exists here class arith_uint160.
+// Maybe, sometime will add for optimization, if system will used wide and frequently
+static std::map<arith_uint256, RandpayKeydata> RandpayKeysMempool GUARDED_BY(cs_RandpayKeysMempool);
 
-static void InitMapRandKeyT() {
-  static int randkeymapsz = -1;
-  if(randkeymapsz < 0) {
-    randkeymapsz = gArgs.GetArg("-randkeymapsz", 16);
-    LOCK(cs_MapRandKeyT);
-    MapRandKeyT.Set(randkeymapsz);
-  }
-}
-
-UniValue randpay_createaddrchap(const JSONRPCRequest& request)
+UniValue randpay_mkchap(const JSONRPCRequest& request)
 {
-    //emcTODOne fill this
-    RPCHelpMan{"randpay_createaddrchap",
+    RPCHelpMan{"randpay_mkchap",
     "\nGenerates challenge (payment request) from payee to payer by creating privkey/pubkey pair for a given risk. Does not write anything into wallet.dat.\n",
     {
         {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
         {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Remember in memory private key for this challenge for timeout seconds; forget thereafter"}
     },
-            RPCResult{ "\"hex\"             (string) 24-chars hex challenge in hex\n" },
+            RPCResult{ "\"reply\"             (string) pair risk:challenge for randpay_mktx()\n" },
 
     RPCExamples{
-        HelpExampleCli("randpay_createaddrchap", "1000 60") /* + HelpExampleRpc("randpay_createaddrchap", "1000 60")}, */
+        HelpExampleCli("randpay_mkchap", "1000 60") /* + HelpExampleRpc("randpay_mkchap", "1000 60"), */
     }}.Check(request);
 
     if (!request.params[0].isNum())
@@ -1817,65 +1819,76 @@ UniValue randpay_createaddrchap(const JSONRPCRequest& request)
     int32_t nTimio = request.params[1].get_int();
 
     arith_uint256 barrier = ((arith_uint256(1) << 160) / nRisk) * nRisk;
-    RandKeyT keyt;
+    RandpayKeydata keydata;
     arith_uint256 X;
     do {
-        keyt.key.MakeNewKey(true);
-        X = arith_uint256(keyt.key.GetPubKey().GetID().ToString());  // class CKeyID : public uint160
-    } while (X >= barrier || !keyt.key.IsValid());
-
-    InitMapRandKeyT();
+        keydata.key.MakeNewKey(true);
+        X = arith_uint256(keydata.key.GetPubKey().GetID().ToString());  // class CKeyID : public uint160
+    } while (X >= barrier || !keydata.key.IsValid());
 
     arith_uint256 addrchap = X / nRisk;
+    arith_uint256 payaddr0 = addrchap * nRisk;
     time_t t = GetSystemTimeInSeconds();
+    keydata.expire = t + nTimio;
+    keydata.nRisk  = nRisk;
+    char outbuf[64]; // 24-chars for key, and max 10 chars for risk and ':'
+    sprintf(outbuf, "%u:%s", nRisk, addrchap.ToString().c_str() + 24); // cut 24 leading zeroes 256->160
     // remove expired entries
-    LOCK(cs_MapRandKeyT);
-    for(uint256HashMap<RandKeyT>::Data *p = MapRandKeyT.First(); p && p->value.expire < t; p = MapRandKeyT.Next(p))
-      MapRandKeyT.MarkDel(p);
-    keyt.expire = t + nTimio;
-    MapRandKeyT.Insert(ArithToUint256(addrchap), keyt);
-    return addrchap.ToString().substr(24); // cut 24 leading zeroes 256->160
-}
+    LOCK(cs_RandpayKeysMempool);
+    if(GetRand(512) == 0) { // cleanup possible stale entries
+        for (auto it = RandpayKeysMempool.cbegin(); it != RandpayKeysMempool.cend() /* not hoisted */; /* no increment */)
+            if(it->second.expire < t)
+                RandpayKeysMempool.erase(it++); // maybe, just "it = m.erase(it)" since C++11
+            else
+                ++it;
+    }
+    RandpayKeysMempool.emplace(payaddr0, keydata);
+    return std::string(outbuf);
+} // randpay_mkchap
 
-UniValue randpay_createtx(const JSONRPCRequest& request)
+UniValue randpay_mktx(const JSONRPCRequest& request)
 {
-    //emcTODOne fill this
-    RPCHelpMan{"randpay_createtx",
+    RPCHelpMan{"randpay_mktx",
     "\nCreates randpay tx for sending to payer. Try to [not] guess payment address, based on a pair (addrchap, risk)\n",
     {
         {"amount", RPCArg::Type::NUM, RPCArg::Optional::NO, "Amount of emc to send"},
-        {"addrchap", RPCArg::Type::STR, RPCArg::Optional::NO, "Challenge, received from payee (generated with createaddrchap on his side)"},
-        {"risk", RPCArg::Type::NUM, RPCArg::Optional::NO, "1 / probability of success for random payments"},
-        {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"},
-        {"flags", RPCArg::Type::NUM, /* default */ "0", "Flags for TX generation: 0=rp_in/naive 2=p2wpkh/p2pkh 4=sign/unsign"},
+        {"chap",   RPCArg::Type::STR, RPCArg::Optional::NO, "Challenge, received from payee (generated with mkchap on his side)"},
+        {"timeout",RPCArg::Type::NUM, RPCArg::Optional::NO, "Locks utxo from being spent in another tx for timeout seconds"},
+        {"flags",  RPCArg::Type::NUM, /* default */ "0", "Flags for TX generation: 0=rp_in/naive 2=p2wpkh/p2pkh 4=sign/unsign"},
     },
     RPCResult{"\"transaction\"      (string) Hex string of the transaction, need send to payee"},
     RPCExamples{
-        HelpExampleCli("randpay_createtx", "3.141 abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_createtx", ""), */
+        HelpExampleCli("randpay_mktx", "3.141 abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_mktx", ""), */
     }}.Check(request);
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet* const pwallet = wallet.get();
-    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
-    }
 
     CAmount nAmount = AmountFromValue(request.params[0]);
     if (nAmount <= 0)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
 
-    arith_uint256 addrchap = UintToArith256(uint256S(request.params[1].get_str()));
+    const string &chap(request.params[1].get_str());
+    const char *separ = strchr(chap.c_str(), ':');
+    if(separ == NULL)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid chap format, must be dec:hex.");
+    uint32_t nRisk = atoll(chap.c_str());
+    if(nRisk == 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid chap, risk must not be zero");
+    arith_uint256 addrchap = UintToArith256(uint256S(separ + 1)); // hex part of chap dec:hex
 
     if (!request.params[2].isNum())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. risk parameter must be numeric.");
-    uint32_t nRisk = request.params[2].get_int();
-
-    if (!request.params[3].isNum())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. timeout parameter must be numeric.");
-    int32_t nTimio = request.params[3].get_int();
+    int32_t nTimio = request.params[2].get_int();
 
-    // bool 0/1 (naive): keep compatibility with 0.7.X RPC API
-    int flags = request.params[4].isNull()? 0 : request.params[4].isNum() ? request.params[4].get_int() : request.params[4].get_bool();
+    int flags = 0;
+    if (!request.params[3].isNull()) {
+        if(!request.params[3].isNum())
+            throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. flags parameter must be numeric.");
+        flags = request.params[3].get_int();
+    }
 
     uint160 rand_addr;
     rand_addr.SetHex( (nRisk * addrchap + GetRand(nRisk)).ToString() );
@@ -1890,6 +1903,8 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         tmpTx.vin.push_back(CTxIn(COutPoint(randpaytx, 0), CScript()));
         tx = MakeTransactionRef(std::move(tmpTx));
     }
+
+    // flags |= 2; // Temporary, for prevent hardfork = always PKHash(rand_addr)
 
     // Out script type: 2=p2pkh 0=witness
     CScript rp_out_script = (flags & 2)? GetScriptForDestination(PKHash(rand_addr)) : GetScriptForDestination(WitnessV0KeyHash(rand_addr));
@@ -1913,7 +1928,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
         time_t lock_time = GetSystemTimeInSeconds() + nTimio;
         for (const CTxIn &txin : tx->vin) {
             if(txin.prevout.hash == randpaytx)
-                continue; // maybe, always start from [1] for !naive
+                continue; // maybe, start from [1] for !naive
             uint256 rpLockTXkey(txin.prevout.hash);
             *((uint32_t*)rpLockTXkey.GetDataPtr()) += txin.prevout.n; // hacked mix (TXID,n)
             g_RandPayLockUTXO.Insert(rpLockTXkey, lock_time); // Guarded by pwallet->cs_wallet
@@ -1921,7 +1936,7 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
     } // LOCK2
 
     return EncodeHexTx(*tx);
-} // randpay_createtx
+} // randpay_mktx
 
 #if 0
     // Debug reference
@@ -2000,7 +2015,32 @@ UniValue randpay_createtx(const JSONRPCRequest& request)
 
 #endif   // #ifdef ENABLE_WALLET
 
-UniValue randpay_submittx(const JSONRPCRequest& request)
+#if 1
+
+
+struct RandKeyT {
+  CKey   key;
+  time_t expire;
+};
+extern uint256HashMap<RandKeyT> MapRandKeyT;
+
+
+uint256HashMap<RandKeyT> MapRandKeyT;
+CCriticalSection cs_MapRandKeyT;
+
+
+static void InitMapRandKeyT() {
+  static int randkeymapsz = -1;
+  if(randkeymapsz < 0) {
+    randkeymapsz = gArgs.GetArg("-randkeymapsz", 16);
+    LOCK(cs_MapRandKeyT);
+    MapRandKeyT.Set(randkeymapsz);
+  }
+}
+#endif
+
+
+UniValue randpay_sendtx(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet* const pwallet = wallet.get();
@@ -2008,7 +2048,7 @@ UniValue randpay_submittx(const JSONRPCRequest& request)
         return NullUniValue;
     }
     //emcTODOne fill this
-    RPCHelpMan{"randpay_submittx",
+    RPCHelpMan{"randpay_sendtx",
     "\nVerifies and submits randpaytx, received from payer\n",
     {
         {"hexstring", RPCArg::Type::NUM, RPCArg::Optional::NO, "The hex string of the randpay transaction"},
@@ -2016,7 +2056,7 @@ UniValue randpay_submittx(const JSONRPCRequest& request)
     },
     RPCResult{"\n{ \"amount\" : 3.141, \"won\" : true }\n" },
     RPCExamples{
-        HelpExampleCli("randpay_submittx", "1234...ecec 1000") /* + HelpExampleRpc("randpay_submittx", "1234...ecec 1000")}, */
+        HelpExampleCli("randpay_sendtx", "1234...ecec 1000") /* + HelpExampleRpc("randpay_sendtx", "1234...ecec 1000")}, */
     }}.Check(request);
 
 #ifdef ENABLE_WALLET
@@ -2206,9 +2246,9 @@ static const CRPCCommand commands[] =
 
 // emercoin: randpay commands
 #ifdef ENABLE_WALLET
-    { "randpay",            "randpay_createaddrchap",       &randpay_createaddrchap,    {"risk","timeout"} },
-    { "randpay",            "randpay_createtx",             &randpay_createtx,          {"amount","addrchap","risk","timeout","naive"} },
-    { "randpay",            "randpay_submittx",             &randpay_submittx,          {"hexstring","risk"} },
+    { "randpay",            "randpay_mkchap",               &randpay_mkchap,            {"risk","timeout"} },
+    { "randpay",            "randpay_mktx",                 &randpay_mktx,              {"amount","addrchap","timeout","flags"} },
+    { "randpay",            "randpay_sendtx",               randpay_sendtx,               {"hexstring","flags"} },
 #endif
 };
 // clang-format on

@@ -114,17 +114,15 @@ QNameCoin::SignMessageRet QNameCoin::signMessageByName(const QString& name, cons
 	return ret;
 }
 
-UniValue randpay_createtx(const JSONRPCRequest& request);
+UniValue randpay_mktx(const JSONRPCRequest& request);
 QString QNameCoin::randPayCreateTx(const RandPayRequest & r, QString & error) {
 	try {
 		JSONRPCRequest request;
 		request.params.setArray();
 		request.params.push_back(UniValue(r._amount));
 		request.params.push_back(UniValue(r._chap.toStdString()));
-		request.params.push_back(UniValue((double)r._risk));
 		request.params.push_back(UniValue((double)r._timeout));
-		//request.params.push_back();[naive]
-		UniValue res = randpay_createtx(request);
+		UniValue res = randpay_mktx(request);
 		return QString::fromStdString(res.write());
 	} catch (UniValue& objError) {
 		error = errorToString(objError);

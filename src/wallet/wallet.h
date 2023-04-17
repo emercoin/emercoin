@@ -95,12 +95,6 @@ constexpr CAmount HIGH_MAX_TX_FEE{100 * HIGH_TX_FEE_PER_KB};
 //! Pre-calculated constants for input size estimation in *virtual size*
 static constexpr size_t DUMMY_NESTED_P2WPKH_INPUT_SIZE = 91;
 
-// emercoin stuff
-struct RandKeyT {
-  CKey   key;
-  time_t expire;
-};
-extern uint256HashMap<RandKeyT> MapRandKeyT;
 extern bool fWalletUnlockMintOnly;
 
 class CCoinControl;
