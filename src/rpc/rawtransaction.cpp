@@ -2072,14 +2072,14 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
     "\nVerifies and submits randpaytx, received from payer\n",
     {
         {"hexstring", RPCArg::Type::NUM, RPCArg::Optional::NO, "The hex string of the randpay transaction"},
-        {"flags",  RPCArg::Type::NUM, /* default */ "0", "Flags: 0=send/dont_send"},
+        {"flags",  RPCArg::Type::NUM, /* default */ "0", "Sending flags: 0=send_always 1=exact_or_more 2=exact_only 3=dont_send"},
     },
-    RPCResult{"\n{ \"amount\" : 3.141, \"won\" : true }\n" },
+    RPCResult{"\n{ \"txid\" : \"abcd..1234\", \"amount\" : 3.141, \"won\" : true, \"flags\" : 3 }\n" },
     RPCExamples{
-        HelpExampleCli("randpay_sendtx", "1234...ecec 1000") /* + HelpExampleRpc("randpay_sendtx", "1234...ecec 1000")}, */
+        HelpExampleCli("randpay_sendtx", "1234...ecec 3") /* + HelpExampleRpc("randpay_sendtx", "1234...ecec 1000"), */
     }}.Check(request);
 
-    // ?? RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM});
+    RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM});
 
     if (!g_connman)
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
@@ -2107,15 +2107,22 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN, "transaction already in block chain");
 #endif
 
+
+
+
+
     CValidationState state;
     bool fMissingInputs;
     CAmount nMaxRawTxFee = 0;
     bool fRandPayCheck = true;
     // note: if (fRandPayCheck == true) it will do all checks but it will not accept tx to the pool at the end
+    // Also, with chain of calls, the CheckInputs() chack Randpay after all other cehcks, and returns REJECT_RANDPAY code
+    // only if all other pre-checks completed successfully
     bool fPass = AcceptToMemoryPool(mempool, state, tx, &fMissingInputs, false /* bypass limits */ , nMaxRawTxFee, fRandPayCheck /* test_accept */);
 
     int32_t rpn = -1; // randpay-in index in the vin[]
     if (!fPass) {
+        // This is not naive RP transaction, will be need to sign RandpayIn
         if(state.GetRejectCode() == REJECT_RANDPAY) {
             rpn = tx->vin.size();
             while(--rpn >= 0)
@@ -2131,8 +2138,67 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_TRANSACTION_ERROR, state.GetRejectReason());
     }
 
+    // if rpn < 0 here, there ie either of:
+    // - This is naive RP TX, all inputs are signed, we can submit TX to blockchain, need just assure - we have rcpt-address
+    // - This is pre-signed RP TX from lightweight client (payee).
+    // In both cases, do not need sign RP IN, and just broadcast this TX
+
+    // Try to lookup in RandpayKeysMempool aproproate RandpayKeydata entry
+    bool fWon  = false;
+    bool fSend = false;
+    CTxDestination address;
+    if (!ExtractDestination(tx->vout[0].scriptPubKey, address))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract destination from vout[0]");
+    const PKHash* pkhash = boost::get<PKHash>(&address); // Maybe will work for both p2pkh and p2wpkh, need check
+    if (!pkhash)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0]");
+    const CKeyID id(*pkhash);
+    arith_uint256 X = arith_uint256(id.ToString()); // Hash of vout[0]. Must be payaddr0 <= X < payaddr0 + nRisk
+    {
+        LOCK(cs_RandpayKeysMempool);
+        std::map<arith_uint256, RandpayKeydata>::iterator payaddr0_it = RandpayKeysMempool.lower_bound(X);
+        if(payaddr0_it != RandpayKeysMempool.end() &&
+                X < payaddr0_it->first + payaddr0_it->second.nRisk) {
+            // We found key range for provided X in vout[0].
+            // Maybe, we can sign Randpay UTXO with our key, if sender guess our address
+            RandpayKeydata &keydata = payaddr0_it->second;
+            if(id == keydata.key.GetPubKey().GetID()) {
+                // Payer guess address, we can sign TX with this key
+                switch(request.params[1].get_int()) {
+                    case 0: fSend = true; break;
+                    case 1: fSend = tx->vout[0].nValue >= keydata.nAmount; break;
+                    case 2: fSend = tx->vout[0].nValue == keydata.nAmount; break;
+                    default: break; // 3 or more - don't send
+                } // switch
+                // TODO: sign RP UTXO
+            } // payer guess address
+        } else {
+            // We did not found any apropriate challenge (address interval) for vout[0].
+            // Thus, we assume - this is pre-signed TX from light client, we must to just submit it.
+            // This is analogous to "risk=0" from previous design.
+            if (rpn < 0)
+                fWon = true; // All inputs signed, TX ready to send
+        else
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address in the vout[0] is not match any available challenge, unable to sign randpay-in");
+        }
+    } // LOCK(cs_RandpayKeysMempool);
+
+
+
+    UniValue rv(UniValue::VOBJ);
+    rv.pushKV("txid", tx->GetHash().GetHex());
+    rv.pushKV("amount", ValueFromAmount(tx->vout[0].nValue));
+    rv.pushKV("won", fWon);
+    rv.pushKV("sent", fSend);
+    return rv;
+
+
+    // OLD CODDE
+        // {"flags",  RPCArg::Type::NUM, /* default */ "0", "Sending flags: 0=send_always 1=exact_or_more 2=exact_only 3=dont_send"},
+
+
     uint32_t nRisk = request.params[1].get_int();
-    bool fWon = false;
+
     if (nRisk > 0) {
         CTxDestination address;
         if (!ExtractDestination(tx->vout[0].scriptPubKey, address))
@@ -2188,11 +2254,12 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
         }
         MapRandKeyT.MarkDel(p);
     } else {
-        // Risk == 0 here; TX from lightweight client
+        // Risk == 0 here; TX from lightweight payee, who received randpay from client,
+        // signed RP TX, and would like to submit his RP TX through this node
         if (rpn < 0)
             fWon = true; // All inputs signed, TX ready to send
         else
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsigned randpay-in from a lightweight client");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsigned randpay-in from a lightweight payee");
     }
 
     // accept to mempool and notify other peers
@@ -2235,7 +2302,8 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
     result.pushKV("amount", ValueFromAmount(tx->vout[0].nValue));
     result.pushKV("won", fWon);
     return result;
-}
+} // randpay_sendtx
+
 
 // clang-format off
 static const CRPCCommand commands[] =
