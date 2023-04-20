@@ -2062,13 +2062,13 @@ static void InitMapRandKeyT() {
 #endif
 
 
-UniValue randpay_sendtx(const JSONRPCRequest& request)
+UniValue randpay_accept(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet* const pwallet = wallet.get();
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
-    RPCHelpMan{"randpay_sendtx",
+    RPCHelpMan{"randpay_accept",
     "\nVerifies and submits randpaytx, received from payer\n",
     {
         {"hexstring", RPCArg::Type::NUM, RPCArg::Optional::NO, "The hex string of the randpay transaction"},
@@ -2076,7 +2076,7 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
     },
     RPCResult{"\n{ \"txid\" : \"abcd..1234\", \"amount\" : 3.141, \"won\" : true, \"flags\" : 3 }\n" },
     RPCExamples{
-        HelpExampleCli("randpay_sendtx", "1234...ecec 3") /* + HelpExampleRpc("randpay_sendtx", "1234...ecec 1000"), */
+        HelpExampleCli("randpay_accept", "1234...ecec 3") /* + HelpExampleRpc("randpay_accept", "1234...ecec 1000"), */
     }}.Check(request);
 
     RPCTypeCheck(request.params, {UniValue::VSTR, UniValue::VNUM});
@@ -2148,8 +2148,16 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
     uint32_t nRisk = 0;
     CAmount expected_amount = 0; // Expected amount, for return
     CTxDestination address;
-    if (!ExtractDestination(tx->vout[0].scriptPubKey, address))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract destination from vout[0]");
+    txnouttype utxo_type = ExtractDestination(tx->vout[0].scriptPubKey, address);
+    switch(utxo_type) {
+        case TX_PUBKEYHASH:
+        case TX_WITNESS_V0_KEYHASH:
+            break; // These types area allowed
+        case TX_NONSTANDARD: // bool false
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract destination from vout[0]");
+        default:
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid type of vout[0]: %s. Only p2[w]pkh allowed", GetTxnOutputType(utxo_type)));
+    } // switch
     const PKHash* pkhash = boost::get<PKHash>(&address); // Maybe will work for both p2pkh and p2wpkh, need check
     if (!pkhash)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0]");
@@ -2343,7 +2351,7 @@ UniValue randpay_sendtx(const JSONRPCRequest& request)
     result.pushKV("won", fWon);
     return result;
 #endif
-} // randpay_sendtx
+} // randpay_accept
 
 
 // clang-format off
@@ -2374,7 +2382,7 @@ static const CRPCCommand commands[] =
 #ifdef ENABLE_WALLET
     { "randpay",            "randpay_mkchap",               &randpay_mkchap,            { "amount","risk","timeout"} },
     { "randpay",            "randpay_mktx",                 &randpay_mktx,              { "chap","timeout","flags"} },
-    { "randpay",            "randpay_sendtx",               randpay_sendtx,             { "hexstring","flags"} },
+    { "randpay",            "randpay_accept",               randpay_accept,             { "hexstring","flags"} },
 #endif
 };
 // clang-format on

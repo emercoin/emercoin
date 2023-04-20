@@ -1509,7 +1509,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
         }
     }
     // emercoin: copy of above checks for randpay tx
-    // Randpay check must be performed after all other checks, for receive correct error code REJECT_RANDPAY in randpay_sendtx
+    // Randpay check must be performed after all other checks, for receive correct error code REJECT_RANDPAY in randpay_accept
     if (nRandPayPos >= 0) {
         unsigned int i = nRandPayPos;
         const COutPoint &prevout = tx.vin[i].prevout;

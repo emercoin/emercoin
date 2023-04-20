@@ -176,49 +176,50 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
     return typeRet;
 }
 
-bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
+txnouttype ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet)
 {
+    assert(TX_NONSTANDARD == 0);
     std::vector<valtype> vSolutions;
     txnouttype whichType = Solver(scriptPubKey, vSolutions);
 
     if (whichType == TX_PUBKEY) {
         CPubKey pubKey(vSolutions[0]);
         if (!pubKey.IsValid())
-            return false;
+            return TX_NONSTANDARD;
 
         addressRet = PKHash(pubKey);
-        return true;
+        return whichType;
     }
     else if (whichType == TX_PUBKEYHASH  || whichType == TX_NAME_PUBKEYHASH)
     {
         addressRet = PKHash(uint160(vSolutions[0]));
-        return true;
+        return whichType;
     }
     else if (whichType == TX_SCRIPTHASH || whichType == TX_NAME_SCRIPTHASH)
     {
         addressRet = ScriptHash(uint160(vSolutions[0]));
-        return true;
+        return whichType;
     //emcTODOne - is name support needed below? oleg fixed
     } else if (whichType == TX_WITNESS_V0_KEYHASH || whichType == TX_NAME_WITNESS_V0_KEYHASH) {
         WitnessV0KeyHash hash;
         std::copy(vSolutions[0].begin(), vSolutions[0].end(), hash.begin());
         addressRet = hash;
-        return true;
+        return whichType;
     } else if (whichType == TX_WITNESS_V0_SCRIPTHASH || whichType == TX_NAME_WITNESS_V0_SCRIPTHASH) {
         WitnessV0ScriptHash hash;
         std::copy(vSolutions[0].begin(), vSolutions[0].end(), hash.begin());
         addressRet = hash;
-        return true;
+        return whichType;
     } else if (whichType == TX_WITNESS_UNKNOWN) {
         WitnessUnknown unk;
         unk.version = vSolutions[0][0];
         std::copy(vSolutions[1].begin(), vSolutions[1].end(), unk.program);
         unk.length = vSolutions[1].size();
         addressRet = unk;
-        return true;
+        return whichType;
     }
     // Multisig txns have more than one address...
-    return false;
+    return TX_NONSTANDARD; // bool - false
 }
 
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet)

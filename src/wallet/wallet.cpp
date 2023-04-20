@@ -2843,7 +2843,7 @@ bool CWallet::SignTransaction(CMutableTransaction& tx)
     // sign the new tx
     int nIn = 0;
     for (auto& input : tx.vin) {
-        // We do not sign Randpay out here, will be specially signed within randpay_submittx, if needed
+        // We do not sign Randpay out here, will be specially signed within randpay_accept, if needed
         if(input.prevout.hash != randpaytx) {
             std::map<uint256, CWalletTx>::const_iterator mi = mapWallet.find(input.prevout.hash);
             if(mi == mapWallet.end() || input.prevout.n >= mi->second.tx->vout.size()) {

@@ -202,7 +202,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "randpay_mkchap", 2, "timeout" },
     { "randpay_mktx", 1, "timeout" },
     { "randpay_mktx", 2, "flags" },
-    { "randpay_submittx", 1, "flags" },
+    { "randpay_accept", 1, "flags" },
 };
 // clang-format on
 
