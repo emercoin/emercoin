@@ -1960,106 +1960,7 @@ UniValue randpay_mktx(const JSONRPCRequest& request)
     return EncodeHexTx(*tx);
 } // randpay_mktx
 
-#if 0
-    // Debug reference
-    // Naive:
-    // 0 = RP-in, signed     2 = RP-in, unsigned
-    // 1 = Naive, signed     3 = Naive, unsigned
-    // Accept either a bool (true) or a num (>=1) to indicate naive.
-    if(naive & 2)
-        return EncodeHexTx(*tx);
-    // and sing other inputs by signrawtransactionwithkey
-    UniValue params(UniValue::VARR);
-    params.push_back(EncodeHexTx(*tx));
-    JSONRPCRequest req;
-    req.params = params;
-    req.fHelp = false;
-    const UniValue result(signrawtransactionwithwallet(req));
-    const UniValue& err = find_value(result, "error");
-    return result[(err.isNull() || err.get_str().empty())? "hex" : "error"].get_str();
-#
-// Old code from EM, just for reference
-    {
-        LOCK2(cs_main, pwallet->cs_wallet);
-        auto locked_chain = pwallet->chain().lock();
-        std::vector<CRecipient> vecSend;
-        bool fSubtractFeeFromAmount = false;
-        //emcTODOne redo this
-        //CScript scriptPubKey = GetScriptForDestination(CKeyID(rand_addr));
-        CScript scriptPubKey;
-        CRecipient recipient = {scriptPubKey, nAmount, fSubtractFeeFromAmount};
-        vecSend.push_back(recipient);
-        CAmount nFeeRequired;
-        int nChangePosRet = 1;
-        std::string strError;
-        CCoinControl coin_control;
-        //emcTODOne - it seems that tx was signed only when naive option was true, check how this will work with no such option in CreateTransaction()
-        //bool fSign = naive;
-        if (!pwallet->CreateTransaction(*locked_chain, vecSend, tx, nFeeRequired, nChangePosRet, strError, coin_control/*, fSign*/)) {
-            if (!fSubtractFeeFromAmount && nAmount + nFeeRequired > curBalance)
-                strError = strprintf("Error: This transaction requires a transaction fee of at least %s", FormatMoney(nFeeRequired));
-            throw JSONRPCError(RPC_WALLET_ERROR, strError);
-        }
-    }
-
-    // Iterate payment vins, and add into g_RandPayLockUTXO
-    {
-        time_t lock_time = time(NULL) + nTimio;
-        LOCK(cs_g_RandPayLockUTXO);
-        for (const CTxIn &txin : tx->vin) {
-            uint256 rpLockTXkey(txin.prevout.hash);
-            *((uint32_t*)rpLockTXkey.GetDataPtr()) += txin.prevout.n;
-            g_RandPayLockUTXO.Insert(rpLockTXkey, lock_time);
-        }
-    }
-
-    if (naive)
-        return EncodeHexTx(*tx);
-
-    // add randpay input at vin[0]
-    CMutableTransaction txNew(*tx);
-    uint32_t nSequence = (tx->nLockTime ? std::numeric_limits<uint32_t>::max() - 1 : std::numeric_limits<uint32_t>::max());
-    CTxIn in(COutPoint(randpaytx, 0), CScript(), nSequence);
-    txNew.vin.insert(txNew.vin.begin(), in);
-
-    // and sing other inputs by signrawtransactionwithkey
-    UniValue params(UniValue::VARR);
-    CTransaction rtx = CTransaction(txNew);
-    params.push_back(EncodeHexTx(rtx));
-    JSONRPCRequest req;
-    req.params = params;
-    req.fHelp = false;
-    const UniValue result(signrawtransactionwithkey(req));
-    const UniValue& err = find_value(result, "error");
-    return result[(err.isNull() || err.get_str().empty())? "hex" : "error"].get_str();
-}
-#endif
-
 #endif   // #ifdef ENABLE_WALLET
-
-#if 0
-
-
-struct RandKeyT {
-  CKey   key;
-  time_t expire;
-};
-extern uint256HashMap<RandKeyT> MapRandKeyT;
-
-
-uint256HashMap<RandKeyT> MapRandKeyT;
-CCriticalSection cs_MapRandKeyT;
-
-
-static void InitMapRandKeyT() {
-  static int randkeymapsz = -1;
-  if(randkeymapsz < 0) {
-    randkeymapsz = gArgs.GetArg("-randkeymapsz", 16);
-    LOCK(cs_MapRandKeyT);
-    MapRandKeyT.Set(randkeymapsz);
-  }
-}
-#endif
 
 
 UniValue randpay_accept(const JSONRPCRequest& request)
@@ -2092,32 +1993,20 @@ UniValue randpay_accept(const JSONRPCRequest& request)
 
     LOCK2(cs_main, pwallet->cs_wallet);
     // emcTODOne - following commented code is not need, if AcceptToMemoryPool() rejects adding already existing TXID. Need check.
-    // This is OK, if AcceptToMemoryPool still accept duplicate.
+    // Tested. Mempool rejects OK:
+    // If TX in mempool:    18: txn-mempool-conflict (code -26)
+    // If TX in blockchain: Missing inputs (code -25)
+    // Moreover: This code is OK, even if AcceptToMemoryPool will accept a duplicate.
     // Anyway, same challenge [address range] can be used only once. And after using, it is deleted.
-    // Thus, there is impossible - not dup or this TX, nor another TX to same address
-
-#if 0
-    CCoinsView viewDummy;
-    CCoinsViewCache view(&viewDummy);
-    //emcTODOne redo this
-//    const CCoins* existingCoins = view.AccessCoin(tx->GetHash());
-//    bool fHaveChain = existingCoins && existingCoins->nHeight < 1000000000;
-///??     bool fHaveChain = false;
-    COutPoint iter(tx->GetHash(), 0);
-    const Coin& existingCoin = view.AccessCoin(iter);
-    bool fHaveChain = existingCoin.nHeight > 0 && existingCoin.nHeight < 1000000000;
-    if (fHaveChain)
-        throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN, "transaction already in block chain");
-#endif
+    // Thus, there is impossible - not dup this TX, nor build another TX to same address
 
     CValidationState state;
     bool fMissingInputs;
     CAmount nMaxRawTxFee = 0;
-    bool fRandPayCheck = true;
-    // note: if (fRandPayCheck == true) it will do all checks but it will not accept tx to the pool at the end
-    // Also, with chain of calls, the CheckInputs() chack Randpay after all other cehcks, and returns REJECT_RANDPAY code
-    // only if all other pre-checks completed successfully
-    bool fPass = AcceptToMemoryPool(mempool, state, tx, &fMissingInputs, false /* bypass limits */ , nMaxRawTxFee, fRandPayCheck /* test_accept */);
+    // note: (test_accept == true) it will do all checks but it will not accept tx to the pool at the end
+    // Also, with chain of calls, the CheckInputs() chreck Randpay after all other checks, and returns REJECT_RANDPAY code
+    // only if all other pre-checks completed successfully, and "problem" in Randpay only.
+    bool fPass = AcceptToMemoryPool(mempool, state, tx, &fMissingInputs, false /* bypass limits */ , nMaxRawTxFee, true /* test_accept */);
 
     int32_t rpn = -1; // randpay-in index in the vin[]
     if (!fPass) {
@@ -2146,22 +2035,31 @@ UniValue randpay_accept(const JSONRPCRequest& request)
     bool fWon  = false;
     bool fSend = false;
     uint32_t nRisk = 0;
+    uint32_t nFlags = request.params[1].isNull() ? 0 : request.params[1].get_int();
     CAmount expected_amount = 0; // Expected amount, for return
     CTxDestination address;
     txnouttype utxo_type = ExtractDestination(tx->vout[0].scriptPubKey, address);
+    CKeyID id;
     switch(utxo_type) {
-        case TX_PUBKEYHASH:
-        case TX_WITNESS_V0_KEYHASH:
-            break; // These types area allowed
+        case TX_PUBKEYHASH: {
+            const PKHash* pkhash = boost::get<PKHash>(&address);
+            if (!pkhash)
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0] p2pkh");
+            id = CKeyID(*pkhash);
+            } break;
+        case TX_WITNESS_V0_KEYHASH: {
+            const WitnessV0KeyHash* w0pkhash = boost::get<WitnessV0KeyHash>(&address);
+            if (!w0pkhash)
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0] p2wpkh");
+            id = CKeyID(*w0pkhash);
+            } break;
+            break;
         case TX_NONSTANDARD: // bool false
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract destination from vout[0]");
         default:
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid type of vout[0]: %s. Only p2[w]pkh allowed", GetTxnOutputType(utxo_type)));
     } // switch
-    const PKHash* pkhash = boost::get<PKHash>(&address); // Maybe will work for both p2pkh and p2wpkh, need check
-    if (!pkhash)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0]");
-    const CKeyID id(*pkhash);
+
     arith_uint256 X = arith_uint256(id.ToString()); // Hash of vout[0]. Must be payaddr0 <= X < payaddr0 + nRisk
     {
         LOCK(cs_RandpayKeysMempool);
@@ -2178,7 +2076,7 @@ UniValue randpay_accept(const JSONRPCRequest& request)
                 // Payer guess address, we can sign TX with this key
                 // or keep it as is, if it is naive
                 // switch Sending flags: 0=send_always 1=exact_or_more 2=exact_only 3=dont_send
-                switch(request.params[1].get_int()) {
+                switch(nFlags) {
                     case 0: fSend = true; break;
                     case 1: fSend = tx->vout[0].nValue >= expected_amount; break;
                     case 2: fSend = tx->vout[0].nValue == expected_amount; break;
@@ -2218,14 +2116,14 @@ UniValue randpay_accept(const JSONRPCRequest& request)
             // This is analogous to "risk=0" from previous design.
             if (rpn < 0) {
                 fWon  = true; // All inputs are signed, TX ready to send
-                fSend = request.params[1].get_int() < 3; // We cannot check amount here, and send always, if allowed
+                fSend = nFlags < 3; // We cannot check amount here, and send always, if allowed
             } else
                 throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address in the vout[0] does not match any available challenge, unable to sign randpay-in");
         }
     } // LOCK(cs_RandpayKeysMempool);
 
     tx = MakeTransactionRef(std::move(mtx));
-    if(fSend && 0) {
+    if(fSend && fWon) {
         string err_string;
         if(!pwallet->chain().broadcastTransaction(tx, err_string, pwallet->m_default_max_tx_fee, true /* relay */))
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Error: The transaction was rejected! Reason: %s", err_string.c_str()));
@@ -2239,118 +2137,6 @@ UniValue randpay_accept(const JSONRPCRequest& request)
     rv.pushKV("won" , fWon);
     rv.pushKV("sent", fSend);
     return rv;
-
-#if 0
-    // OLD CODDE
-        // {"flags",  RPCArg::Type::NUM, /* default */ "0", "Sending flags: 0=send_always 1=exact_or_more 2=exact_only 3=dont_send"},
-
-
-    // uint32_t nRisk = request.params[1].get_int();
-
-    if (nRisk > 0) {
-        CTxDestination address;
-        if (!ExtractDestination(tx->vout[0].scriptPubKey, address))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract destination from vout[0]");
-        const PKHash* pkhash = boost::get<PKHash>(&address);
-        if (!pkhash)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to extract CKeyID from vout[0]");
-        const CKeyID id(*pkhash);
-
-        arith_uint256 X = arith_uint256(id.ToString());
-        arith_uint256 addrchap = X / nRisk;
-        LOCK(cs_MapRandKeyT);
-        uint256HashMap<RandKeyT>::Data *p = MapRandKeyT.Search(ArithToUint256(addrchap));
-        if (p == nullptr)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Payment address out of range");
-
-        CKey key = p->value.key;
-        CPubKey pubkey = key.GetPubKey();
-        CKeyID id2 = pubkey.GetID();
-
-        if (id == id2) {
-            // add key to wallet
-            if (!pwallet->HaveKey(id2)) {
-                if (!key.IsValid())
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key outside allowed range");
-                pwallet->MarkDirty();
-                pwallet->SetAddressBook(address, "RandPay", "receive");
-                pwallet->mapKeyMetadata[id2].nCreateTime = GetTime();
-                if (!pwallet->AddKeyPubKey(key, pubkey))
-                    throw JSONRPCError(RPC_WALLET_ERROR, "Error adding key to wallet");
-            }
-
-            // sign randpay input (vin[rpn]) with key
-            if (rpn >= 0) {
-                //emcTODOne redo this
-//                const CTxIn& txin = tx->vin[rpn];
-//                const CCoins* coins = view.AccessCoins(txin.prevout.hash);
-//                assert(coins != nullptr && coins->IsAvailable(txin.prevout.n)); // randpay input should always be available
-//                const CScript prevPubKey = GenerateScriptForRandPay(tx->vout[0].scriptPubKey);
-//                const CAmount amount = coins->vout[txin.prevout.n].nValue;
-
-//                SignatureData sigdata;
-//                if(!ProduceSignature(MutableTransactionSignatureCreator(pwalletMain, &mtx, rpn, amount, SIGHASH_ALL), prevPubKey, sigdata))
-//                  throw JSONRPCError(RPC_WALLET_ERROR, "Cannot ProduceSignature for Randpay");
-//                UpdateTransaction(mtx, rpn, sigdata);
-
-//                ScriptError serror = SCRIPT_ERR_OK;
-//                const CTransaction txConst(mtx);
-//                if (!VerifyScript(txConst.vin[rpn].scriptSig, prevPubKey, mtx.nVersion, &txConst.vin[rpn].scriptWitness, STANDARD_SCRIPT_VERIFY_FLAGS, TransactionSignatureChecker(&txConst, rpn, amount), &serror))
-//                    throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Failed to verify script: %s", ScriptErrorString(serror)));
-            }
-            fWon = true;
-        }
-        MapRandKeyT.MarkDel(p);
-    } else {
-        // Risk == 0 here; TX from lightweight payee, who received randpay from client,
-        // signed RP TX, and would like to submit his RP TX through this node
-        if (rpn < 0)
-            fWon = true; // All inputs signed, TX ready to send
-        else
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unsigned randpay-in from a lightweight payee");
-    }
-
-    // accept to mempool and notify other peers
-    if (fWon) {
-        CTransactionRef txUpdated(MakeTransactionRef(std::move(mtx)));
-        const uint256& hashUpdatedTx = txUpdated->GetHash();
-
-        //emcTODOne redo this
-//        const CCoins* existingCoins2 = view.AccessCoins(hashUpdatedTx);
-//        bool fHaveMempool2 = mempool.exists(hashUpdatedTx);
-//        bool fHaveChain2 = existingCoins2 && existingCoins2->nHeight < 1000000000;
-        bool fHaveMempool2 = false; bool fHaveChain2 = false;
-        if (!fHaveMempool2 && !fHaveChain2) {
-            // push to local node and sync with wallets
-            CValidationState state;
-            bool fMissingInputs;
-            if (!AcceptToMemoryPool(mempool, state, std::move(txUpdated), &fMissingInputs, NULL, false, nMaxRawTxFee)) {
-                if (state.IsInvalid()) {
-                    throw JSONRPCError(RPC_TRANSACTION_REJECTED, strprintf("%i: %s", state.GetRejectCode(), state.GetRejectReason()));
-                } else {
-                    if (fMissingInputs) {
-                        throw JSONRPCError(RPC_TRANSACTION_ERROR, "Missing inputs");
-                    }
-                    throw JSONRPCError(RPC_TRANSACTION_ERROR, state.GetRejectReason());
-                }
-            }
-        } else if (fHaveChain2) {
-            throw JSONRPCError(RPC_TRANSACTION_ALREADY_IN_CHAIN, "transaction already in block chain");
-        }
-
-        // notify other peers that this tx exists
-        CInv inv(MSG_TX, hashUpdatedTx);
-        g_connman->ForEachNode([&inv](CNode* pnode)
-        {
-            pnode->PushInventory(inv);
-        });
-    }
-
-    UniValue result(UniValue::VOBJ);
-    result.pushKV("amount", ValueFromAmount(tx->vout[0].nValue));
-    result.pushKV("won", fWon);
-    return result;
-#endif
 } // randpay_accept
 
 
