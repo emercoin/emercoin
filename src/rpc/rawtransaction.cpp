@@ -1842,7 +1842,7 @@ UniValue randpay_mkchap(const JSONRPCRequest& request)
     } while (X >= barrier || !keydata.key.IsValid());
 
     arith_uint256 addrchap = X / nRisk;
-    arith_uint256 payaddr0 = addrchap * nRisk;
+    arith_uint256 payaddr_uplimit = (addrchap + 1) * nRisk;
     time_t t = GetSystemTimeInSeconds();
     keydata.expire = t + nTimio;
     keydata.nRisk  = nRisk;
@@ -1858,7 +1858,7 @@ UniValue randpay_mkchap(const JSONRPCRequest& request)
             else
                 ++it;
     }
-    RandpayKeysMempool.emplace(payaddr0, keydata);
+    RandpayKeysMempool.emplace(payaddr_uplimit, keydata);
     return std::string(outbuf);
 } // randpay_mkchap
 
@@ -2063,11 +2063,11 @@ UniValue randpay_accept(const JSONRPCRequest& request)
     arith_uint256 X = arith_uint256(id.ToString()); // Hash of vout[0]. Must be payaddr0 <= X < payaddr0 + nRisk
     {
         LOCK(cs_RandpayKeysMempool);
-        std::map<arith_uint256, RandpayKeydata>::iterator payaddr0_it = RandpayKeysMempool.lower_bound(X);
-        if(payaddr0_it != RandpayKeysMempool.end() &&
-                X < payaddr0_it->first + payaddr0_it->second.nRisk) {
+        std::map<arith_uint256, RandpayKeydata>::iterator payaddr_ceil_it = RandpayKeysMempool.upper_bound(X);
+        if(payaddr_ceil_it != RandpayKeysMempool.end() &&
+                X >= payaddr_ceil_it->first - payaddr_ceil_it->second.nRisk) {
             // We found key range for provided X in vout[0].
-            RandpayKeydata &keydata = payaddr0_it->second;
+            RandpayKeydata &keydata = payaddr_ceil_it->second;
             // We found challenge, so can return correct Risk & expected_amount
             nRisk           = keydata.nRisk;
             expected_amount = keydata.nAmount;
@@ -2109,7 +2109,7 @@ UniValue randpay_accept(const JSONRPCRequest& request)
                 // and malicious payers will avoid paying to thid address
             } // payer guess the winning address
             // We anyway cannot reuse this challenge (payment range), because of possible payers collusion
-            RandpayKeysMempool.erase(payaddr0_it); // Remove the challenge, to avoid possible re-accept same TX
+            RandpayKeysMempool.erase(payaddr_ceil_it); // Remove the challenge, to avoid possible re-accept same TX
         } else {
             // We did not found any apropriate challenge (address range) for vout[0].
             // Thus, we assume - this is pre-signed TX from lightweight client, we must to just submit it.
