@@ -1881,7 +1881,7 @@ UniValue randpay_mktx(const JSONRPCRequest& request)
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp))
         return NullUniValue;
 
-    char chap[128];
+    char chap[80]; // Must fit: challenge:40 amount:21 risk:10 seps:3 = 74
     strncpy(chap, request.params[0].get_str().c_str(), sizeof(chap) - 1);
     char *p_risk = strchr(chap, ':');
     if(p_risk == NULL)
@@ -1899,8 +1899,8 @@ UniValue randpay_mktx(const JSONRPCRequest& request)
     uint32_t nRisk = atoll(p_risk);
     if(nRisk == 0)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid chap, risk must not be zero");
-    arith_uint256 addrchap = UintToArith256(uint256S(p_challenge)); // hex part of chap dec:hex
-
+    arith_uint256 addrchap(p_challenge); // hex part of chap dec:hex
+    // arith_uint256 addrchap = UintToArith256(uint256S(p_challenge)); // old way
     if (!request.params[1].isNum())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid type provided. timeout parameter must be numeric.");
     int32_t nTimio = request.params[1].get_int();
@@ -1926,7 +1926,8 @@ UniValue randpay_mktx(const JSONRPCRequest& request)
         tx = MakeTransactionRef(std::move(tmpTx));
     }
 
-    // flags |= 2; // Temporary, for prevent hardfork = always PKHash(rand_addr)
+    if(!IsV8Enabled(::ChainActive().Tip(), Params().GetConsensus()))
+            flags |= 2; // Temporary, for prevent hardfork = always PKHash(rand_addr)
 
     // Out script type: 2=p2pkh 0=witness
     CScript rp_out_script = (flags & 2)? GetScriptForDestination(PKHash(rand_addr)) : GetScriptForDestination(WitnessV0KeyHash(rand_addr));

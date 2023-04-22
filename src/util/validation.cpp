@@ -17,4 +17,5 @@ std::string FormatStateMessage(const CValidationState &state)
         state.GetRejectCode());
 }
 
-const std::string strMessageMagic = "Emercoin Signed Message:\n";
+// If change this line, signmessage/veryfymessage will not be compatible with previous versions
+const std::string strMessageMagic = "EmerCoin Signed Message:\n";
