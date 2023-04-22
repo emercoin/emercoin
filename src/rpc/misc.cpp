@@ -296,10 +296,17 @@ static UniValue verifymessage(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
 
-    const PKHash *pkhash = boost::get<PKHash>(&destination);
-    if (!pkhash) {
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-    }
+    CKeyID keyID;
+
+    const WitnessV0KeyHash *w0pkhash;
+    const PKHash           *pkhash;
+    if((w0pkhash = boost::get<WitnessV0KeyHash>(&destination)) != 0)
+        keyID = CKeyID(*w0pkhash);
+    else
+    if((pkhash = boost::get<PKHash>(&destination)) != 0)
+        keyID  = CKeyID(*pkhash);
+    else
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
 
     bool fInvalid = false;
     std::vector<unsigned char> vchSig = DecodeBase64(strSign.c_str(), &fInvalid);
@@ -315,7 +322,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
     if (!pubkey.RecoverCompact(ss.GetHash(), vchSig))
         return false;
 
-    return (pubkey.GetID() == *pkhash);
+    return (pubkey.GetID() == keyID);
 }
 
 static UniValue signmessagewithprivkey(const JSONRPCRequest& request)

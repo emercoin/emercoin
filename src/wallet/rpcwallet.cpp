@@ -549,13 +549,18 @@ UniValue signmessage(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
     }
 
-    const PKHash *pkhash = boost::get<PKHash>(&dest);
-    if (!pkhash) {
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-    }
+    CKeyID keyID;
+    const WitnessV0KeyHash *w0pkhash;
+    const PKHash           *pkhash;
+    if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != 0)
+        keyID = CKeyID(*w0pkhash);
+    else
+    if((pkhash = boost::get<PKHash>(&dest)) != 0)
+        keyID  = CKeyID(*pkhash);
+    else
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
 
     CKey key;
-    CKeyID keyID(*pkhash);
     if (!pwallet->GetKey(keyID, key)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     }
