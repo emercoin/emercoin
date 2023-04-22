@@ -205,6 +205,21 @@ CBlockHeader CBlockIndex::GetBlockHeader() const {
 
 bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, const Consensus::Params& params) {
     unsigned int nToCheck = params.nToCheckBlockUpgradeMajority;
+    unsigned nBlocksPoW[2]; // 0 is not match supermajority, 1 is match
+    unsigned nBlocksPoS[2]; // 0 is not match supermajority, 1 is match
+    nBlocksPoW[0] = nBlocksPoW[1] = nBlocksPoS[0] = nBlocksPoS[1] = 0;
+
+    for (unsigned int i = 0; i < nToCheck && pstart != NULL; i++) {
+        unsigned *arr = pstart->IsProofOfWork()? nBlocksPoW : nBlocksPoS;
+        arr[!!(pstart->GetBlockVersion() >= minVersion)]++;
+        pstart = pstart->pprev;
+    }
+    // Calculation: Both block types, PoW/PoS. Must match SuperMajority:
+    //         match / (match + not_match) > required / num_To_Check
+    // Or same: match * num_To_Check >= required * match + not_match)
+    return nBlocksPoW[1] * nToCheck >= nRequired * (nBlocksPoW[0] + nBlocksPoW[1])
+        && nBlocksPoS[1] * nToCheck >= nRequired * (nBlocksPoS[0] + nBlocksPoS[1]);
+#if 0
     unsigned int nFound = 0;
     for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
@@ -213,6 +228,7 @@ bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRe
         pstart = pstart->pprev;
     }
     return (nFound >= nRequired);
+#endif
 }
 
 // ppcoin: find last block index up to pindex

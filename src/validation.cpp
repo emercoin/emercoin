@@ -5479,7 +5479,8 @@ bool IsV8Enabled(const CBlockIndex* pindexPrev, const Consensus::Params& params)
     AssertLockHeld(cs_main);
     if (pindexPrev->nHeight < params.SegwitHeight)
         return false;
-    return IsSuperMajority(8, pindexPrev, params.nRejectBlockOutdatedMajority, params);
+    return IsSuperMajority(9, pindexPrev, params.nRejectBlockOutdatedMajority, params);
+    // orig test return IsSuperMajority(8, pindexPrev, params.nRejectBlockOutdatedMajority, params);
 }
 
 /** Comparison function for sorting the getchaintips heads.  */
