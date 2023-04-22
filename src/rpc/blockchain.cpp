@@ -46,7 +46,7 @@
 #include <memory>
 #include <mutex>
 
-extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false, bool fMultiName=false);
+extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false);
 
 struct CUpdatedBlock
 {
@@ -389,7 +389,7 @@ static UniValue getdifficulty(const JSONRPCRequest& request)
     obj.pushKV("proof-of-work",        GetDifficulty(::ChainActive().Tip()));
     obj.pushKV("proof-of-stake",       GetDifficulty(GetLastBlockIndex(::ChainActive().Tip(), true)));
     obj.pushKV("search-interval",      (int)nLastCoinStakeSearchInterval);
-    
+
     return obj;
 }
 

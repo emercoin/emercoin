@@ -31,7 +31,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false, bool fMultiName=false);
+extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false);
 
 QString TransactionDesc::FormatTxStatus(const interfaces::WalletTx& wtx, const interfaces::WalletTxStatus& status, bool inMempool, int numBlocks)
 {
@@ -409,7 +409,7 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
     strHTML += "<br/><b>" + tr("Raw transaction JSON") + ":</b>";
     uint256 hash_block; // IsNull() suppress block info printout
     UniValue result(UniValue::VOBJ);
-    TxToJSON(*wtx.tx.get(), hash_block, result, true, true);
+    TxToJSON(*wtx.tx.get(), hash_block, result, true);
     strHTML += "\n<br/><pre>" + QString::fromStdString(result.write(1, 2)) + "</pre><br/>";
 
     strHTML += "</font></html>";

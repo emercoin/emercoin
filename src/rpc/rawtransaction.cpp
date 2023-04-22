@@ -52,7 +52,7 @@
  */
 static const CFeeRate DEFAULT_MAX_RAW_TX_FEE_RATE{COIN / 10};
 
-void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false, bool fMultiName=false)
+void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry, bool fName=false)
 {
     // Call into TxToUniv() in bitcoin-common to decode the transaction hex.
     //
@@ -229,8 +229,9 @@ static UniValue getrawtransaction(const JSONRPCRequest& request)
 
     UniValue result(UniValue::VOBJ);
     if (blockindex) result.pushKV("in_active_chain", in_active_chain);
-    LOCK(cs_main); // need for IsV8Enabled
-    TxToJSON(*tx, hash_block, result, nVerbose == 2, IsV8Enabled(::ChainActive().Tip(), Params().GetConsensus()));
+    // LOCK(cs_main); // need for IsV8Enabled
+    // TxToJSON(*tx, hash_block, result, nVerbose == 2, IsV8Enabled(::ChainActive().Tip(), Params().GetConsensus()));
+    TxToJSON(*tx, hash_block, result, nVerbose == 2);
     return result;
 }
 
