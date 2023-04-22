@@ -1379,7 +1379,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
         }
 
         // add destination to namescript
-        if (!strAddress.empty()) {
+        if (!strAddress.empty() && strAddress != "legacy") {
             CTxDestination dest = DecodeDestination(strAddress);
             if (!IsValidDestination(dest)) {
                 ret.err_code = RPC_INVALID_ADDRESS_OR_KEY;
@@ -1393,7 +1393,10 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
                 ret.err_msg = "failed to get key from pool";
                 return ret;
             }
-            scriptPubKey = GetScriptForDestination(WitnessV0KeyHash(PKHash(vchPubKey)));
+
+            scriptPubKey = strAddress.empty()?
+                GetScriptForDestination(WitnessV0KeyHash(PKHash(vchPubKey))) :
+                GetScriptForDestination(PKHash(vchPubKey));
         }
         nameScript += scriptPubKey;
 

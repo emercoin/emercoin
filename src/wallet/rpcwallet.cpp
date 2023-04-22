@@ -552,10 +552,10 @@ UniValue signmessage(const JSONRPCRequest& request)
     CKeyID keyID;
     const WitnessV0KeyHash *w0pkhash;
     const PKHash           *pkhash;
-    if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != 0)
+    if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != NULL)
         keyID = CKeyID(*w0pkhash);
     else
-    if((pkhash = boost::get<PKHash>(&dest)) != 0)
+    if((pkhash = boost::get<PKHash>(&dest)) != NULL)
         keyID  = CKeyID(*pkhash);
     else
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
