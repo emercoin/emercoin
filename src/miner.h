@@ -3,6 +3,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+/*
+ * For build client with CPU PoW miner support,
+ * write into auto-genearated config file src/config/bitcoin-config.h following line:
+ * #define POW_MINING 1
+ *
+*/
+
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
 

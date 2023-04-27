@@ -767,15 +767,36 @@ void static EmercoinMiner(const CChainParams& chainparams)
 
     unsigned int nExtraNonce = 0;
 
-    boost::shared_ptr<CReserveScript> coinbaseScript;
-    GetMainSignals().ScriptForMining(coinbaseScript);
+    std::shared_ptr<CWallet> pwallet = GetWallets()[0];
+    if(pwallet == NULL)
+        throw std::runtime_error("No coinbase script available (mining requires a wallet)");
+
+    // For coinbase, we always must use P2PK (pay to pubkey) output script, since pubkey is needes
+    // for generate block signature.
+    ReserveDestination reservedest(pwallet.get());
+    CTxDestination dest;
+    if (!reservedest.GetReservedDestination(OutputType::LEGACY, dest, true))
+        throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
+
+    const PKHash* pkhash = boost::get<PKHash>(&dest);
+    if(pkhash == NULL)
+        throw std::runtime_error("Error: Cannot extract PKHash from LEGACY address");
+
+    CKey key;
+    CKeyID keyID(*pkhash);
+    if (!pwallet->GetKey(keyID, key))
+        throw std::runtime_error("Error: Cannot extract pubked for PKHash LEGACY address");
+
+    // Explicitly generate P2PK script for coinbase TX
+    CScript scriptPubKeyCoinbase;
+    scriptPubKeyCoinbase << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
 
     try {
         // Throw an error if no script was provided.  This can happen
         // due to some internal error but also if the keypool is empty.
         // In the latter case, already the pointer is NULL.
-        if (!coinbaseScript || coinbaseScript->reserveScript.empty())
-            throw std::runtime_error("No coinbase script available (mining requires a wallet)");
+        //? if (!coinbaseScript || coinbaseScript->reserveScript.empty())
+        //?     throw std::runtime_error("No coinbase script available (mining requires a wallet)");
 
         while (true) {
             // Busy-wait for the network to come online so we don't waste time mining
@@ -789,10 +810,10 @@ void static EmercoinMiner(const CChainParams& chainparams)
             unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
             CBlockIndex* pindexPrev = ::ChainActive().Tip();
 
-            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript, true, nullptr, nullptr));
+            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(scriptPubKeyCoinbase, nullptr, nullptr));
             if (!pblocktemplate.get())
             {
-                LogPrintf("Error in EmercoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining hread\n");
+                LogPrintf("Error in EmercoinMiner: Keypool ran out, please call keypoolrefill before restarting the mining thread\n"); // Exit here
                 return;
             }
             CBlock *pblock = &pblocktemplate->block;
@@ -817,18 +838,18 @@ void static EmercoinMiner(const CChainParams& chainparams)
                         // Found a solution
                         pblock->nNonce = nNonce;
                         assert(hash == pblock->GetHash());
-
-                        LOCK2(cs_main, pwalletMain->cs_wallet);
-                        if (!SignBlock(*pblock, *pwalletMain))
                         {
-                            LogPrintf("PoSMiner(): failed to sign PoS block\n");
-                            continue;
+                            LOCK2(cs_main, pwallet->cs_wallet);
+                            if (!SignBlock(*pblock, *pwallet))
+                            {
+                                LogPrintf("PoWMiner(): failed to sign PoW block\n");
+                                continue;
+                            }
                         }
-
                         LogPrintf("EmercoinMiner:\n");
                         LogPrintf("proof-of-work found  \n  hash: %s  \ntarget: %s\n", hash.GetHex(), hashTarget.GetHex());
                         ProcessBlockFound(pblock, chainparams);
-                        coinbaseScript->KeepScript();
+                        reservedest.KeepDestination();
 
                         // In regression test mode, stop mining after a block is found.
                         if (chainparams.NetworkIDString() == "regtest")
@@ -841,7 +862,7 @@ void static EmercoinMiner(const CChainParams& chainparams)
                 // Check for stop or if block needs to be rebuilt
                 boost::this_thread::interruption_point();
                 // Regtest mode doesn't require peers
-                if ((g_connman == nullptr || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0) && chainparams.MiningRequiresPeers())
+                if ((g_connman == nullptr || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0))
                     break;
                 if (nNonce >= 0xffff0000)
                     break;
@@ -859,8 +880,8 @@ void static EmercoinMiner(const CChainParams& chainparams)
                     // Changing pblock->nTime can change work required on testnet:
                     hashTarget.SetCompact(pblock->nBits);
                 }
-            }
-        }
+            } // while(true) 822
+        } // while(true) 789
     }
     catch (const boost::thread_interrupted&)
     {
@@ -873,6 +894,8 @@ void static EmercoinMiner(const CChainParams& chainparams)
         return;
     }
 }
+
+#include <boost/thread.hpp>
 
 void GenerateEmercoins(bool fGenerate, int nThreads, const CChainParams& chainparams)
 {

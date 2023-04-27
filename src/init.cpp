@@ -571,8 +571,9 @@ void SetupServerArgs()
 #endif
 
 #if defined(ENABLE_WALLET) && POW_MINING
-    gArgs.AddArg("-gen", strprintf(_("Generate coins (default: %u)"), DEFAULT_GENERATE);
-    gArgs.AddArg("-genproclimit=<n>", strprintf(_("Set the number of threads for coin generation if enabled (-1 = all cores, default: %d)"), DEFAULT_GENERATE_THREADS);
+    gArgs.AddArg("-gen", strprintf("Generate coins (default: %u)", DEFAULT_GENERATE), ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
+    gArgs.AddArg("-genproclimit=<n>", strprintf("Set the number of threads for coin generation if enabled (-1 = all cores, default: %d)", DEFAULT_GENERATE_THREADS),
+            ArgsManager::ALLOW_ANY, OptionsCategory::BLOCK_CREATION);
 #endif
 
     gArgs.AddArg("-nameaddress", "Enable address->names index (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
