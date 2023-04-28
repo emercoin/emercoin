@@ -712,7 +712,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                             LogPrintf("CreateCoinStake : failed to get key for kernel type=%s\n", GetTxnOutputType(whichType));
                         break;  // unable to find corresponding public key
                     }
-                    scriptPubKeyOut << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+                    // same as: scriptPubKeyOut << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+                    scriptPubKeyOut = GetScriptForRawPubKey(key.GetPubKey());
                 }
                 else
                 if(whichType == TX_PUBKEY) {

@@ -143,7 +143,34 @@ static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, ui
     }
     return blockHashes;
 }
+/*--------------------------------------------------------------------------------*/
+// Build P2PK (raw pubkey) script for mining purposes.
+// P2PK is mandatory, since pubkey is needed for signing PoW/PoS block
+CScript BuildCoinbaseScript(const CTxDestination& dest) {
+    if (!IsValidDestination(dest))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid destination address");
+    CKeyID keyID;
+    const WitnessV0KeyHash *w0pkhash;
+    const PKHash           *pkhash;
+    if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != NULL)
+        keyID = CKeyID(*w0pkhash);
+    else
+    if((pkhash = boost::get<PKHash>(&dest)) != NULL)
+        keyID  = CKeyID(*pkhash);
+    else
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
+    CKey key;
+    std::shared_ptr<CWallet> pwallet = GetWallets()[0];
+    auto locked_chain = pwallet->chain().lock();
+    LOCK(pwallet->cs_wallet);
+    // if unlocked for minting only - OK, we can keep sign blocks for minting/mining
+    // ?? EnsureWalletIsUnlocked(pwallet.get());
+    if (!pwallet->GetKey(keyID, key))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+    return GetScriptForRawPubKey(key.GetPubKey());
+} // BuildCoinbaseScript
 
+/*--------------------------------------------------------------------------------*/
 static UniValue generatetoaddress(const JSONRPCRequest& request)
 {
             RPCHelpMan{"generatetoaddress",
@@ -171,14 +198,13 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     }
 
     CTxDestination destination = DecodeDestination(request.params[1].get_str());
-    if (!IsValidDestination(destination)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid address");
-    }
+    // oleg: we cannot use for minign just ordinary p2pkh/p2wpkh script, since will be unable to sign blocks
+    // CScript coinbase_script = GetScriptForDestination(destination);
+    // return generateBlocks(coinbase_script, nGenerate, nMaxTries);
+    return generateBlocks(BuildCoinbaseScript(destination), nGenerate, nMaxTries);
+} // generatetoaddress
 
-    CScript coinbase_script = GetScriptForDestination(destination);
-
-    return generateBlocks(coinbase_script, nGenerate, nMaxTries);
-}
+/*--------------------------------------------------------------------------------*/
 
 static UniValue getmininginfo(const JSONRPCRequest& request)
 {
@@ -863,7 +889,7 @@ UniValue getauxblock(const JSONRPCRequest& request)
         UniValue result = BIP22ValidationResult(sc.state);
         return result.isNull() ? true : result;
     }
-}
+} // getauxblock
 
 static UniValue submitheader(const JSONRPCRequest& request)
 {

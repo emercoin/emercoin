@@ -760,6 +760,9 @@ bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phas
     }
 }
 
+// Helper function from src/rpc/mining.cpp
+CScript BuildCoinbaseScript(const CTxDestination& dest);
+
 void static EmercoinMiner(const CChainParams& chainparams)
 {
     LogPrintf("EmercoinMiner started\n");
@@ -778,18 +781,8 @@ void static EmercoinMiner(const CChainParams& chainparams)
     if (!reservedest.GetReservedDestination(OutputType::LEGACY, dest, true))
         throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
 
-    const PKHash* pkhash = boost::get<PKHash>(&dest);
-    if(pkhash == NULL)
-        throw std::runtime_error("Error: Cannot extract PKHash from LEGACY address");
-
-    CKey key;
-    CKeyID keyID(*pkhash);
-    if (!pwallet->GetKey(keyID, key))
-        throw std::runtime_error("Error: Cannot extract pubked for PKHash LEGACY address");
-
     // Explicitly generate P2PK script for coinbase TX
-    CScript scriptPubKeyCoinbase;
-    scriptPubKeyCoinbase << ToByteVector(key.GetPubKey()) << OP_CHECKSIG;
+    CScript scriptPubKeyCoinbase(BuildCoinbaseScript(dest));
 
     try {
         // Throw an error if no script was provided.  This can happen
