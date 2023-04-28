@@ -761,7 +761,7 @@ bool static ScanHash(const CBlockHeader *pblock, uint32_t& nNonce, uint256 *phas
 }
 
 // Helper function from src/rpc/mining.cpp
-CScript BuildCoinbaseScript(const CTxDestination& dest);
+CScript BuildCoinbaseScript(const CTxDestination& dest, CWallet* const pwallet);
 
 void static EmercoinMiner(const CChainParams& chainparams)
 {
@@ -782,7 +782,7 @@ void static EmercoinMiner(const CChainParams& chainparams)
         throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
 
     // Explicitly generate P2PK script for coinbase TX
-    CScript scriptPubKeyCoinbase(BuildCoinbaseScript(dest));
+    CScript scriptPubKeyCoinbase(BuildCoinbaseScript(dest, pwallet.get()));
 
     try {
         // Throw an error if no script was provided.  This can happen

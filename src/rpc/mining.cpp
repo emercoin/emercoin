@@ -146,7 +146,7 @@ static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, ui
 /*--------------------------------------------------------------------------------*/
 // Build P2PK (raw pubkey) script for mining purposes.
 // P2PK is mandatory, since pubkey is needed for signing PoW/PoS block
-CScript BuildCoinbaseScript(const CTxDestination& dest) {
+CScript BuildCoinbaseScript(const CTxDestination& dest, CWallet* const pwallet) {
     if (!IsValidDestination(dest))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid destination address");
     CKeyID keyID;
@@ -160,11 +160,7 @@ CScript BuildCoinbaseScript(const CTxDestination& dest) {
     else
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
     CKey key;
-    std::shared_ptr<CWallet> pwallet = GetWallets()[0];
-    auto locked_chain = pwallet->chain().lock();
     LOCK(pwallet->cs_wallet);
-    // if unlocked for minting only - OK, we can keep sign blocks for minting/mining
-    // ?? EnsureWalletIsUnlocked(pwallet.get());
     if (!pwallet->GetKey(keyID, key))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     return GetScriptForRawPubKey(key.GetPubKey());
@@ -201,7 +197,7 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     // oleg: we cannot use for minign just ordinary p2pkh/p2wpkh script, since will be unable to sign blocks
     // CScript coinbase_script = GetScriptForDestination(destination);
     // return generateBlocks(coinbase_script, nGenerate, nMaxTries);
-    return generateBlocks(BuildCoinbaseScript(destination), nGenerate, nMaxTries);
+    return generateBlocks(BuildCoinbaseScript(destination, GetWalletForJSONRPCRequest(request).get()), nGenerate, nMaxTries);
 } // generatetoaddress
 
 /*--------------------------------------------------------------------------------*/
@@ -735,6 +731,7 @@ static UniValue submitblock(const JSONRPCRequest& request)
     return BIP22ValidationResult(sc.state);
 }
 
+/*--------------------------------------------------------------------------------*/
 UniValue getauxblock(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
