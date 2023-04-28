@@ -200,7 +200,51 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     return generateBlocks(BuildCoinbaseScript(destination, GetWalletForJSONRPCRequest(request).get()), nGenerate, nMaxTries);
 } // generatetoaddress
 
+// Keep in RAM until 1st submitblock. We assume, miner do not use strabge combination of generate+generatetoaddress.
+static ReserveDestination *s_reservedest_generate = NULL;
+
 /*--------------------------------------------------------------------------------*/
+UniValue generate(const JSONRPCRequest& request)
+{
+    RPCHelpMan{"generate",
+                "\nMine up to nblocks blocks immediately (before the RPC call returns)\n",
+                {
+                    {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},
+                    {"maxtries", RPCArg::Type::NUM, /* default */ "1000000", "How many iterations to try."},
+                },
+                RPCResult{
+            "[ blockhashes ]     (array) hashes of blocks generated\n"
+                },
+                RPCExamples{
+            "\nGenerate 11 blocks\n"
+            + HelpExampleCli("generate", "11")
+            + "If you are running the bitcoin core wallet, you can get a new address to send the newly generated bitcoin to with:\n"
+            + HelpExampleCli("getnewaddress", "")
+                },
+            }.Check(request);
+
+    int nGenerate = request.params[0].get_int();
+    uint64_t nMaxTries = 1000000;
+    if (request.params.size() > 1) {
+        nMaxTries = request.params[1].get_int();
+    }
+
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    static CTxDestination destination; // mining dst-address LEGACY
+    if(!IsValidDestination(destination)) {
+        assert(s_reservedest_generate == NULL);
+        ReserveDestination *tmp_reservedest = new ReserveDestination(wallet.get());
+        if (!tmp_reservedest->GetReservedDestination(OutputType::LEGACY, destination, true))
+            throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
+        s_reservedest_generate = tmp_reservedest;
+    }
+    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), nGenerate, nMaxTries);
+} // generate
+
+/*--------------------------------------------------------------------------------*/
+
+
+
 
 static UniValue getmininginfo(const JSONRPCRequest& request)
 {
@@ -708,6 +752,11 @@ static UniValue submitblock(const JSONRPCRequest& request)
         if (!SignBlock(block, *pwallet))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
     }
+    if(s_reservedest_generate != NULL) {
+        s_reservedest_generate->KeepDestination();
+        delete s_reservedest_generate;
+        s_reservedest_generate = NULL;
+    }
 
     {
         LOCK(cs_main);
@@ -1105,6 +1154,7 @@ static const CRPCCommand commands[] =
     // emercoin command
     { "mining",             "getauxblock",            &getauxblock,            {"hash","auxpow"} },
 
+    { "generating",         "generate",               &generate,               {"nblocks","maxtries"} },
     { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },
 
     { "util",               "estimatesmartfee",       &estimatesmartfee,       {"conf_target", "estimate_mode"} },
