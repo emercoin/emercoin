@@ -287,3 +287,13 @@ bool TxIndex::FindTxPosition(const uint256& txid, CDiskTxPos& pos) const
 {
     return m_db->ReadTxPos(txid, pos);
 }
+
+int TxIndex::ReadTxPos(const uint256& txid) const
+{
+    CDiskTxPos postx;
+    if (m_db->ReadTxPos(txid, postx)) {
+        return postx.nTxOffset;
+    }
+    return 0;
+}
+

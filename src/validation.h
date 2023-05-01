@@ -820,4 +820,7 @@ bool IsV8Enabled(const CBlockIndex* pindexPrev, const Consensus::Params& params)
 
 void CleanMapBlockIndex();
 
+bool AbortNode(const std::string& strMessage, const std::string& userMessage = "", unsigned int prefix = 0);
+void DoWarning(const std::string& strWarning);
+
 #endif // BITCOIN_VALIDATION_H

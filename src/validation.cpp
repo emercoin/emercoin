@@ -1599,7 +1599,7 @@ bool UndoReadFromDisk(CBlockUndo& blockundo, const CBlockIndex* pindex)
 }
 
 /** Abort with a message */
-static bool AbortNode(const std::string& strMessage, const std::string& userMessage = "", unsigned int prefix = 0)
+bool AbortNode(const std::string& strMessage, const std::string& userMessage, unsigned int prefix)
 {
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
@@ -2391,8 +2391,8 @@ void CChainState::PruneAndFlush() {
     }
 }
 
-#if 0
-static void DoWarning(const std::string& strWarning)
+
+void DoWarning(const std::string& strWarning)
 {
     static bool fWarned = false;
     SetMiscWarning(strWarning);
@@ -2401,7 +2401,7 @@ static void DoWarning(const std::string& strWarning)
         fWarned = true;
     }
 }
-#endif
+
 
 /** Private helper function that concatenates warning messages. */
 static void AppendWarning(std::string& res, const std::string& warn)

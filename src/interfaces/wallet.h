@@ -138,7 +138,9 @@ public:
         bool sign,
         int& change_pos,
         CAmount& fee,
-        std::string& fail_reason) = 0;
+        std::string& fail_reason,
+        bool omni = false,
+        CAmount min_fee = 0) = 0;
 
     //! Commit transaction.
     virtual bool commitTransaction(CTransactionRef tx,

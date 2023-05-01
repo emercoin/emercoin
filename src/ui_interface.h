@@ -118,6 +118,13 @@ public:
 
     /** Banlist did change. */
     ADD_SIGNALS_DECL_WRAPPER(BannedListChanged, void, void);
+
+    // OMNI UI
+    ADD_SIGNALS_DECL_WRAPPER(OmniStateChanged, void);
+    ADD_SIGNALS_DECL_WRAPPER(OmniPendingChanged, void, bool);
+    ADD_SIGNALS_DECL_WRAPPER(OmniBalanceChanged, void);
+    ADD_SIGNALS_DECL_WRAPPER(OmniStateInvalidated, void);
+
 };
 
 /** Show warning message **/

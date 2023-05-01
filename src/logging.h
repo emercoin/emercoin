@@ -24,6 +24,9 @@ extern const char * const DEFAULT_DEBUGLOGFILE;
 
 extern bool fLogIPs;
 
+/** override to print to omni log to console */
+extern std::atomic<bool> fOmniCoreConsoleLog;
+
 struct CLogCategoryActive
 {
     std::string category;

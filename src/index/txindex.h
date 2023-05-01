@@ -73,6 +73,7 @@ public:
     bool FindTx(const uint256& tx_hash, uint256& block_hash, CTransactionRef& tx) const;
     bool FindTx(const CDiskTxPos& postx, CTransactionRef& tx) const;
     bool FindTxPosition(const uint256& txid, CDiskTxPos& pos) const;
+    int ReadTxPos(const uint256& txid) const;
 };
 
 /// The global transaction index, used in GetTransaction. May be null.
