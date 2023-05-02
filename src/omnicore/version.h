@@ -1,7 +1,8 @@
 #ifndef BITCOIN_OMNICORE_VERSION_H
 #define BITCOIN_OMNICORE_VERSION_H
 
-#if defined(HAVE_CONFIG_H)
+// Use local OMNI versioning, not from common emer config
+#if 0 && defined(HAVE_CONFIG_H)
 #include <config/bitcoin-config.h>
 #else
 

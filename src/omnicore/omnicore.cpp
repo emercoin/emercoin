@@ -1570,7 +1570,7 @@ static int msc_initial_scan(int nFirstBlock)
             CBlock block;
             if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus())) break;
 
-            for(const auto tx : block.vtx) {
+            for(const auto &tx : block.vtx) {
                 if (mastercore_handler_tx(*tx, nBlock, nTxNum, pblockindex, nullptr)) ++nTxsFoundInBlock;
                 ++nTxNum;
             }

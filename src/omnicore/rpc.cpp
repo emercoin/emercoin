@@ -69,6 +69,8 @@
 using std::runtime_error;
 using namespace mastercore;
 
+static void UninterruptibleSleep(const std::chrono::microseconds& n) { std::this_thread::sleep_for(n); }
+
 /**
  * Throws a JSONRPCError, depending on error code.
  */
@@ -178,24 +180,20 @@ UniValue omni_getnonfungibletokens(const JSONRPCRequest& request)
            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "the address"},
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the property identifier"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "propertyid", "property ID tokens belong to"},
-                   {RPCResult::Type::ARR, "tokens", "",
-                   {
-                       {RPCResult::Type::OBJ, "", "",
-                       {
-                           {RPCResult::Type::NUM, "tokenstart", "the first token in this range"},
-                           {RPCResult::Type::NUM, "tokenend", "the last token in this range"},
-                           {RPCResult::Type::NUM, "amount", "the amount of tokens in the range"},
-                       }}
-                   }}
-               }}
-           }
-       },
+                   RPCResult{
+                       "[                           (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"propertyid\" : n\n"
+                       "    \"tokens\" : [                 (array of JSON objects)\n"
+                       "      {\n"
+                       "        \"tokenstart\" : n,         (number) the first token in this range\n"
+                       "        \"tokenend\" n,             (number) the last token in this range\n"
+                       "        \"amount\" n,               (number) the amount of tokens in the range\n"
+                       "      }...\n"
+                       "    ]\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getnonfungibletokens", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
            + HelpExampleRpc("omni_getnonfungibletokens", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
@@ -246,19 +244,19 @@ UniValue omni_getnonfungibletokendata(const JSONRPCRequest& request)
            {"tokenidstart", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the first non-fungible token in range"},
            {"tokenidend", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the last non-fungible token in range"},
        },
-       RPCResult
-           {RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR, "owner", "the Bitcoin address of the owner"},
-                   {RPCResult::Type::STR, "grantdata", "contents of the grant data field"},
-                   {RPCResult::Type::STR, "issuerdata", "contents of the issuer data field"},
-                   {RPCResult::Type::STR, "holderdata", "contents of the holder data field"},
-               }},
-           }
-       },
-       RPCExamples{
+                   RPCResult{
+                       "[                                  (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"index\" : n,                     (number) the unique index of the token\n"
+                       "    \"owner\" : \"owner\",             (string) the Emercoin address of the owner\n"
+                       "    \"grantdata\" : \"grantdata\"      (string) contents of the grant data field\n"
+                       "    \"issuerdata\" : \"issuerdata\"    (string) contents of the issuer data field\n"
+                       "    \"holderdata\" : \"holderdata\"    (string) contents of the holder data field\n"
+                       "  }...\n"
+                       "]\n"
+                   },
+
+      RPCExamples{
            HelpExampleCli("omni_getnonfungibletokendata", "1 10 20")
            + HelpExampleRpc("omni_getnonfungibletokendata", "1, 10, 20")
        }
@@ -334,19 +332,17 @@ UniValue omni_getnonfungibletokenranges(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the property identifier"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR, "address", "the address"},
-                   {RPCResult::Type::NUM, "tokenstart", "the first token in this range"},
-                   {RPCResult::Type::NUM, "tokenend", "the last token in this range"},
-                   {RPCResult::Type::NUM, "amount", "the amount of tokens in the range"},
-               }},
-           }
-       },
-       RPCExamples{
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"address\" : \"address\",              (string) the address\n"
+                       "    \"tokenstart\" : n,                   (number) the first token in this range\n"
+                       "    \"tokenend\" : n,                     (number) the last token in this range\n"
+                       "    \"amount\" : n,                       (number) the amount of tokens in the range\n"
+                       "  }...\n"
+                       "]\n"
+                   },
+      RPCExamples{
            HelpExampleCli("omni_getnonfungibletokenranges", "1")
            + HelpExampleRpc("omni_getnonfungibletokenranges", "1")
        }
@@ -387,24 +383,23 @@ static UniValue omni_getfeedistribution(const JSONRPCRequest& request)
        {
            {"distributionid", RPCArg::Type::NUM, RPCArg::Optional::NO, "(number, required) the distribution to obtain details for"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "distributionid", "the distribution id"},
-               {RPCResult::Type::NUM, "propertyid", "the property id of the distributed tokens"},
-               {RPCResult::Type::NUM, "block", "the block the distribution occurred"},
-               {RPCResult::Type::STR_AMOUNT, "amount", "the amount that was distributed"},
-               {RPCResult::Type::ARR, "recipients", "a list of recipients",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::STR, "address", "the address of the recipient"},
-                       {RPCResult::Type::STR_AMOUNT, "amount", "(string) the amount of fees received by the recipient"},
-                   }},
-               }},
-           }
-       },
-       RPCExamples{
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"distributionid\" : n,              (number) the distribution id\n"
+                       "    \"propertyid\" : n,                  (number) the property id of the distributed tokens\n"
+                       "    \"block\" : n,                       (number) the block the distribution occurred\n"
+                       "    \"amount\" : nnn.nn,                 (string) the amount that was distributed\n"
+                       "    \"recipients\" : [                   (array) a list of recipients\n"
+                       "      {\n"
+                       "        \"address\" : \"address\",        (string) the address\n"
+                       "        \"amount\" nnn.nn,                (string) the amount of tokens in the range\n"
+                       "      }...\n"
+                       "    ]\n"
+                       "  }...\n"
+                       "]\n"
+                   },
+      RPCExamples{
            HelpExampleCli("omni_getfeedistribution", "1")
            + HelpExampleRpc("omni_getfeedistribution", "1")
        }
@@ -456,26 +451,23 @@ static UniValue omni_getfeedistributions(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the property id to retrieve distributions for"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-                {RPCResult::Type::OBJ, "", "",
-                {
-                     {RPCResult::Type::NUM, "distributionid", "the distribution id"},
-                     {RPCResult::Type::NUM, "propertyid", "the property id of the distributed tokens"},
-                     {RPCResult::Type::NUM, "block", "the block the distribution occurred"},
-                     {RPCResult::Type::STR_AMOUNT, "amount", "the amount that was distributed"},
-                     {RPCResult::Type::ARR, "recipients", "a list of recipients",
-                     {
-                         {RPCResult::Type::OBJ, "", "",
-                         {
-                             {RPCResult::Type::STR, "address", "the address of the recipient"},
-                             {RPCResult::Type::STR_AMOUNT, "amount", "(string) the amount of fees received by the recipient"},
-                         }},
-                     }},
-                }},
-           }
-       },
+
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"distributionid\" : n,              (number) the distribution id\n"
+                       "    \"propertyid\" : n,                  (number) the property id of the distributed tokens\n"
+                       "    \"block\" : n,                       (number) the block the distribution occurred\n"
+                       "    \"amount\" : nnn.nn,                 (string) the amount that was distributed\n"
+                       "    \"recipients\" : [                   (array) a list of recipients\n"
+                       "      {\n"
+                       "        \"address\" : \"address\",        (string) the address\n"
+                       "        \"amount\" nnn.nn,                (string) the amount of tokens in the range\n"
+                       "      }...\n"
+                       "    ]\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getfeedistributions", "1")
            + HelpExampleRpc("omni_getfeedistributions", "1")
@@ -536,16 +528,15 @@ static UniValue omni_getfeetrigger(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "filter the results on this property id"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                    {RPCResult::Type::NUM, "propertyid", "the property id"},
-                    {RPCResult::Type::STR_AMOUNT, "feetrigger", "the amount of fees required to trigger distribution"},
-               }},
-           }
-       },
+
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"propertyid\" : n,                  (number) the propertyid id\n"
+                       "    \"feetrigger\" : nnn.nn,             (string) the amount of fees required to trigger distribution\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getfeetrigger", "3")
            + HelpExampleRpc("omni_getfeetrigger", "3")
@@ -593,16 +584,14 @@ static UniValue omni_getfeeshare(const JSONRPCRequest& request)
            {"address", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "retrieve the fee share for the supplied address"},
            {"ecosystem", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the ecosystem to check the fee share (1 for main ecosystem, 2 for test ecosystem)"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "address", "the property id"},
-                   {RPCResult::Type::STR_AMOUNT, "feeshare", "the percentage of fees this address will receive based on current state"},
-               }},
-           }
-       },
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"propertyid\" : n,                (number) the propertyid id\n"
+                       "    \"feeshare\" : nnn.nn,             (string) the percentage of fees this address will receive based on current state\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
            + HelpExampleRpc("omni_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
@@ -666,16 +655,14 @@ static UniValue omni_getfeecache(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "filter the results on this property id"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "propertyid", "the property id"},
-                   {RPCResult::Type::STR_AMOUNT, "cachedfees", "the amount of fees cached for this property"},
-               }},
-           }
-       },
+                   RPCResult{
+                       "[                                   (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"propertyid\" : n,                (number) the propertyid id\n"
+                       "    \"cachedfees\" : nnn.nn,           (string) the amount of fees cached for this property\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getfeecache", "31")
            + HelpExampleRpc("omni_getfeecache", "31")
@@ -723,12 +710,12 @@ static UniValue omni_getseedblocks(const JSONRPCRequest& request)
            {"startblock", RPCArg::Type::NUM, RPCArg::Optional::NO, "the first block to look for Omni transactions (inclusive)"},
            {"endblock", RPCArg::Type::NUM, RPCArg::Optional::NO, "the last block to look for Omni transactions (inclusive)"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "a list of seed blocks",
-           {
-               {RPCResult::Type::NUM, "", "the block height of the seed block"},
-           }
-       },
+                   RPCResult{
+                       "[                                   (array of numbers)\n"
+                       "  n, n, n, ...\n"
+                       "]\n"
+
+                   },
        RPCExamples{
            HelpExampleCli("omni_getseedblocks", "290000 300000")
            + HelpExampleRpc("omni_getseedblocks", "290000, 300000")
@@ -762,13 +749,13 @@ static UniValue omni_getpayload(const JSONRPCRequest& request)
        {
            {"txid", RPCArg::Type::STR, RPCArg::Optional::NO, "the hash of the transaction to retrieve payload"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::STR, "payload", "the decoded Omni payload message"},
-               {RPCResult::Type::NUM, "payloadsize", "the size of the payload"},
-           }
-       },
+
+               RPCResult{
+                   "{\n"
+                   "  \"payload\" : \"payloadmessage\",       (string) the decoded Omni payload message\n"
+                   "  \"payloadsize\" : n                     (number) the size of the payload\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
            + HelpExampleRpc("omni_getpayload", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
@@ -821,9 +808,9 @@ static UniValue omni_setautocommit(const JSONRPCRequest& request)
        {
            {"flag", RPCArg::Type::BOOL, RPCArg::Optional::NO, "the flag"},
        },
-       RPCResult{
-           RPCResult::Type::BOOL, "", "the updated flag status"
-       },
+               RPCResult{
+                   "true|false              (boolean) the updated flag status\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_setautocommit", "false")
            + HelpExampleRpc("omni_setautocommit", "false")
@@ -852,9 +839,9 @@ static UniValue mscrpc(const JSONRPCRequest& request)
             RPCHelpMan{"mscrpc",
                "\nReturns the number of blocks in the longest block chain.\n",
                {},
-               RPCResult{
-                   RPCResult::Type::NUM, "", "the current block count"
-               },
+                   RPCResult{
+                       "n    (number) the current block count\n"
+                   },
                RPCExamples{
                    HelpExampleCli("mscrpc", "")
                    + HelpExampleRpc("mscrpc", "")
@@ -1027,14 +1014,14 @@ static UniValue omni_getbalance(const JSONRPCRequest& request)
            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "the address"},
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, ""},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::STR_AMOUNT, "balance", "the available balance of the address"},
-               {RPCResult::Type::STR_AMOUNT, "reserved", "the amount reserved by sell offers and accepts"},
-               {RPCResult::Type::STR_AMOUNT, "frozen", "the amount frozen by the issuer (applies to managed properties only)"},
-           },
-       },
+
+               RPCResult{
+                   "{\n"
+                   "  \"balance\" : \"n.nnnnnnnn\",   (string) the available balance of the address\n"
+                   "  \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
+                   "  \"frozen\" : \"n.nnnnnnnn\"     (string) the amount frozen by the issuer (applies to managed properties only)\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
            + HelpExampleRpc("omni_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
@@ -1059,18 +1046,17 @@ static UniValue omni_getallbalancesforid(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the property identifier"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR, "address", "the address"},
-                   {RPCResult::Type::STR_AMOUNT, "balance", "the available balance of the address"},
-                   {RPCResult::Type::STR_AMOUNT, "reserved", "the amount reserved by sell offers and accepts"},
-                   {RPCResult::Type::STR_AMOUNT, "frozen", "the amount frozen by the issuer (applies to managed properties only)"},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                           (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"address\" : \"address\",      (string) the address\n"
+                   "    \"balance\" : \"n.nnnnnnnn\",   (string) the available balance of the address\n"
+                   "    \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
+                   "    \"frozen\" : \"n.nnnnnnnn\"     (string) the amount frozen by the issuer (applies to managed properties only)\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getallbalancesforid", "1")
            + HelpExampleRpc("omni_getallbalancesforid", "1")
@@ -1119,19 +1105,18 @@ static UniValue omni_getallbalancesforaddress(const JSONRPCRequest& request)
        {
            {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "the address"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "propertyid", "the property identifier"},
-                   {RPCResult::Type::STR, "name", "the name of the property"},
-                   {RPCResult::Type::STR_AMOUNT, "balance", "the available balance of the address"},
-                   {RPCResult::Type::STR_AMOUNT, "reserved", "the amount reserved by sell offers and accepts"},
-                   {RPCResult::Type::STR_AMOUNT, "frozen", "the amount frozen by the issuer (applies to managed properties only)"},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                           (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"propertyid\" : n,           (number) the property identifier\n"
+                   "    \"name\" : \"name\",            (string) the name of the property\n"
+                   "    \"balance\" : \"n.nnnnnnnn\",   (string) the available balance of the address\n"
+                   "    \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
+                   "    \"frozen\" : \"n.nnnnnnnn\"     (string) the amount frozen by the issuer (applies to managed properties only)\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
            + HelpExampleRpc("omni_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
@@ -1186,9 +1171,9 @@ static std::set<std::string> getWalletAddresses(const JSONRPCRequest& request, b
 #ifdef ENABLE_WALLET
     LOCK(pwallet->cs_wallet);
 
-    for(const auto& item : pwallet->m_address_book) {
+    for(const auto& item : pwallet->mapAddressBook) {
         const CTxDestination& address = item.first;
-        isminetype iIsMine = pwallet->IsMine(address);
+        isminetype iIsMine = IsMine(*pwallet, address);
 
         if (iIsMine == ISMINE_SPENDABLE || (fIncludeWatchOnly && iIsMine != ISMINE_NO)) {
             result.insert(EncodeDestination(address));
@@ -1210,19 +1195,18 @@ static UniValue omni_getwalletbalances(const JSONRPCRequest& request)
        {
            {"includewatchonly", RPCArg::Type::BOOL, /* default */ "false", "include balances of watchonly addresses"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "propertyid", "the property identifier"},
-                   {RPCResult::Type::STR, "name", "the name of the token"},
-                   {RPCResult::Type::STR_AMOUNT, "balance", "the total available balance of the token"},
-                   {RPCResult::Type::STR_AMOUNT, "reserved", "the total amount reserved by sell offers and accepts"},
-                   {RPCResult::Type::STR_AMOUNT, "frozen", "the total amount frozen by the issuer (applies to managed properties only)"},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                           (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"propertyid\" : n,         (number) the property identifier\n"
+                   "    \"name\" : \"name\",            (string) the name of the token\n"
+                   "    \"balance\" : \"n.nnnnnnnn\",   (string) the total available balance for the token\n"
+                   "    \"reserved\" : \"n.nnnnnnnn\"   (string) the total amount reserved by sell offers and accepts\n"
+                   "    \"frozen\" : \"n.nnnnnnnn\"     (string) the total amount frozen by the issuer (applies to managed properties only)\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getwalletbalances", "")
            + HelpExampleRpc("omni_getwalletbalances", "")
@@ -1321,26 +1305,25 @@ static UniValue omni_getwalletaddressbalances(const JSONRPCRequest& request)
        {
            {"includewatchonly", RPCArg::Type::BOOL, /*default */ "false", "include balances of watchonly addresses"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR, "address", "the address linked to the following balances"},
-                   {RPCResult::Type::ARR, "balances", "",
-                   {
-                       {RPCResult::Type::OBJ, "", "",
-                       {
-                           {RPCResult::Type::NUM, "propertyid", "the property identifier"},
-                           {RPCResult::Type::STR, "name", "the name of the token"},
-                           {RPCResult::Type::STR_AMOUNT, "balance", "the available balance of the token"},
-                           {RPCResult::Type::STR_AMOUNT, "reserved", "the amount reserved by sell offers and accepts"},
-                           {RPCResult::Type::STR_AMOUNT, "frozen", "the amount frozen by the issuer (applies to managed properties only)"},
-                       }},
-                   }},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                           (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"address\" : \"address\",      (string) the address linked to the following balances\n"
+                   "    \"balances\" :\n"
+                   "    [\n"
+                   "      {\n"
+                   "        \"propertyid\" : n,         (number) the property identifier\n"
+                   "        \"name\" : \"name\",            (string) the name of the token\n"
+                   "        \"balance\" : \"n.nnnnnnnn\",   (string) the available balance for the token\n"
+                   "        \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
+                   "        \"frozen\" : \"n.nnnnnnnn\"     (string) the amount frozen by the issuer (applies to managed properties only)\n"
+                   "      },\n"
+                   "      ...\n"
+                   "    ]\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getwalletaddressbalances", "")
            + HelpExampleRpc("omni_getwalletaddressbalances", "")
@@ -1407,26 +1390,25 @@ static UniValue omni_getproperty(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens or property"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "propertyid", "the property identifier"},
-               {RPCResult::Type::STR, "name", "the name of the token"},
-               {RPCResult::Type::STR, "category", "the category used for the tokens"},
-               {RPCResult::Type::STR, "subcategory", "the subcategory used for the tokens"},
-               {RPCResult::Type::STR, "data", "additional information or a description"},
-               {RPCResult::Type::STR, "url", "a URI, for example pointing to a website"},
-               {RPCResult::Type::BOOL, "divisible", "whether the tokens are divisible"},
-               {RPCResult::Type::STR, "issuer", "the Bitcoin address of the issuer on record"},
-               {RPCResult::Type::STR, "delegate", "the Bitcoin address of the issuance delegate, if there is one"},
-               {RPCResult::Type::STR_HEX, "creationtxid", "the hex-encoded creation transaction hash"},
-               {RPCResult::Type::BOOL, "fixedissuance", "whether the token supply is fixed"},
-               {RPCResult::Type::BOOL, "managedissuance", "whether the token supply is managed"},
-               {RPCResult::Type::BOOL, "non-fungibletoken", "whether the property contains non-fungible tokens"},
-               {RPCResult::Type::BOOL, "freezingenabled", "whether freezing is enabled for the property (managed properties only)"},
-               {RPCResult::Type::STR_AMOUNT, "totaltokens", "the total number of tokens in existence"},
-           },
-       },
+                   RPCResult{
+                       "{\n"
+                       "  \"propertyid\" : \"propertyid\"         (number) the property identifier"
+                       "  \"name\" : \"name\"                     (string) the name of the token"
+                       "  \"category\" : \"category\"             (string) the category used for the tokens"
+                       "  \"subcategory\" : \"subcategory\"       (string) the subcategory used for the tokens"
+                       "  \"data\" : \"data\"                     (string) additional information or a description"
+                       "  \"url\" : \"url\"                       (string) a URI, for example pointing to a website"
+                       "  \"divisible\" : xxx                     (bool) whether the tokens are divisible"
+                       "  \"issuer\" : \"issuer\"                 (string) the Emercoin address of the issuer on record"
+                       "  \"delegate\" : \"delegate\"             (string) the Bitcoin address of the issuance delegate, if there is one"
+                       "  \"creationtxid\" : \"creationtxid\"     (string) the hex-encoded creation transaction hash"
+                       "  \"fixedissuance\" : xxx               (bool) whether the token supply is fixed"
+                       "  \"managedissuance\" : xxx             (bool) whether the token supply is managed"
+                       "  \"non-fungibletoken\" : xxx           (bool) whether the property contains non-fungible tokens"
+                       "  \"freezingenabled\" : xxx             (bool) whether freezing is enabled for the property (managed properties only)"
+                       "  \"totaltokens\" : \"totaltokens\"       (string) the total number of tokens in existence"
+                       "}\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_getproperty", "3")
            + HelpExampleRpc("omni_getproperty", "3")
@@ -1466,25 +1448,24 @@ static UniValue omni_listproperties(const JSONRPCRequest& request)
     RPCHelpMan{"omni_listproperties",
        "\nLists all tokens or smart properties. To get the total number of tokens, please use omni_getproperty.\n",
        {},
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                    {RPCResult::Type::NUM, "propertyid", "the identifier of the tokens"},
-                    {RPCResult::Type::STR, "name", "the name of the tokens"},
-                    {RPCResult::Type::STR, "category", "the category used for the tokens"},
-                    {RPCResult::Type::STR, "subcategory", "the subcategory used for the tokens"},
-                    {RPCResult::Type::STR, "data", "additional information or a description"},
-                    {RPCResult::Type::STR, "url", "a URI, for example pointing to a website"},
-                    {RPCResult::Type::BOOL, "divisible", "whether the tokens are divisible"},
-                    {RPCResult::Type::STR, "issuer", "the Bitcoin address of the issuer on record"},
-                    {RPCResult::Type::STR_HEX, "creationtxid", "the hex-encoded creation transaction hash"},
-                    {RPCResult::Type::BOOL, "fixedissuance", "whether the token supply is fixed"},
-                    {RPCResult::Type::BOOL, "managedissuance", "whether the token supply is managed"},
-               }},
-           }
-       },
+              RPCResult{
+                   "[                                (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"propertyid\" : n,                (number) the identifier of the tokens\n"
+                   "    \"name\" : \"name\",                 (string) the name of the tokens\n"
+                   "    \"category\" : \"category\",         (string) the category used for the tokens\n"
+                   "    \"subcategory\" : \"subcategory\",   (string) the subcategory used for the tokens\n"
+                   "    \"data\" : \"information\",          (string) additional information or a description\n"
+                   "    \"url\" : \"uri\",                   (string) an URI, for example pointing to a website\n"
+                   "    \"divisible\" : true|false         (boolean) whether the tokens are divisible\n"
+                   "    \"issuer\" : \"address\",            (string) the Emercoin address of the issuer on record\n"
+                   "    \"creationtxid\" : \"hash\",         (string) the hex-encoded creation transaction hash\n"
+                   "    \"fixedissuance\" : true|false,    (boolean) whether the token supply is fixed\n"
+                   "    \"managedissuance\" : true|false,    (boolean) whether the token supply is managed\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_listproperties", "")
            + HelpExampleRpc("omni_listproperties", "")
@@ -1530,39 +1511,38 @@ static UniValue omni_getcrowdsale(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the crowdsale"},
            {"verbose", RPCArg::Type::BOOL, /* default */ "false", "list crowdsale participants"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "propertyid", "the identifier of the crowdsale"},
-               {RPCResult::Type::STR, "name", "the name of the tokens issued via the crowdsale"},
-               {RPCResult::Type::BOOL, "active", "whether the crowdsale is still active"},
-               {RPCResult::Type::STR, "issuer", "the Bitcoin address of the issuer on record"},
-               {RPCResult::Type::NUM, "propertyiddesired", "the identifier of the tokens eligible to participate in the crowdsale"},
-               {RPCResult::Type::STR_AMOUNT, "tokensperunit", "the amount of tokens granted per unit invested in the crowdsale"},
-               {RPCResult::Type::NUM, "earlybonus", "an early bird bonus for participants in percent per week"},
-               {RPCResult::Type::NUM, "percenttoissuer", "a percentage of tokens that will be granted to the issuer"},
-               {RPCResult::Type::NUM, "starttime", "the start time of the of the crowdsale as Unix timestamp"},
-               {RPCResult::Type::NUM, "deadline", "the deadline of the crowdsale as Unix timestamp"},
-               {RPCResult::Type::STR_AMOUNT, "amountraised", "the amount of tokens invested by participants"},
-               {RPCResult::Type::STR_AMOUNT, "tokensissued", "the total number of tokens issued via the crowdsale"},
-               {RPCResult::Type::STR_AMOUNT, "issuerbonustokens", "the amount of tokens granted to the issuer as bonus"},
-               {RPCResult::Type::STR_AMOUNT, "addedissuertokens", "the amount of issuer bonus tokens not yet emitted"},
-               {RPCResult::Type::BOOL, "closedearly", "whether the crowdsale ended early (if not active)"},
-               {RPCResult::Type::BOOL, "maxtokens", "whether the crowdsale ended early due to reaching the limit of max. issuable tokens (if not active)"},
-               {RPCResult::Type::NUM, "endedtime", "the time when the crowdsale ended (if closed early)"},
-               {RPCResult::Type::STR_HEX, "closetx", "the hex-encoded hash of the transaction that closed the crowdsale (if closed manually)"},
-               {RPCResult::Type::ARR, "participanttransactions", "",
-               {
-                    {RPCResult::Type::OBJ, "", "",
-                    {
-                        {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of participation transaction"},
-                        {RPCResult::Type::STR_AMOUNT, "amountsent", "the amount of tokens invested by the participant"},
-                        {RPCResult::Type::STR_AMOUNT, "participanttokens", "the tokens granted to the participant"},
-                        {RPCResult::Type::STR_AMOUNT, "issuertokens",  "the tokens granted to the issuer as bonus"},
-                   }},
-               }},
-           },
-       },
+           RPCResult{
+                   "{\n"
+                   "  \"propertyid\" : n,                     (number) the identifier of the crowdsale\n"
+                   "  \"name\" : \"name\",                      (string) the name of the tokens issued via the crowdsale\n"
+                   "  \"active\" : true|false,                (boolean) whether the crowdsale is still active\n"
+                   "  \"issuer\" : \"address\",                 (string) the Emercoin address of the issuer on record\n"
+                   "  \"propertyiddesired\" : n,              (number) the identifier of the tokens eligible to participate in the crowdsale\n"
+                   "  \"tokensperunit\" : \"n.nnnnnnnn\",       (string) the amount of tokens granted per unit invested in the crowdsale\n"
+                   "  \"earlybonus\" : n,                     (number) an early bird bonus for participants in percent per week\n"
+                   "  \"percenttoissuer\" : n,                (number) a percentage of tokens that will be granted to the issuer\n"
+                   "  \"starttime\" : nnnnnnnnnn,             (number) the start time of the of the crowdsale as Unix timestamp\n"
+                   "  \"deadline\" : nnnnnnnnnn,              (number) the deadline of the crowdsale as Unix timestamp\n"
+                   "  \"amountraised\" : \"n.nnnnnnnn\",        (string) the amount of tokens invested by participants\n"
+                   "  \"tokensissued\" : \"n.nnnnnnnn\",        (string) the total number of tokens issued via the crowdsale\n"
+                   "  \"issuerbonustokens\" : \"n.nnnnnnnn\",   (string) the amount of tokens granted to the issuer as bonus\n"
+                   "  \"addedissuertokens\" : \"n.nnnnnnnn\",   (string) the amount of issuer bonus tokens not yet emitted\n"
+                   "  \"closedearly\" : true|false,           (boolean) whether the crowdsale ended early (if not active)\n"
+                   "  \"maxtokens\" : true|false,             (boolean) whether the crowdsale ended early due to reaching the limit of max. issuable tokens (if not active)\n"
+                   "  \"endedtime\" : nnnnnnnnnn,             (number) the time when the crowdsale ended (if closed early)\n"
+                   "  \"closetx\" : \"hash\",                   (string) the hex-encoded hash of the transaction that closed the crowdsale (if closed manually)\n"
+                   "  \"participanttransactions\": [          (array of JSON objects) a list of crowdsale participations (if verbose=true)\n"
+                   "    {\n"
+                   "      \"txid\" : \"hash\",                      (string) the hex-encoded hash of participation transaction\n"
+                   "      \"amountsent\" : \"n.nnnnnnnn\",          (string) the amount of tokens invested by the participant\n"
+                   "      \"participanttokens\" : \"n.nnnnnnnn\",   (string) the tokens granted to the participant\n"
+                   "      \"issuertokens\" : \"n.nnnnnnnn\"         (string) the tokens granted to the issuer as bonus\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "}\n"
+               },
+
        RPCExamples{
            HelpExampleCli("omni_getcrowdsale", "3 true")
            + HelpExampleRpc("omni_getcrowdsale", "3, true")
@@ -1687,24 +1667,23 @@ static UniValue omni_getactivecrowdsales(const JSONRPCRequest& request)
     RPCHelpMan{"omni_getactivecrowdsales",
        "\nLists currently active crowdsales.\n",
        {},
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "propertyid", "the identifier of the crowdsale"},
-                   {RPCResult::Type::STR, "name", "the name of the tokens issued via the crowdsale"},
-                   {RPCResult::Type::STR, "issuer", "the Bitcoin address of the issuer on record"},
-                   {RPCResult::Type::NUM, "propertyiddesired", "the identifier of the tokens eligible to participate in the crowdsale"},
-                   {RPCResult::Type::STR_AMOUNT, "tokensperunit", "the amount of tokens granted per unit invested in the crowdsale"},
-                   {RPCResult::Type::NUM, "earlybonus", "an early bird bonus for participants in percent per week"},
-                   {RPCResult::Type::NUM, "percenttoissuer", "a percentage of tokens that will be granted to the issuer"},
-                   {RPCResult::Type::NUM, "starttime", "the start time of the of the crowdsale as Unix timestamp"},
-                   {RPCResult::Type::NUM, "deadline", "the deadline of the crowdsale as Unix timestamp"},
-               }},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "[                                 (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"propertyid\" : n,                 (number) the identifier of the crowdsale\n"
+                   "    \"name\" : \"name\",                  (string) the name of the tokens issued via the crowdsale\n"
+                   "    \"issuer\" : \"address\",             (string) the Emercoin address of the issuer on record\n"
+                   "    \"propertyiddesired\" : n,          (number) the identifier of the tokens eligible to participate in the crowdsale\n"
+                   "    \"tokensperunit\" : \"n.nnnnnnnn\",   (string) the amount of tokens granted per unit invested in the crowdsale\n"
+                   "    \"earlybonus\" : n,                 (number) an early bird bonus for participants in percent per week\n"
+                   "    \"percenttoissuer\" : n,            (number) a percentage of tokens that will be granted to the issuer\n"
+                   "    \"starttime\" : nnnnnnnnnn,         (number) the start time of the of the crowdsale as Unix timestamp\n"
+                   "    \"deadline\" : nnnnnnnnnn           (number) the deadline of the crowdsale as Unix timestamp\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_getactivecrowdsales", "")
            + HelpExampleRpc("omni_getactivecrowdsales", "")
        }
@@ -1768,29 +1747,27 @@ static UniValue omni_getgrants(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the managed tokens to lookup"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "propertyid", "the identifier of the managed tokens"},
-               {RPCResult::Type::STR, "name", "the name of the tokens"},
-               {RPCResult::Type::STR, "issuer", "the Bitcoin address of the issuer on record"},
-               {RPCResult::Type::STR_HEX, "creationtxid", "the hex-encoded creation transaction hash"},
-               {RPCResult::Type::STR_AMOUNT, "totaltokens", "the total number of tokens in existence"},
-               {RPCResult::Type::ARR, "issuances", "",
-               {
-                    {RPCResult::Type::OBJ, "", "",
-                    {
-                        {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction that granted tokens"},
-                        {RPCResult::Type::STR_AMOUNT, "grant", "the number of tokens granted by this transaction"},
-                    }},
-                    {RPCResult::Type::OBJ, "", "",
-                    {
-                         {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction that revoked tokens"},
-                         {RPCResult::Type::STR_AMOUNT, "grant", "the number of tokens revoked by this transaction"},
-                    }},
-               }},
-           },
-       },
+
+               RPCResult{
+                   "{\n"
+                   "  \"propertyid\" : n,               (number) the identifier of the managed tokens\n"
+                   "  \"name\" : \"name\",                (string) the name of the tokens\n"
+                   "  \"issuer\" : \"address\",           (string) the Emercoin address of the issuer on record\n"
+                   "  \"creationtxid\" : \"hash\",        (string) the hex-encoded creation transaction hash\n"
+                   "  \"totaltokens\" : \"n.nnnnnnnn\",   (string) the total number of tokens in existence\n"
+                   "  \"issuances\": [                  (array of JSON objects) a list of the granted and revoked tokens\n"
+                   "    {\n"
+                   "      \"txid\" : \"hash\",                (string) the hash of the transaction that granted tokens\n"
+                   "      \"grant\" : \"n.nnnnnnnn\"          (string) the number of tokens granted by this transaction\n"
+                   "    },\n"
+                   "    {\n"
+                   "      \"txid\" : \"hash\",                (string) the hash of the transaction that revoked tokens\n"
+                   "      \"grant\" : \"n.nnnnnnnn\"          (string) the number of tokens revoked by this transaction\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getgrants", "31")
            + HelpExampleRpc("omni_getgrants", "31")
@@ -1855,28 +1832,27 @@ static UniValue omni_getorderbook(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "filter orders by property identifier for sale"},
            {"propertyiddesired", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "filter orders by property identifier desired"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                    {RPCResult::Type::STR, "address", "the Bitcoin address of the trader"},
-                    {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction of the order"},
-                    {RPCResult::Type::STR, "ecosystem", "the ecosytem in which the order was made (if \"cancel-ecosystem\")"},
-                    {RPCResult::Type::NUM, "propertyidforsale", "the identifier of the tokens put up for sale"},
-                    {RPCResult::Type::BOOL, "propertyidforsaleisdivisible", "whether the tokens for sale are divisible"},
-                    {RPCResult::Type::STR_AMOUNT, "amountforsale", "the amount of tokens initially offered"},
-                    {RPCResult::Type::STR_AMOUNT, "amountremaining", "the amount of tokens still up for sale"},
-                    {RPCResult::Type::NUM, "propertyiddesired", "the identifier of the tokens desired in exchange"},
-                    {RPCResult::Type::BOOL, "propertyiddesiredisdivisible", "whether the desired tokens are divisible"},
-                    {RPCResult::Type::STR_AMOUNT, "amountdesired", "the amount of tokens initially desired"},
-                    {RPCResult::Type::STR_AMOUNT, "amounttofill", "the amount of tokens still needed to fill the offer completely"},
-                    {RPCResult::Type::NUM, "action", "the action of the transaction: (1) \"trade\", (2) \"cancel-price\", (3) \"cancel-pair\", (4) \"cancel-ecosystem\""},
-                    {RPCResult::Type::NUM, "block", "the index of the block that contains the transaction"},
-                    {RPCResult::Type::NUM, "blocktime", "the timestamp of the block that contains the transaction"},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                                 (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"address\" :             (string) the Bitcoin address of the trader\n"
+                   "    \"txid\" :                (hexstr) the hex-encoded hash of the transaction of the order\n"
+                   "    \"ecosystem\" :           (string) the ecosytem in which the order was made (if \"cancel-ecosystem\")\n"
+                   "    \"propertyidforsale\" :   (number) the identifier of the tokens put up for sale\n"
+                   "    \"propertyidforsaleisdivisible\" : (bool) whether the tokens for sale are divisible\n"
+                   "    \"amountforsale\" :       (string) the amount of tokens initially offered\n"
+                   "    \"amountremaining\" :     (string) the amount of tokens still up for sale\n"
+                   "    \"propertyiddesired\" :   (number) the identifier of the tokens desired in exchange\n"
+                   "    \"propertyiddesiredisdivisible\" : (bool) whether the desired tokens are divisible\n"
+                   "    \"amountdesired\" :       (string) the amount of tokens initially desired\n"
+                   "    \"amounttofill\" :        (string) the amount of tokens still needed to fill the offer completely\n"
+                   "    \"action\" :              (number) the action of the transaction: (1) \"trade\", (2) \"cancel-price\", (3) \"cancel-pair\", (4) \"cancel-ecosystem\"\n"
+                   "    \"block\" :               (number) the index of the block that contains the transaction\n"
+                   "    \"blocktime\" :           (number) the timestamp of the block that contains the transaction\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getorderbook", "2")
            + HelpExampleRpc("omni_getorderbook", "2")
@@ -1937,42 +1913,40 @@ static UniValue omni_gettradehistoryforaddress(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, /* default */ "no filter", "filter by property identifier transacted"},
        },
        RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction of the order"},
-                   {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the trader"},
-                   {RPCResult::Type::BOOL, "ismine", "whether the order involes an address in the wallet"},
-                   {RPCResult::Type::NUM, "confirmations", "the number of transaction confirmations"},
-                   {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-                   {RPCResult::Type::NUM, "blocktime", "the timestamp of the block that contains the transaction"},
-                   {RPCResult::Type::BOOL, "valid", "whether the transaction is valid"},
-                   {RPCResult::Type::NUM, "version", "the transaction version"},
-                   {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-                   {RPCResult::Type::STR, "type", "the transaction type as string"},
-                   {RPCResult::Type::NUM, "propertyidforsale", "the identifier of the tokens put up for sale"},
-                   {RPCResult::Type::BOOL, "propertyidforsaleisdivisible", "whether the tokens for sale are divisible"},
-                   {RPCResult::Type::STR_AMOUNT, "amountforsale", "the amount of tokens initially offered"},
-                   {RPCResult::Type::NUM, "propertyiddesired", "the identifier of the tokens desired in exchange"},
-                   {RPCResult::Type::BOOL, "propertyiddesiredisdivisible", "whether the desired tokens are divisible"},
-                   {RPCResult::Type::STR_AMOUNT, "amountdesired", "the amount of tokens initially desired"},
-                   {RPCResult::Type::STR_AMOUNT, "unitprice", "the unit price (shown in the property desired)"},
-                   {RPCResult::Type::STR, "status" , "the status of the order (\"open\", \"cancelled\", \"filled\", ...)"},
-                   {RPCResult::Type::STR_HEX, "canceltxid", "the hash of the transaction that cancelled the order (if cancelled)"},
-                   {RPCResult::Type::ARR, "matches", "a list of matched orders and executed trades",
-                   {
-                       {RPCResult::Type::OBJ, "", "",
-                       {
-                           {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction that was matched against"},
-                           {RPCResult::Type::NUM, "block", "the index of the block that contains this transaction"},
-                           {RPCResult::Type::STR, "address", "the Bitcoin address of the other trader"},
-                           {RPCResult::Type::STR_AMOUNT, "amountsold", "the number of tokens sold in this trade"},
-                           {RPCResult::Type::STR_AMOUNT, "amountreceived", "the number of tokens traded in exchange"},
-                       }},
-                   }},
-               }},
-           }
+                   "[                                 (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"txid\" :                         (hexstr) the hex-encoded hash of the transaction of the order\n"
+                   "    \"sendingaddress\" :               (string) the Bitcoin address of the trader\n"
+                   "    \"ismine\" :                       (bool) whether the order involes an address in the wallet\n"
+                   "    \"confirmations\" :                (number) the number of transaction confirmations\n"
+                   "    \"fee\" :                          (string) the transaction fee in emercoins\n"
+                   "    \"blocktime\" :                    (number) the timestamp of the block that contains the transaction\n"
+                   "    \"valid\" :                        (bool) whether the transaction is valid\n"
+                   "    \"version\" :                      (number) the transaction version\n"
+                   "    \"type_int\" :                     (number) the transaction type as number\n"
+                   "    \"type\" :                         (string) the transaction type as string\n"
+                   "    \"propertyidforsale\" :            (number) the identifier of the tokens put up for sale\n"
+                   "    \"propertyidforsaleisdivisible\" : (bool) whether the tokens for sale are divisible\n"
+                   "    \"amountforsale\" :                (string) the amount of tokens initially offered\n"
+                   "    \"propertyiddesired\" :            (number) the identifier of the tokens desired in exchange\n"
+                   "    \"propertyiddesiredisdivisible\" : (bool) whether the desired tokens are divisible\n"
+                   "    \"amountdesired\" :                (string) the amount of tokens initially desired\n"
+                   "    \"unitprice\" :                    (string) the unit price (shown in the property desired)\n"
+                   "    \"status\" :                       (string) the status of the order (\"open\", \"cancelled\", \"filled\", ...)\n"
+                   "    \"canceltxid\" :                   (hexstr) the hash of the transaction that cancelled the order (if cancelled)\n"
+                   "    \"matches\": [                     (array of JSON objects) a list of matched orders and executed trades\n"
+                   "    {\n"
+                   "      \"txid\" (hexstr) the hash of the transaction that was matched against\n"
+                   "      \"block\"  (number) the index of the block that contains this transaction\n"
+                   "      \"address\" (string) the Bitcoin address of the other trader\n"
+                   "      \"amountsold\" (string) the number of tokens sold in this trade\n"
+                   "      \"amountreceived\" (string) the number of tokens traded in exchange\n"
+                   "    },\n"
+                   "    ...\n"
+                   "    ]\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
        },
        RPCExamples{
            HelpExampleCli("omni_gettradehistoryforaddress", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\"")
@@ -2021,23 +1995,22 @@ static UniValue omni_gettradehistoryforpair(const JSONRPCRequest& request)
            {"propertyidsecond", RPCArg::Type::NUM, RPCArg::Optional::NO, "the second side of the traded pair"},
            {"count", RPCArg::Type::NUM, /* default */ "10", "number of trades to retrieve"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::NUM, "block", "the index of the block that contains the trade match"},
-                   {RPCResult::Type::STR_AMOUNT, "unitprice", "the unit price used to execute this trade (received/sold)"},
-                   {RPCResult::Type::STR_AMOUNT, "inverseprice", "the inverse unit price (sold/received)"},
-                   {RPCResult::Type::STR_HEX, "sellertxid", "the hash of the transaction of the seller"},
-                   {RPCResult::Type::STR, "address", "the Bitcoin address of the seller"},
-                   {RPCResult::Type::STR_AMOUNT, "amountsold", "the number of tokens sold in this trade"},
-                   {RPCResult::Type::STR_AMOUNT, "amountreceived", "the number of tokens traded in exchange"},
-                   {RPCResult::Type::STR_HEX, "matchingtxid", "the hash of the transaction that was matched against"},
-                   {RPCResult::Type::STR, "matchingaddress", "the Bitcoin address of the other party of this trade"},
-               }},
-           }
-       },
+                   RPCResult{
+                       "[                           (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"propertyid\" : n\n"
+                       "    \"block\" :           (number) the index of the block that contains the trade match\n"
+                       "    \"unitprice\" :       (string) the unit price used to execute this trade (received/sold)\n"
+                       "    \"inverseprice\" :    (string) the inverse unit price (sold/received)\n"
+                       "    \"sellertxid\" :      (hexstr) the hash of the transaction of the seller\n"
+                       "    \"address\" :         (string) the Bitcoin address of the seller\n"
+                       "    \"amountsold\" :      (string) the number of tokens sold in this trade\n"
+                       "    \"amountreceived\" :  (string) the number of tokens traded in exchange\n"
+                       "    \"matchingtxid\" :    (hexstr) the hash of the transaction that was matched against\n"
+                       "    \"matchingaddress\" : (string) the Bitcoin address of the other party of this trade\n"
+                       "  }...\n"
+                       "]\n"
+                   },
        RPCExamples{
            HelpExampleCli("omni_gettradehistoryforpair", "1 12 500")
            + HelpExampleRpc("omni_gettradehistoryforpair", "1, 12, 500")
@@ -2068,34 +2041,32 @@ static UniValue omni_getactivedexsells(const JSONRPCRequest& request)
        {
            {"address", RPCArg::Type::STR, /* default */ "include any", "address filter"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction of this offer"},
-                   {RPCResult::Type::NUM, "propertyid", "the identifier of the tokens for sale"},
-                   {RPCResult::Type::STR, "seller", "the Bitcoin address of the seller"},
-                   {RPCResult::Type::STR_AMOUNT, "amountavailable", "the number of tokens still listed for sale and currently available"},
-                   {RPCResult::Type::STR_AMOUNT, "bitcoindesired", "the number of bitcoins desired in exchange"},
-                   {RPCResult::Type::STR_AMOUNT, "unitprice", "the unit price (BTC/token)"},
-                   {RPCResult::Type::NUM, "timelimit", "the time limit in blocks a buyer has to pay following a successful accept"},
-                   {RPCResult::Type::STR_AMOUNT, "minimumfee", "the minimum mining fee a buyer has to pay to accept this offer"},
-                   {RPCResult::Type::STR_AMOUNT, "amountaccepted", "the number of tokens currently reserved for pending \"accept\" orders"},
-                   {RPCResult::Type::ARR, "accepts", "a list of pending \"accept\" orders",
-                   {
-                       {RPCResult::Type::OBJ, "", "",
-                       {
-                           {RPCResult::Type::STR, "buyer", "the Bitcoin address of the buyer"},
-                           {RPCResult::Type::NUM, "block", "the index of the block that contains the \"accept\" order"},
-                           {RPCResult::Type::NUM, "blocksleft", "the number of blocks left to pay"},
-                           {RPCResult::Type::STR_AMOUNT, "amount", "the amount of tokens accepted and reserved"},
-                           {RPCResult::Type::STR_AMOUNT, "amounttopay", "the amount in bitcoins needed finalize the trade"},
-                       }},
-                   }},
-               }},
-           }
-       },
+               RPCResult{
+                   "[                                   (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"txid\" : \"hash\",                    (string) the hash of the transaction of this offer\n"
+                   "    \"propertyid\" : n,                   (number) the identifier of the tokens for sale\n"
+                   "    \"seller\" : \"address\",               (string) the Emercoin address of the seller\n"
+                   "    \"amountavailable\" : \"n.nnnnnnnn\",   (string) the number of tokens still listed for sale and currently available\n"
+                   "    \"emercoindesired\" : \"n.nnnnnnnn\",    (string) the number of emercoins desired in exchange\n"
+                   "    \"unitprice\" : \"n.nnnnnnnn\" ,        (string) the unit price (LTC/token)\n"
+                   "    \"timelimit\" : nn,                   (number) the time limit in blocks a buyer has to pay following a successful accept\n"
+                   "    \"minimumfee\" : \"n.nnnnnnnn\",        (string) the minimum mining fee a buyer has to pay to accept this offer\n"
+                   "    \"amountaccepted\" : \"n.nnnnnnnn\",    (string) the number of tokens currently reserved for pending \"accept\" orders\n"
+                   "    \"accepts\": [                        (array of JSON objects) a list of pending \"accept\" orders\n"
+                   "      {\n"
+                   "        \"buyer\" : \"address\",                (string) the Emercoin address of the buyer\n"
+                   "        \"block\" : nnnnnn,                   (number) the index of the block that contains the \"accept\" order\n"
+                   "        \"blocksleft\" : nn,                  (number) the number of blocks left to pay\n"
+                   "        \"amount\" : \"n.nnnnnnnn\"             (string) the amount of tokens accepted and reserved\n"
+                   "        \"amounttopay\" : \"n.nnnnnnnn\"        (string) the amount in emercoins needed finalize the trade\n"
+                   "      },\n"
+                   "      ...\n"
+                   "    ]\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getactivedexsells", "")
            + HelpExampleRpc("omni_getactivedexsells", "")
@@ -2136,23 +2107,24 @@ static UniValue omni_getactivedexsells(const JSONRPCRequest& request)
         // TODO: no math, and especially no rounding here (!)
         // TODO: no math, and especially no rounding here (!)
 
-        // calculate unit price and updated amount of bitcoin desired
+        // calculate unit price and updated amount of emercoin desired
         double unitPriceFloat = 0.0;
         if ((sellOfferAmount > 0) && (sellBitcoinDesired > 0)) {
             unitPriceFloat = (double) sellBitcoinDesired / (double) sellOfferAmount; // divide by zero protection
             if (!isPropertyDivisible(propertyId)) {
-                unitPriceFloat /= 100000000.0;
+                unitPriceFloat /= (double)COIN; // emercoin: precision 6 digits (1M)
+                // unitPriceFloat /= 100000000.0;
             }
         }
         int64_t unitPrice = rounduint64(unitPriceFloat * COIN);
-        int64_t bitcoinDesired = calculateDesiredBTC(sellOfferAmount, sellBitcoinDesired, amountAvailable);
+        int64_t emercoinDesired = calculateDesiredBTC(sellOfferAmount, sellBitcoinDesired, amountAvailable);
 
         UniValue responseObj(UniValue::VOBJ);
         responseObj.pushKV("txid", txid);
         responseObj.pushKV("propertyid", (uint64_t) propertyId);
         responseObj.pushKV("seller", seller);
         responseObj.pushKV("amountavailable", FormatMP(propertyId, amountAvailable));
-        responseObj.pushKV("bitcoindesired", FormatDivisibleMP(bitcoinDesired));
+        responseObj.pushKV("emercoindesired", FormatDivisibleMP(emercoinDesired));
         responseObj.pushKV("unitprice", FormatDivisibleMP(unitPrice));
         responseObj.pushKV("timelimit", timeLimit);
         responseObj.pushKV("minimumfee", FormatDivisibleMP(minFee));
@@ -2198,13 +2170,13 @@ static UniValue omni_listblocktransactions(const JSONRPCRequest& request)
        {
            {"index", RPCArg::Type::NUM, RPCArg::Optional::NO, "the block height or block index"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction"},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "[                       (array of string)\n"
+                   "  \"hash\",             (hexstr) the hash of the transaction\n"
+                   "  ...\n"
+                   "]\n"
+               },
+      RPCExamples{
         HelpExampleCli("omni_listblocktransactions", "279007")
         + HelpExampleRpc("omni_listblocktransactions", "279007")
        }
@@ -2232,7 +2204,7 @@ static UniValue omni_listblocktransactions(const JSONRPCRequest& request)
 
     LOCK(cs_tally);
 
-    for(const auto tx : block.vtx) {
+    for(const auto &tx : block.vtx) {
         if (pDbTransactionList->exists(tx->GetHash())) {
             // later we can add a verbose flag to decode here, but for now callers can send returned txids into gettransaction_MP
             // add the txid into the response as it's an MP transaction
@@ -2251,13 +2223,13 @@ static UniValue omni_listblockstransactions(const JSONRPCRequest& request)
            {"firstblock", RPCArg::Type::NUM, RPCArg::Optional::NO, "the index of the first block to consider"},
            {"lastblock", RPCArg::Type::NUM, RPCArg::Optional::NO, "the index of the last block to consider"},
        },
-       RPCResult{
-                   RPCResult::Type::ARR, "", "",
-                   {
-                       {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction"},
-                   }
-       },
-       RPCExamples{
+               RPCResult{
+                   "[                       (array of hex string)\n"
+                   "  \"hash\",                 (hexstr) the hash of the transaction\n"
+                   "  ...\n"
+                   "]\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_listblocktransactions", "279007 300000")
            + HelpExampleRpc("omni_listblocktransactions", "279007, 300000")
        }
@@ -2295,24 +2267,23 @@ static UniValue omni_gettransaction(const JSONRPCRequest& request)
        {
            {"txid", RPCArg::Type::STR, RPCArg::Optional::NO, "the hash of the transaction to lookup"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction"},
-               {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the sender"},
-               {RPCResult::Type::STR, "referenceaddress", "a Bitcoin address used as reference (if any)"},
-               {RPCResult::Type::BOOL, "ismine", "whether the transaction involes an address in the wallet"},
-               {RPCResult::Type::NUM, "confirmations", "the number of transaction confirmations"},
-               {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-               {RPCResult::Type::STR_AMOUNT, "blocktime", "the timestamp of the block that contains the transaction"},
-               {RPCResult::Type::BOOL, "valid", "whether the transaction is valid"},
-               {RPCResult::Type::STR, "invalidreason", "if a transaction is invalid, the reason"},
-               {RPCResult::Type::NUM, "version", "the transaction version"},
-               {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-               {RPCResult::Type::STR, "type", "the transaction type as string"},
-               {RPCResult::Type::ELISION, "", "other transaction type specific properties"},
-           }
-       },
+               RPCResult{
+                   "{\n"
+                   "  \"txid\" : \"hash\",                  (string) the hex-encoded hash of the transaction\n"
+                   "  \"sendingaddress\" : \"address\",     (string) the Emercoin address of the sender\n"
+                   "  \"referenceaddress\" : \"address\",   (string) a Emercoin address used as reference (if any)\n"
+                   "  \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
+                   "  \"confirmations\" : nnnnnnnnnn,     (number) the number of transaction confirmations\n"
+                   "  \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in emercoins\n"
+                   "  \"blocktime\" : nnnnnnnnnn,         (number) the timestamp of the block that contains the transaction\n"
+                   "  \"valid\" : true|false,             (boolean) whether the transaction is valid\n"
+                   "  \"invalidreason\" : \"reason\",     (string) if a transaction is invalid, the reason \n"
+                   "  \"version\" : n,                    (number) the transaction version\n"
+                   "  \"type_int\" : n,                   (number) the transaction type as number\n"
+                   "  \"type\" : \"type\",                  (string) the transaction type as string\n"
+                   "  [...]                             (mixed) other transaction type specific properties\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
            + HelpExampleRpc("omni_gettransaction", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
@@ -2343,26 +2314,26 @@ static UniValue omni_listtransactions(const JSONRPCRequest& request)
            {"startblock", RPCArg::Type::NUM, /* default */ "0", "first block to begin the search"},
            {"endblock", RPCArg::Type::NUM, /* default */ "999999999", "last block to include in the search"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction"},
-                   {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the sender"},
-                   {RPCResult::Type::STR, "referenceaddress", "a Bitcoin address used as reference (if any)"},
-                   {RPCResult::Type::BOOL, "ismine", "whether the transaction involes an address in the wallet"},
-                   {RPCResult::Type::NUM, "confirmations", "the number of transaction confirmations"},
-                   {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-                   {RPCResult::Type::STR_AMOUNT, "blocktime", "the timestamp of the block that contains the transaction"},
-                   {RPCResult::Type::BOOL, "valid", "whether the transaction is valid"},
-                   {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-                   {RPCResult::Type::STR, "type", "the transaction type as string"},
-                   {RPCResult::Type::ELISION, "", "other transaction type specific properties"},
-               }},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "[                                 (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"txid\" : \"hash\",                  (string) the hex-encoded hash of the transaction\n"
+                   "    \"sendingaddress\" : \"address\",     (string) the Emercoin address of the sender\n"
+                   "    \"referenceaddress\" : \"address\",   (string) a Emercoin address used as reference (if any)\n"
+                   "    \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
+                   "    \"confirmations\" : nnnnnnnnnn,     (number) the number of transaction confirmations\n"
+                   "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in emercoins\n"
+                   "    \"blocktime\" : nnnnnnnnnn,         (number) the timestamp of the block that contains the transaction\n"
+                   "    \"valid\" : true|false,             (boolean) whether the transaction is valid\n"
+                   "    \"version\" : n,                    (number) the transaction version\n"
+                   "    \"type_int\" : n,                   (number) the transaction type as number\n"
+                   "    \"type\" : \"type\",                  (string) the transaction type as string\n"
+                   "    [...]                             (mixed) other transaction type specific properties\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_listtransactions", "")
            + HelpExampleRpc("omni_listtransactions", "")
        }
@@ -2426,24 +2397,23 @@ static UniValue omni_listpendingtransactions(const JSONRPCRequest& request)
        {
            {"address", RPCArg::Type::STR, /* default */ "\"\" for no filter", "address filter"},
        },
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::OBJ, "", "",
-               {
-                   {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction"},
-                   {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the sender"},
-                   {RPCResult::Type::STR, "referenceaddress", "a Bitcoin address used as reference (if any)"},
-                   {RPCResult::Type::BOOL, "ismine", "whether the transaction involes an address in the wallet"},
-                   {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-                   {RPCResult::Type::NUM, "version", "the transaction version"},
-                   {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-                   {RPCResult::Type::STR, "type", "the transaction type as string"},
-                   {RPCResult::Type::ELISION, "", "other transaction type specific properties"},
-               }},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "[                                 (array of JSON objects)\n"
+                   "  {\n"
+                   "    \"txid\" : \"hash\",                  (string) the hex-encoded hash of the transaction\n"
+                   "    \"sendingaddress\" : \"address\",     (string) the Emercoin address of the sender\n"
+                   "    \"referenceaddress\" : \"address\",   (string) a Emercoin address used as reference (if any)\n"
+                   "    \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
+                   "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in emercoins\n"
+                   "    \"version\" : n,                    (number) the transaction version\n"
+                   "    \"type_int\" : n,                   (number) the transaction type as number\n"
+                   "    \"type\" : \"type\",                  (string) the transaction type as string\n"
+                   "    [...]                             (mixed) other transaction type specific properties\n"
+                   "  },\n"
+                   "  ...\n"
+                   "]\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_listpendingtransactions", "")
            + HelpExampleRpc("omni_listpendingtransactions", "")
        }
@@ -2477,29 +2447,27 @@ static UniValue omni_getinfo(const JSONRPCRequest& request)
     RPCHelpMan{"omni_getinfo",
        "Returns various state information of the client and protocol.\n",
        {},
-       RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::NUM, "omnicoreversion_int", "client version as integer"},
-               {RPCResult::Type::STR, "omnicoreversion", "client version"},
-               {RPCResult::Type::STR, "mastercoreversion", "client version (DEPRECATED)"},
-               {RPCResult::Type::STR, "bitcoincoreversion", "Bitcoin Core version"},
-               {RPCResult::Type::NUM, "block", "index of the last processed block"},
-               {RPCResult::Type::NUM, "blocktime", "timestamp of the last processed block"},
-               {RPCResult::Type::NUM, "blocktransactions", "Omni transactions found in the last processed block"},
-               {RPCResult::Type::NUM, "totaltransactions", "Omni transactions processed in total"},
-               {RPCResult::Type::ARR, "alerts", "active protocol alert (if any)",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::NUM, "alerttypeint", "alert type as integer"},
-                       {RPCResult::Type::STR, "alerttype", "alert type"},
-                       {RPCResult::Type::STR, "alertexpiry", "expiration criteria"},
-                       {RPCResult::Type::STR, "alertmessage", "information about the alert"},
-                   }},
-               }},
-           }
-       },
+               RPCResult{
+                   "{\n"
+                   "  \"omnicoreversion_int\" : xxxxxxx,       (number) client version as integer\n"
+                   "  \"omnicoreversion\" : \"x.x.x.x-xxx\",     (string) Omnicore client version\n"
+                   "  \"emercoincoreversion\" : \"x.x.x\",       (string) TODO: Emercoin Core version\n"
+                   "  \"bitcoincoreversion\" : \"x.x.x\",        (string) Bitcoin Core (ENGINE) version\n"
+                   "  \"block\" : nnnnnn,                      (number) index of the last processed block\n"
+                   "  \"blocktime\" : nnnnnnnnnn,              (number) timestamp of the last processed block\n"
+                   "  \"blocktransactions\" : nnnn,            (number) Omni transactions found in the last processed block\n"
+                   "  \"totaltransactions\" : nnnnnnnn,        (number) Omni transactions processed in total\n"
+                   "  \"alerts\" : [                           (array of JSON objects) active protocol alert (if any)\n"
+                   "    {\n"
+                   "      \"alerttypeint\" : n,                    (number) alert type as integer\n"
+                   "      \"alerttype\" : \"xxx\",                   (string) alert type\n"
+                   "      \"alertexpiry\" : \"nnnnnnnnnn\",          (string) expiration criteria\n"
+                   "      \"alertmessage\" : \"xxx\"                 (string) information about the alert\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getinfo", "")
            + HelpExampleRpc("omni_getinfo", "")
@@ -2508,10 +2476,11 @@ static UniValue omni_getinfo(const JSONRPCRequest& request)
 
     UniValue infoResponse(UniValue::VOBJ);
 
-    // provide the mastercore and bitcoin version
+    // provide the mastercore and emercoin version
     infoResponse.pushKV("omnicoreversion_int", OMNICORE_VERSION);
     infoResponse.pushKV("omnicoreversion", OmniCoreVersion());
-    infoResponse.pushKV("mastercoreversion", OmniCoreVersion());
+    // emcTODO:
+    infoResponse.pushKV("emercoincoreversion", BitcoinCoreVersion());
     infoResponse.pushKV("bitcoincoreversion", BitcoinCoreVersion());
 
     // provide the current block details
@@ -2564,31 +2533,28 @@ static UniValue omni_getactivations(const JSONRPCRequest& request)
     RPCHelpMan{"omni_getactivations",
        "Returns pending and completed feature activations.\n",
        {},
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::ARR, "pendingactivations", "a list of pending feature activations",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::NUM, "featureid", "the id of the feature"},
-                       {RPCResult::Type::STR, "featurename", "the name of the feature"},
-                       {RPCResult::Type::NUM, "activationblock", "the block the feature will be activated"},
-                       {RPCResult::Type::NUM, "minimumversion", "the minimum client version needed to support this feature"},
-                   }},
-               }},
-               {RPCResult::Type::ARR, "completedactivations", "a list of completed feature activations",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::NUM, "featureid", "the id of the feature"},
-                       {RPCResult::Type::STR, "featurename", "the name of the feature"},
-                       {RPCResult::Type::NUM, "activationblock", "the block the feature will be activated"},
-                       {RPCResult::Type::NUM, "minimumversion", "the minimum client version needed to support this feature"},
-                   }},
-               }},
-           }
-       },
+               RPCResult{
+                   "{\n"
+                   "  \"pendingactivations\": [       (array of JSON objects) a list of pending feature activations\n"
+                   "    {\n"
+                   "      \"featureid\" : n,              (number) the id of the feature\n"
+                   "      \"featurename\" : \"xxxxxxxx\",   (string) the name of the feature\n"
+                   "      \"activationblock\" : n,        (number) the block the feature will be activated\n"
+                   "      \"minimumversion\" : n          (number) the minimum client version needed to support this feature\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "  \"completedactivations\": [     (array of JSON objects) a list of completed feature activations\n"
+                   "    {\n"
+                   "      \"featureid\" : n,              (number) the id of the feature\n"
+                   "      \"featurename\" : \"xxxxxxxx\",   (string) the name of the feature\n"
+                   "      \"activationblock\" : n,        (number) the block the feature will be activated\n"
+                   "      \"minimumversion\" : n          (number) the minimum client version needed to support this feature\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_getactivations", "")
            + HelpExampleRpc("omni_getactivations", "")
@@ -2642,34 +2608,32 @@ static UniValue omni_getsto(const JSONRPCRequest& request)
            {"txid", RPCArg::Type::STR, RPCArg::Optional::NO, "the hash of the transaction to lookup"},
            {"recipientfilter", RPCArg::Type::STR, /* default */ "\"*\" for all", "a filter for recipients"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction"},
-               {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the sender"},
-               {RPCResult::Type::BOOL, "ismine", "whether the transaction involes an address in the wallet"},
-               {RPCResult::Type::NUM, "confirmations", "the number of transaction confirmations"},
-               {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-               {RPCResult::Type::STR_AMOUNT, "blocktime", "the timestamp of the block that contains the transaction"},
-               {RPCResult::Type::BOOL, "valid", "whether the transaction is valid"},
-               {RPCResult::Type::NUM, "version", "the transaction version"},
-               {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-               {RPCResult::Type::STR, "type", "the transaction type as string"},
-               {RPCResult::Type::NUM, "propertyid", "the identifier of sent tokens"},
-               {RPCResult::Type::BOOL, "divisible", "whether the sent tokens are divisible"},
-               {RPCResult::Type::STR_AMOUNT, "amount", "the number of tokens sent to owners"},
-               {RPCResult::Type::STR_AMOUNT, "totalstofee", "the fee paid by the sender, nominated in OMN or TOMN"},
-               {RPCResult::Type::ARR, "recipients", "a list of recipients",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::STR, "address", "the Bitcoin address of the recipient"},
-                       {RPCResult::Type::STR_AMOUNT, "amount", "the number of tokens sent to this recipient"},
-                   }},
-               }},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "{\n"
+                   "  \"txid\" : \"hash\",                (string) the hex-encoded hash of the transaction\n"
+                   "  \"sendingaddress\" : \"address\",   (string) the Emercoin address of the sender\n"
+                   "  \"ismine\" : true|false,          (boolean) whether the transaction involes an address in the wallet\n"
+                   "  \"confirmations\" : nnnnnnnnnn,   (number) the number of transaction confirmations\n"
+                   "  \"fee\" : \"n.nnnnnnnn\",           (string) the transaction fee in emercoins\n"
+                   "  \"blocktime\" : nnnnnnnnnn,       (number) the timestamp of the block that contains the transaction\n"
+                   "  \"valid\" : true|false,           (boolean) whether the transaction is valid\n"
+                   "  \"version\" : n,                  (number) the transaction version\n"
+                   "  \"type_int\" : n,                 (number) the transaction type as number\n"
+                   "  \"type\" : \"type\",                (string) the transaction type as string\n"
+                   "  \"propertyid\" : n,               (number) the identifier of sent tokens\n"
+                   "  \"divisible\" : true|false,       (boolean) whether the sent tokens are divisible\n"
+                   "  \"amount\" : \"n.nnnnnnnn\",        (string) the number of tokens sent to owners\n"
+                   "  \"totalstofee\" : \"n.nnnnnnnn\",   (string) the fee paid by the sender, nominated in OMN or TOMN\n"
+                   "  \"recipients\": [                 (array of JSON objects) a list of recipients\n"
+                   "    {\n"
+                   "      \"address\" : \"address\",          (string) the Emercoin address of the recipient\n"
+                   "      \"amount\" : \"n.nnnnnnnn\"         (string) the number of tokens sent to this recipient\n"
+                   "    },\n"
+                   "    ...\n"
+                   "  ]\n"
+                   "}\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"*\"")
            + HelpExampleRpc("omni_getsto", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\", \"*\"")
        }
@@ -2702,41 +2666,40 @@ static UniValue omni_gettrade(const JSONRPCRequest& request)
        {
            {"txid", RPCArg::Type::STR, RPCArg::Optional::NO, "the hash of the order to lookup"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction of the order"},
-               {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the trader"},
-               {RPCResult::Type::BOOL, "ismine", "whether the order involes an address in the wallet"},
-               {RPCResult::Type::NUM, "confirmations", "the number of transaction confirmations"},
-               {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-               {RPCResult::Type::NUM, "blocktime", "the timestamp of the block that contains the transaction"},
-               {RPCResult::Type::BOOL, "valid", "whether the transaction is valid"},
-               {RPCResult::Type::NUM, "version", "the transaction version"},
-               {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-               {RPCResult::Type::STR, "type", "the transaction type as string"},
-               {RPCResult::Type::NUM, "propertyidforsale", "the identifier of the tokens put up for sale"},
-               {RPCResult::Type::BOOL, "propertyidforsaleisdivisible", "whether the tokens for sale are divisible"},
-               {RPCResult::Type::STR_AMOUNT, "amountforsale", "the amount of tokens initially offered"},
-               {RPCResult::Type::NUM, "propertyiddesired", "the identifier of the tokens desired in exchange"},
-               {RPCResult::Type::BOOL, "propertyiddesiredisdivisible", "whether the desired tokens are divisible"},
-               {RPCResult::Type::STR_AMOUNT, "amountdesired", "the amount of tokens initially desired"},
-               {RPCResult::Type::STR_AMOUNT, "unitprice", "the unit price (shown in the property desired)"},
-               {RPCResult::Type::STR, "status" , "the status of the order (\"open\", \"cancelled\", \"filled\", ...)"},
-               {RPCResult::Type::STR_HEX, "canceltxid", "the hash of the transaction that cancelled the order (if cancelled)"},
-               {RPCResult::Type::ARR, "matches", "a list of matched orders and executed trades",
-               {
-                   {RPCResult::Type::OBJ, "", "",
-                   {
-                       {RPCResult::Type::STR_HEX, "txid", "the hash of the transaction that was matched against"},
-                       {RPCResult::Type::NUM, "block", "the index of the block that contains this transaction"},
-                       {RPCResult::Type::STR, "address", "the Bitcoin address of the other trader"},
-                       {RPCResult::Type::STR_AMOUNT, "amountsold", "the number of tokens sold in this trade"},
-                       {RPCResult::Type::STR_AMOUNT, "amountreceived", "the number of tokens traded in exchange"},
-                   }},
-               }},
-           }
-       },
+             RPCResult{
+               "[                           (array of JSON objects)\n"
+               "  {\n"
+               "    \"txid\" : (hexstr) the hex-encoded hash of the transaction of the order\n"
+               "    \"sendingaddress\" : (string) the Bitcoin address of the trader\n"
+               "    \"ismine\" : (bool) whether the order involes an address in the wallet\n"
+               "    \"confirmations\" : (numeric) the number of transaction confirmations\n"
+               "    \"fee\" : (string) the transaction fee in emercoins\n"
+               "    \"blocktime\" : (numeric) the timestamp of the block that contains the transaction\n"
+               "    \"valid\" : (bool) whether the transaction is valid\n"
+               "    \"version\" : (numeric) the transaction version\n"
+               "    \"type_int\" : (numeric) the transaction type as number\n"
+               "    \"type\" : (string) the transaction type as string\n"
+               "    \"propertyidforsale\" : (numeric) the identifier of the tokens put up for sale\n"
+               "    \"propertyidforsaleisdivisible\" : (bool) whether the tokens for sale are divisible\n"
+               "    \"amountforsale\" : (string) the amount of tokens initially offered\n"
+               "    \"propertyiddesired\" : (numeric) the identifier of the tokens desired in exchange\n"
+               "    \"propertyiddesiredisdivisible\" : (bool) whether the desired tokens are divisible\n"
+               "    \"amountdesired\" : (string) the amount of tokens initially desired\n"
+               "    \"unitprice\" : (string) the unit price (shown in the property desired)\n"
+               "    \"status\" : (string) the status of the order (\"open\", \"cancelled\", \"filled\", ...)\n"
+               "    \"canceltxid\" : (hexstr)the hash of the transaction that cancelled the order (if cancelled)\n"
+               "    \"matches\" : (array of JSON) a list of matched orders and executed trade\n"
+               "      {\n"
+               "        \"txid\" : (hexstr) the hash of the transaction that was matched against\n"
+               "        \"block\" : (numeric) the index of the block that contains this transaction\n"
+               "        \"address\" : (string) the Bitcoin address of the other trader\n"
+               "        \"amountsold\" : (string) the number of tokens sold in this trade\n"
+               "        \"amountreceived\" : (string) the number of tokens traded in exchange\n"
+               "      }...\n"
+               "    ]\n"
+               "  }...\n"
+               "]\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_gettrade", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
            + HelpExampleRpc("omni_gettrade", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\"")
@@ -2757,15 +2720,14 @@ static UniValue omni_getcurrentconsensushash(const JSONRPCRequest& request)
     RPCHelpMan{"omni_getcurrentconsensushash",
        "\nReturns the consensus hash for all balances for the current block.\n",
        {},
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "block", "the index of the block this consensus hash applies to"},
-               {RPCResult::Type::STR_HEX, "blockhash", "the hash of the corresponding block"},
-               {RPCResult::Type::STR_HEX, "consensushash", "the consensus hash for the block"},
-           }
-       },
-       RPCExamples{
+               RPCResult{
+                   "{\n"
+                   "  \"block\" : nnnnnn,          (number) the index of the block this consensus hash applies to\n"
+                   "  \"blockhash\" : \"hash\",      (string) the hash of the corresponding block\n"
+                   "  \"consensushash\" : \"hash\"   (string) the consensus hash for the block\n"
+                   "}\n"
+               },
+      RPCExamples{
            HelpExampleCli("omni_getcurrentconsensushash", "")
            + HelpExampleRpc("omni_getcurrentconsensushash", "")
        }
@@ -2795,16 +2757,18 @@ static UniValue omni_getmetadexhash(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "hash orderbook (only trades selling propertyid)"},
        },
-       RPCResult{
-           RPCResult::Type::OBJ, "", "",
-           {
-               {RPCResult::Type::NUM, "block", "the index of the block this hash applies to"},
-               {RPCResult::Type::STR_HEX, "blockhash", "the hash of the corresponding block"},
-               {RPCResult::Type::NUM, "propertyid", "the market this hash applies to (or 0 for all markets)"},
-               {RPCResult::Type::STR_HEX, "metadexhash", "the hash for the state of the MetaDEx/orderbook"},
-           }
-       },
-       RPCExamples{
+
+                   RPCResult{
+                       "[                           (array of JSON objects)\n"
+                       "  {\n"
+                       "    \"block\" : (numeric) the index of the block this hash applies to\n"
+                       "    \"blockhash\" : (hexstr) the hash of the corresponding block\n"
+                       "    \"propertyid\" : (numeric) the market this hash applies to (or 0 for all markets)\n"
+                       "    \"metadexhash\" : (hexstr) the hash for the state of the MetaDEx/orderbook\n"
+                       "  }...\n"
+                       "]\n"
+                   },
+      RPCExamples{
            HelpExampleCli("omni_getmetadexhash", "3")
            + HelpExampleRpc("omni_getmetadexhash", "3")
        }
@@ -2840,16 +2804,15 @@ static UniValue omni_getbalanceshash(const JSONRPCRequest& request)
         {
             {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the property to hash balances for"},
         },
-        RPCResult{
-            RPCResult::Type::OBJ, "", "",
-            {
-                {RPCResult::Type::NUM, "block", "the index of the block this hash applies to"},
-                {RPCResult::Type::STR_HEX, "blockhash", "the hash of the corresponding block"},
-                {RPCResult::Type::NUM, "propertyid", "the property id of the hashed balances"},
-                {RPCResult::Type::STR_HEX, "balanceshash", "the hash for the balances"},
-            }
-        },
-        RPCExamples{
+               RPCResult{
+                   "{\n"
+                   "  \"block\" : nnnnnn,          (number) the index of the block this hash applies to\n"
+                   "  \"blockhash\" : \"hash\",    (string) the hash of the corresponding block\n"
+                   "  \"propertyid\" : nnnnnn,     (number) the property id of the hashed balances\n"
+                   "  \"balanceshash\" : \"hash\"  (string) the hash for the balances\n"
+                   "}\n"
+               },
+       RPCExamples{
             HelpExampleCli("omni_getbalanceshash", "31")
             + HelpExampleRpc("omni_getbalanceshash", "31")
         }

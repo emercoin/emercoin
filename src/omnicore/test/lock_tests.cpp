@@ -6,6 +6,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
 
+static void UninterruptibleSleep(const std::chrono::microseconds& n) { std::this_thread::sleep_for(n); }
+
 namespace number
 {
     int n = 0;

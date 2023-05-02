@@ -17,7 +17,6 @@
 #include <key_io.h>
 #include <validation.h>
 #include <net.h>
-#include <node/context.h>
 #include <node/transaction.h>
 #include <primitives/transaction.h>
 #include <script/script.h>
@@ -211,8 +210,7 @@ int CreateFundedTransaction(
         const std::string& feeAddress,
         const std::vector<unsigned char>& payload,
         uint256& retTxid,
-        interfaces::Wallet* iWallet,
-        NodeContext& node)
+        interfaces::Wallet* iWallet)
 {
     if (!iWallet) {
         return MP_ERR_WALLET_ACCESS;
@@ -221,7 +219,7 @@ int CreateFundedTransaction(
     if (!UseEncodingClassC(payload.size())) {
         return MP_ENCODING_ERROR;
     }
-    
+
     // add payload output
     std::vector<std::pair<CScript, int64_t> > vecSend;
     if (!OmniCore_Encode_ClassC(payload, vecSend)) {
@@ -383,7 +381,7 @@ int CreateFundedTransaction(
 
     std::string err_string;
 
-    const TransactionError err = BroadcastTransaction(node, ctx, err_string, iWallet->getDefaultMaxTxFee(), true, false);
+    const TransactionError err = BroadcastTransaction(ctx, err_string, iWallet->getDefaultMaxTxFee(), true, false);
     if (TransactionError::OK != err) {
         LogPrintf("%s: BroadcastTransaction failed error: %s\n", __func__, err_string);
     }
