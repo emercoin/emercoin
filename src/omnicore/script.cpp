@@ -24,9 +24,10 @@ extern CFeeRate minRelayTxFee;
  */
 int64_t OmniGetDustThreshold(const CScript& scriptPubKey)
 {
-    CTxOut txOut(0, scriptPubKey);
-
-    return GetDustThreshold(txOut, minRelayTxFee) * 3;
+    // emercoin: just 1 subcent - minimal out amount
+    return MIN_TXOUT_AMOUNT;
+    // CTxOut txOut(0, scriptPubKey);
+    //return GetDustThreshold(txOut, minRelayTxFee) * 3;
 }
 
 /**
