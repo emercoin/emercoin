@@ -23,9 +23,9 @@ static UniValue omni_createpayload_simplesend(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens to send\n"},
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount to send\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+              RPCResult{
+                  "\"payload\"             (string) the hex-encoded payload\n"
+              },
        RPCExamples{
            HelpExampleCli("omni_createpayload_simplesend", "1 \"100.0\"")
            + HelpExampleRpc("omni_createpayload_simplesend", "1, \"100.0\"")
@@ -47,9 +47,9 @@ static UniValue omni_createpayload_sendall(const JSONRPCRequest& request)
        {
            {"ecosystem", RPCArg::Type::NUM, RPCArg::Optional::NO, "the ecosystem of the tokens to send (1 for main ecosystem, 2 for test ecosystem)\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"               (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_sendall", "2")
            + HelpExampleRpc("omni_createpayload_sendall", "2")
@@ -72,9 +72,9 @@ UniValue omni_createpayload_sendnonfungible(const JSONRPCRequest& request)
            {"tokenstart", RPCArg::Type::NUM, RPCArg::Optional::NO, "the first token in the range to send"},
            {"tokenend", RPCArg::Type::NUM, RPCArg::Optional::NO, "the last token in the range to send"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+                   RPCResult{
+                       "\"payload\" : \"payload\"        (string) the hex-encoded payload"
+                   },
        RPCExamples{
            HelpExampleCli("omni_createpayload_sendnonfungible", "70 1 1000")
            + HelpExampleRpc("omni_createpayload_sendnonfungible", "70, 1, 1000")
@@ -105,9 +105,9 @@ static UniValue omni_createpayload_setnonfungibledata(const JSONRPCRequest& requ
             {"issuer", RPCArg::Type::BOOL, RPCArg::Optional::NO, "if true issuer data set, otherwise holder data set"},
             {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "data set as in either issuer or holder fields"},
         },
-        RPCResult{
-            RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-        },
+                RPCResult{
+                    "\"payload\" : \"payload\"        (string) the hex-encoded payload"
+                },
         RPCExamples{
             HelpExampleCli("omni_createpayload_setnonfungibledata", "70 50 60 true \"string data\"")
             + HelpExampleRpc("omni_createpayload_setnonfungibledata", "70, 50, 60, true, \"string data\"")
@@ -134,14 +134,14 @@ static UniValue omni_createpayload_dexsell(const JSONRPCRequest& request)
        {
            {"propertyidforsale", RPCArg::Type::NUM, RPCArg::Optional::NO, " the identifier of the tokens to list for sale (must be 1 for OMN or 2 for TOMN)\n"},
            {"amountforsale", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to list for sale\n"},
-           {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of bitcoins desired\n"},
+           {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of emercoins desired\n"},
            {"paymentwindow", RPCArg::Type::NUM, RPCArg::Optional::NO, "a time limit in blocks a buyer has to pay following a successful accepting order\n"},
            {"minacceptfee", RPCArg::Type::STR, RPCArg::Optional::NO, "a minimum mining fee a buyer has to pay to accept the offer\n"},
            {"action", RPCArg::Type::NUM, RPCArg::Optional::NO, "the action to take (1 for new offers, 2 to update\", 3 to cancel)\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_dexsell", "1 \"1.5\" \"0.75\" 25 \"0.0005\" 1")
            + HelpExampleRpc("omni_createpayload_dexsell", "1, \"1.5\", \"0.75\", 25, \"0.0005\", 1")
@@ -177,9 +177,9 @@ static UniValue omni_createpayload_dexaccept(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the token to purchase\n"},
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount to accept\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_dexaccept", "1 \"15.0\"")
            + HelpExampleRpc("omni_createpayload_dexaccept", "1, \"15.0\"")
@@ -204,9 +204,9 @@ static UniValue omni_createpayload_sto(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount to distribute\n"},
            {"distributionproperty", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the identifier of the property holders to distribute to\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_sto", "3 \"5000\"")
            + HelpExampleRpc("omni_createpayload_sto", "3, \"5000\"")
@@ -237,9 +237,9 @@ static UniValue omni_createpayload_issuancefixed(const JSONRPCRequest& request)
            {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "a description for the new tokens (can be \"\")\n"},
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the number of tokens to create\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_issuancefixed", "2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" \"1000000\"")
            + HelpExampleRpc("omni_createpayload_issuancefixed", "2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", \"1000000\"")
@@ -282,9 +282,9 @@ static UniValue omni_createpayload_issuancecrowdsale(const JSONRPCRequest& reque
            {"earlybonus", RPCArg::Type::NUM, RPCArg::Optional::NO, "an early bird bonus for participants in percent per week\n"},
            {"issuerpercentage", RPCArg::Type::NUM, RPCArg::Optional::NO, "a percentage of tokens that will be granted to the issuer\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_issuancecrowdsale", "2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
            + HelpExampleRpc("omni_createpayload_issuancecrowdsale", "2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\", 2, \"100\", 1483228800, 30, 2")
@@ -327,9 +327,9 @@ static UniValue omni_createpayload_issuancemanaged(const JSONRPCRequest& request
            {"url", RPCArg::Type::STR, RPCArg::Optional::NO, "a URL for further information about the new tokens (can be \"\")\n"},
            {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "a description for the new tokens (can be \"\")\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_issuancemanaged", "2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\"")
            + HelpExampleRpc("omni_createpayload_issuancemanaged", "2, 1, 0, \"Companies\", \"Bitcoin Mining\", \"Quantum Miner\", \"\", \"\"")
@@ -359,9 +359,9 @@ static UniValue omni_createpayload_closecrowdsale(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the crowdsale to close\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_closecrowdsale", "70")
            + HelpExampleRpc("omni_createpayload_closecrowdsale", "70")
@@ -385,9 +385,9 @@ static UniValue omni_createpayload_grant(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to create\n"},
            {"grantdata", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "NFT only: data set in all NFTs created in this grant (default: empty)\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_grant", "51 \"7000\"")
            + HelpExampleRpc("omni_createpayload_grant", "51, \"7000\"")
@@ -413,9 +413,9 @@ static UniValue omni_createpayload_revoke(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to revoke\n"},
            {"memo", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "a text note attached to this transaction\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_revoke", "51 \"100\"")
            + HelpExampleRpc("omni_createpayload_revoke", "51, \"100\"")
@@ -438,9 +438,9 @@ static UniValue omni_createpayload_changeissuer(const JSONRPCRequest& request)
        {
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
-       },
+               RPCResult{
+                   "\"payload\"             (string) the hex-encoded payload\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createpayload_changeissuer", "3")
            + HelpExampleRpc("omni_createpayload_changeissuer", "3")
@@ -466,7 +466,7 @@ static UniValue omni_createpayload_trade(const JSONRPCRequest& request)
            {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_trade", "31 \"250.0\" 1 \"10.0\"")
@@ -499,7 +499,7 @@ static UniValue omni_createpayload_canceltradesbyprice(const JSONRPCRequest& req
            {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_canceltradesbyprice", "31 \"100.0\" 1 \"5.0\"")
@@ -528,7 +528,7 @@ static UniValue omni_createpayload_canceltradesbypair(const JSONRPCRequest& requ
            {"propertiddesired", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_canceltradesbypair", "1 31")
@@ -554,7 +554,7 @@ static UniValue omni_createpayload_cancelalltrades(const JSONRPCRequest& request
            {"ecosystem", RPCArg::Type::NUM, RPCArg::Optional::NO, "the ecosystem of the offers to cancel (1 for main ecosystem, 2 for test ecosystem)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_cancelalltrades", "1")
@@ -577,7 +577,7 @@ static UniValue omni_createpayload_enablefreezing(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_enablefreezing", "3")
@@ -601,7 +601,7 @@ static UniValue omni_createpayload_disablefreezing(const JSONRPCRequest& request
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_disablefreezing", "3")
@@ -627,7 +627,7 @@ static UniValue omni_createpayload_freeze(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to freeze (note: this is unused - once frozen an address cannot send any transactions)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_freeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 \"100\"")
@@ -655,7 +655,7 @@ static UniValue omni_createpayload_unfreeze(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to unfreeze (note: this is unused)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_unfreeze", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 \"100\"")
@@ -680,7 +680,7 @@ static UniValue omni_createpayload_adddelegate(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_adddelegate", "21")
@@ -704,7 +704,7 @@ static UniValue omni_createpayload_removedelegate(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload",
+                   "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_removedelegate", "21")
@@ -727,7 +727,7 @@ static UniValue omni_createpayload_anydata(const JSONRPCRequest& request)
            {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "the hex-encoded data\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "payload", "the hex-encoded payload"
+                  "\"payload\"             (string) the hex-encoded payload\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createpayload_anydata", "\"646578782032303230\"")

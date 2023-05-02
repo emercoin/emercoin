@@ -59,19 +59,18 @@ static UniValue omni_decodetransaction(const JSONRPCRequest& request)
            {"height", RPCArg::Type::NUM, /* default */ "0 for chain height", "the parsing block height\n"},
        },
        RPCResult{
-           RPCResult::Type::ARR, "", "",
-           {
-               {RPCResult::Type::STR_HEX, "txid", "the hex-encoded hash of the transaction"},
-               {RPCResult::Type::STR_AMOUNT, "fee", "the transaction fee in bitcoins"},
-               {RPCResult::Type::STR, "sendingaddress", "the Bitcoin address of the sender"},
-               {RPCResult::Type::STR, "referenceaddress", "a Bitcoin address used as reference (if any)"},
-               {RPCResult::Type::BOOL, "ismine", "whether the transaction involes an address in the wallet"},
-               {RPCResult::Type::NUM, "version", "the transaction version"},
-               {RPCResult::Type::NUM, "type_int", "the transaction type as number"},
-               {RPCResult::Type::STR, "type", "the transaction type as string"},
-               {RPCResult::Type::ELISION, "", "other transaction type specific properties"},
-           }
-       },
+                   "{\n"
+                   "  \"txid\" : \"hash\",                  (string) the hex-encoded hash of the transaction\n"
+                   "  \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in emercoins\n"
+                   "  \"sendingaddress\" : \"address\",     (string) the Emercoin address of the sender\n"
+                   "  \"referenceaddress\" : \"address\",   (string) a Emercoin address used as reference (if any)\n"
+                   "  \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
+                   "  \"version\" : n,                    (number) the transaction version\n"
+                   "  \"type_int\" : n,                   (number) the transaction type as number\n"
+                   "  \"type\" : \"type\",                  (string) the transaction type as string\n"
+                   "  [...]                             (mixed) other transaction type specific properties\n"
+                   "}\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_decodetransaction", "\"010000000163af14ce6d477e1c793507e32a5b7696288fa89705c0d02a3f66beb3c5b8afee0100000000ffffffff02ac020000000000004751210261ea979f6a06f9dafe00fb1263ea0aca959875a7073556a088cdfadcd494b3752102a3fd0a8a067e06941e066f78d930bfc47746f097fcd3f7ab27db8ddf37168b6b52ae22020000000000001976a914946cb2e08075bcbaf157e47bcb67eb2b2339d24288ac00000000\" \"[{\\\"txid\\\":\\\"eeafb8c5b3be663f2ad0c00597a88f2896765b2ae30735791c7e476dce14af63\\\",\\\"vout\\\":1,\\\"scriptPubKey\\\":\\\"76a9149084c0bd89289bc025d0264f7f23148fb683d56c88ac\\\",\\\"value\\\":0.0001123}]\"")
            + HelpExampleRpc("omni_decodetransaction", "\"010000000163af14ce6d477e1c793507e32a5b7696288fa89705c0d02a3f66beb3c5b8afee0100000000ffffffff02ac020000000000004751210261ea979f6a06f9dafe00fb1263ea0aca959875a7073556a088cdfadcd494b3752102a3fd0a8a067e06941e066f78d930bfc47746f097fcd3f7ab27db8ddf37168b6b52ae22020000000000001976a914946cb2e08075bcbaf157e47bcb67eb2b2339d24288ac00000000\", [{\"txid\":\"eeafb8c5b3be663f2ad0c00597a88f2896765b2ae30735791c7e476dce14af63\",\"vout\":1,\"scriptPubKey\":\"76a9149084c0bd89289bc025d0264f7f23148fb683d56c88ac\",\"value\":0.0001123}]")
@@ -121,9 +120,9 @@ static UniValue omni_createrawtx_opreturn(const JSONRPCRequest& request)
            {"rawtx", RPCArg::Type::STR, RPCArg::Optional::NO, "the raw transaction to extend (can be null)\n"},
            {"payload", RPCArg::Type::STR, RPCArg::Optional::NO, "the hex-encoded payload to add\n"},
        },
-       RPCResult{
-           RPCResult::Type::STR_HEX, "rawtx", "the hex-encoded modified raw transaction"
-       },
+               RPCResult{
+                   "\"rawtx\"                 (string) the hex-encoded modified raw transaction\n"
+               },
        RPCExamples{
            HelpExampleCli("omni_createrawtx_opreturn", "\"01000000000000000000\" \"00000000000000020000000006dac2c0\"")
            + HelpExampleRpc("omni_createrawtx_opreturn", "\"01000000000000000000\", \"00000000000000020000000006dac2c0\"")
@@ -161,7 +160,7 @@ static UniValue omni_createrawtx_multisig(const JSONRPCRequest& request)
            {"redeemkey", RPCArg::Type::STR, RPCArg::Optional::NO, "a public key or address for dust redemption\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "rawtx", "the hex-encoded modified raw transaction"
+                   "\"rawtx\"                 (string) the hex-encoded modified raw transaction\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createrawtx_multisig", "\"0100000001a7a9402ecd77f3c9f745793c9ec805bfa2e14b89877581c734c774864247e6f50400000000ffffffff01aa0a0000000000001976a9146d18edfe073d53f84dd491dae1379f8fb0dfe5d488ac00000000\" \"00000000000000020000000000989680\" \"1LifmeXYHeUe2qdKWBGVwfbUCMMrwYtoMm\" \"0252ce4bdd3ce38b4ebbc5a6e1343608230da508ff12d23d85b58c964204c4cef3\"")
@@ -193,7 +192,7 @@ static UniValue omni_createrawtx_input(const JSONRPCRequest& request)
            {"n", RPCArg::Type::NUM, RPCArg::Optional::NO, "the index of the transaction output used as input\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "rawtx", "the hex-encoded modified raw transaction"
+                   "\"rawtx\"                 (string) the hex-encoded modified raw transaction\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createrawtx_input", "\"01000000000000000000\" \"b006729017df05eda586df9ad3f8ccfee5be340aadf88155b784d1fc0e8342ee\" 0")
@@ -225,7 +224,7 @@ static UniValue omni_createrawtx_reference(const JSONRPCRequest& request)
            {"referenceamount", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "the optional reference amount (minimal by default)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "rawtx", "the hex-encoded modified raw transaction"
+                   "\"rawtx\"                 (string) the hex-encoded modified raw transaction\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createrawtx_reference", "\"0100000001a7a9402ecd77f3c9f745793c9ec805bfa2e14b89877581c734c774864247e6f50400000000ffffffff03aa0a0000000000001976a9146d18edfe073d53f84dd491dae1379f8fb0dfe5d488ac5c0d0000000000004751210252ce4bdd3ce38b4ebbc5a6e1343608230da508ff12d23d85b58c964204c4cef3210294cc195fc096f87d0f813a337ae7e5f961b1c8a18f1f8604a909b3a5121f065b52aeaa0a0000000000001976a914946cb2e08075bcbaf157e47bcb67eb2b2339d24288ac00000000\" \"1CE8bBr1dYZRMnpmyYsFEoexa1YoPz2mfB\" 0.005")
@@ -277,7 +276,7 @@ static UniValue omni_createrawtx_change(const JSONRPCRequest& request)
            {"position", RPCArg::Type::NUM, /* default */ "first position", "the position of the change output\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "rawtx", "the hex-encoded modified raw transaction"
+                   "\"rawtx\"                 (string) the hex-encoded modified raw transaction\n"
        },
        RPCExamples{
            HelpExampleCli("omni_createrawtx_change", "\"0100000001b15ee60431ef57ec682790dec5a3c0d83a0c360633ea8308fbf6d5fc10a779670400000000ffffffff025c0d00000000000047512102f3e471222bb57a7d416c82bf81c627bfcd2bdc47f36e763ae69935bba4601ece21021580b888ff56feb27f17f08802ebed26258c23697d6a462d43fc13b565fda2dd52aeaa0a0000000000001976a914946cb2e08075bcbaf157e47bcb67eb2b2339d24288ac00000000\" \"[{\\\"txid\\\":\\\"6779a710fcd5f6fb0883ea3306360c3ad8c0a3c5de902768ec57ef3104e65eb1\\\",\\\"vout\\\":4,\\\"scriptPubKey\\\":\\\"76a9147b25205fd98d462880a3e5b0541235831ae959e588ac\\\",\\\"value\\\":0.00068257}]\" \"1CE8bBr1dYZRMnpmyYsFEoexa1YoPz2mfB\" 0.00003500 1")
