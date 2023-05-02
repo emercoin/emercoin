@@ -20,6 +20,11 @@
 #include <utility>
 #include <vector>
 
+// OMNI
+class COutput;
+class BaseSignatureCreator;
+struct SignatureData;
+
 class CCoinControl;
 class CFeeRate;
 class CKey;
@@ -277,7 +282,26 @@ public:
     virtual void relockWalletAfterDuration(int nDuration) = 0;
     virtual bool fillComments(const uint256& txid, const std::vector< std::pair<std::string, std::string> >& comments) = 0;
     virtual std::shared_ptr<CWallet> getWallet() = 0;
-};
+
+    // OMNI
+    //! Access CWallet AvailableCoins function
+    virtual void availableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount) = 0;
+
+    /** Produce a script signature using a generic signature creator. */
+    virtual bool produceSignature(const BaseSignatureCreator& creator, const CScript& scriptPubKey, SignatureData& sigdata) = 0;
+
+    //! Get key for destination.
+    virtual CKeyID getKeyForDestination(const CTxDestination& dest) const = 0;
+
+    //! Return whether address is in the wallet.
+    virtual isminetype isMine(const CTxDestination& dest) = 0;
+
+    //! Get list of all wallet transactions and status.
+    virtual std::vector<WalletTx> getWalletTxsDetails(std::map<uint256, WalletTxStatus>& tx_status) = 0;
+
+    //! Return whether the output is spent.
+    virtual bool isSpent(const uint256& hash, unsigned int n) = 0;
+}; // class Wallet
 
 //! Information about one wallet address.
 struct WalletAddress
@@ -330,6 +354,10 @@ struct WalletTx
     std::map<std::string, std::string> value_map;
     bool is_coinbase;
     bool is_coinstake;
+    // OMNI
+    CAmount available_credit;
+    uint256 hash_block;
+    int64_t order_pos; // position in ordered transaction list
 };
 
 //! Updated transaction status.

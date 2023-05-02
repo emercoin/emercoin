@@ -1230,7 +1230,12 @@ public:
     bool GetNewDestination(const OutputType type, const std::string label, CTxDestination& dest, std::string& error);
     bool GetNewChangeDestination(const OutputType type, CTxDestination& dest, std::string& error);
 
+    // OMNI
+    isminetype IsMine(const CTxDestination& dest) const;
+//?    isminetype IsMine(const CScript& script) const;
+
     isminetype IsMine(const CTxIn& txin) const;
+
     /**
      * Returns amount of debit if the input matches the
      * filter, otherwise returns 0

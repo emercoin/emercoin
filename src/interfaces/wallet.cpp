@@ -58,6 +58,11 @@ WalletTx MakeWalletTx(interfaces::Chain::Lock& locked_chain, CWallet& wallet, co
     result.value_map = wtx.mapValue;
     result.is_coinbase = wtx.IsCoinBase();
     result.is_coinstake = wtx.IsCoinStake();
+    // OMNI
+    result.hash_block = wtx.m_confirm.hashBlock;
+    result.order_pos = wtx.nOrderPos;
+    result.available_credit = wtx.GetAvailableCredit();
+
     return result;
 }
 
@@ -386,6 +391,14 @@ public:
         }
         return result;
     }
+
+    void availableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount) override
+     {
+         auto locked_chain = m_wallet->chain().lock();
+         LOCK(m_wallet->cs_wallet);
+         m_wallet->AvailableCoins(*locked_chain, vCoins, fOnlySafe, coinControl, nMinimumAmount);
+     }
+
     std::vector<WalletTxOut> getCoins(const std::vector<COutPoint>& outputs) override
     {
         auto locked_chain = m_wallet->chain().lock();
@@ -404,6 +417,7 @@ public:
         }
         return result;
     }
+
     CAmount getRequiredFee(unsigned int tx_bytes) override { return GetRequiredFee(*m_wallet, tx_bytes); }
     CAmount getMinimumFee(unsigned int tx_bytes,
         const CCoinControl& coin_control,

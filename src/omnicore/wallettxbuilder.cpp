@@ -145,7 +145,11 @@ int WalletTxBuilder(
     } else {
         // Commit the transaction to the wallet and broadcast)
         PrintToLog("%s: %s; nFeeRet = %d\n", __func__, wtxNew->ToString(), nFeeRet);
-        iWallet->commitTransaction(wtxNew, {}, {});
+        std::string rejectReason;
+        if(!iWallet->commitTransaction(wtxNew, {}, {}, rejectReason)) {
+            PrintToLog("%s: %s; Unable commitTransaction: %s\n", __func__, wtxNew->ToString(), rejectReason.c_str());
+            return MP_ERR_CREATE_TX;
+        }
         retTxid = wtxNew->GetHash();
         return 0;
     }
@@ -368,7 +372,7 @@ int CreateFundedTransaction(
 
     // send the transaction
 
-    TxValidationState state;
+    CValidationState state;
     CTransactionRef ctx(MakeTransactionRef(std::move(tx)));
 
     {
@@ -457,7 +461,11 @@ int CreateDExTransaction(interfaces::Wallet* pwallet, const std::string& buyerAd
     }
 
     // Commit the transaction to the wallet and broadcast
-    pwallet->commitTransaction(wtxNew, {}, {});
+    std::string rejectReason;
+    if(!pwallet->commitTransaction(wtxNew, {}, {}, rejectReason)) {
+        PrintToLog("%s: %s; Unable commitTransaction: %s\n", __func__, wtxNew->ToString(), rejectReason.c_str());
+        return MP_ERR_CREATE_TX;
+    }
     txid = wtxNew->GetHash();
 
     return 0;

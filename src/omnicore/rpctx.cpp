@@ -56,7 +56,7 @@ static UniValue omni_funded_send(const JSONRPCRequest& request)
            {"feeaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "the address that is used for change and to pay for fees, if needed"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_funded_send", "\"1DFa5bT6KMEr6ta29QJouainsjaNBsJQhH\" \"15cWrfuvMxyxGst2FisrQcvcpF48x6sXoH\" 1 \"100.0\" \"15Jhzz4omEXEyFKbdcccJwuVPea5LqsKM1\"")
@@ -80,7 +80,7 @@ static UniValue omni_funded_send(const JSONRPCRequest& request)
 
     // create the raw transaction
     uint256 retTxid;
-    int result = CreateFundedTransaction(fromAddress, toAddress, feeAddress, payload, retTxid, pwallet.get(), *g_rpc_node);
+    int result = CreateFundedTransaction(fromAddress, toAddress, feeAddress, payload, retTxid, pwallet.get());
     if (result != 0) {
         throw JSONRPCError(result, error_str(result));
     }
@@ -103,7 +103,7 @@ static UniValue omni_funded_sendall(const JSONRPCRequest& request)
            {"feeaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "the address that is used for change and to pay for fees, if needed\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_funded_sendall", "\"1DFa5bT6KMEr6ta29QJouainsjaNBsJQhH\" \"15cWrfuvMxyxGst2FisrQcvcpF48x6sXoH\" 1 \"15Jhzz4omEXEyFKbdcccJwuVPea5LqsKM1\"")
@@ -122,7 +122,7 @@ static UniValue omni_funded_sendall(const JSONRPCRequest& request)
 
     // create the raw transaction
     uint256 retTxid;
-    int result = CreateFundedTransaction(fromAddress, toAddress, feeAddress, payload, retTxid, pwallet.get(), *g_rpc_node);
+    int result = CreateFundedTransaction(fromAddress, toAddress, feeAddress, payload, retTxid, pwallet.get());
     if (result != 0) {
         throw JSONRPCError(result, error_str(result));
     }
@@ -145,7 +145,7 @@ static UniValue omni_sendrawtx(const JSONRPCRequest& request)
            {"referenceamount", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "a bitcoin amount that is sent to the receiver (minimal by default)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendrawtx", "\"1MCHESTptvd2LnNp7wmr2sGTpRomteAkq8\" \"000000000000000100000000017d7840\" \"1EqTta1Rt8ixAA32DuC29oukbsSWU62qAV\"")
@@ -192,7 +192,7 @@ static UniValue omni_send(const JSONRPCRequest& request)
            {"referenceamount", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "a bitcoin amount that is sent to the receiver (minimal by default)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_send", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"100.0\"")
@@ -249,7 +249,7 @@ static UniValue omni_sendall(const JSONRPCRequest& request)
            {"referenceamount", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "a bitcoin amount that is sent to the receiver (minimal by default)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendall", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 2")
@@ -305,7 +305,7 @@ static UniValue omni_sendnonfungible(const JSONRPCRequest& request)
            {"referenceamount", RPCArg::Type::STR, RPCArg::Optional::OMITTED_NAMED_ARG, "a bitcoin amount that is sent to the receiver (minimal by default)"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendnonfungible", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 70 1 1000")
@@ -367,7 +367,7 @@ static UniValue omni_setnonfungibledata(const JSONRPCRequest& request)
             {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "data set as in either issuer or holder fields"},
         },
         RPCResult{
-            RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
         },
         RPCExamples{
             HelpExampleCli("omni_setnonfungibledata", "70 50 60 true \"string data\"")
@@ -440,7 +440,7 @@ static UniValue omni_senddexsell(const JSONRPCRequest& request)
            {"action", RPCArg::Type::NUM, RPCArg::Optional::NO, "the action to take (1 for new offers, 2 to update\", 3 to cancel)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_senddexsell", "\"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"1.5\" \"0.75\" 25 \"0.0001\" 1")
@@ -527,7 +527,7 @@ static UniValue omni_senddexaccept(const JSONRPCRequest& request)
            {"override", RPCArg::Type::BOOL, RPCArg::Optional::OMITTED, "override minimum accept fee and payment window checks (use with caution!)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_senddexaccept", "\"35URq1NN3xL6GeRKUP6vzaQVcxoJiiJKd8\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"15.0\"")
@@ -598,7 +598,7 @@ static UniValue omni_sendnewdexorder(const JSONRPCRequest& request)
            {"minacceptfee", RPCArg::Type::STR, RPCArg::Optional::NO, "a minimum mining fee a buyer has to pay to accept the offer\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendnewdexorder", "\"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"1.5\" \"0.75\" 50 \"0.0001\"")
@@ -664,7 +664,7 @@ static UniValue omni_sendupdatedexorder(const JSONRPCRequest& request)
            {"minacceptfee", RPCArg::Type::STR, RPCArg::Optional::NO, "a new minimum mining fee a buyer has to pay to accept the offer\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendupdatedexorder", "\"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"1.0\" \"1.75\" 50 \"0.0001\"")
@@ -726,7 +726,7 @@ static UniValue omni_sendcanceldexorder(const JSONRPCRequest& request)
            {"propertyidforsale", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens to cancel\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendcanceldexorder", "\"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1")
@@ -789,7 +789,7 @@ static UniValue omni_senddexpay(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the Bitcoin amount to send\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_senddexaccept", "\"35URq1NN3xL6GeRKUP6vzaQVcxoJiiJKd8\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 1 \"15.0\"")
@@ -876,7 +876,7 @@ static UniValue omni_sendissuancecrowdsale(const JSONRPCRequest& request)
            {"issuerpercentage", RPCArg::Type::NUM, RPCArg::Optional::NO, "a percentage of tokens that will be granted to the issuer\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendissuancecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" 2 \"100\" 1483228800 30 2")
@@ -945,7 +945,7 @@ static UniValue omni_sendissuancefixed(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the number of tokens to create\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendissuancefixed", "\"3Ck2kEGLJtZw9ENj2tameMCtS3HB7uRar3\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\" \"1000000\"")
@@ -1007,7 +1007,7 @@ static UniValue omni_sendissuancemanaged(const JSONRPCRequest& request)
            {"data", RPCArg::Type::STR, RPCArg::Optional::NO, "a description for the new tokens (can be \"\")\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendissuancemanaged", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" 2 1 0 \"Companies\" \"Bitcoin Mining\" \"Quantum Miner\" \"\" \"\"")
@@ -1064,7 +1064,7 @@ static UniValue omni_sendsto(const JSONRPCRequest& request)
            {"distributionproperty", RPCArg::Type::NUM, RPCArg::Optional::OMITTED, "the identifier of the property holders to distribute to\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendsto", "\"32Z3tJccZuqQZ4PhJR2hxHC3tjgjA8cbqz\" \"37FaKponF7zqoMLUjEiko25pDiuVH5YLEa\" 3 \"5000\"")
@@ -1118,7 +1118,7 @@ static UniValue omni_sendgrant(const JSONRPCRequest& request)
            {"grantdata", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "NFT only: data set in all NFTs created in this grant (default: empty)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendgrant", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"7000\"")
@@ -1172,7 +1172,7 @@ static UniValue omni_sendrevoke(const JSONRPCRequest& request)
            {"memo", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "a text note attached to this transaction (none by default)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendrevoke", "\"3HsJvhr9qzgRe3ss97b1QHs38rmaLExLcH\" \"\" 51 \"100\"")
@@ -1223,7 +1223,7 @@ static UniValue omni_sendclosecrowdsale(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the crowdsale to close\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendclosecrowdsale", "\"3JYd75REX3HXn1vAU83YuGfmiPXW7BpYXo\" 70")
@@ -1276,7 +1276,7 @@ static UniValue omni_sendtrade(const JSONRPCRequest& request)
            {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendtrade", "\"3BydPiSLPP3DR5cf726hDQ89fpqWLxPKLR\" 31 \"250.0\" 1 \"10.0\"")
@@ -1334,7 +1334,7 @@ static UniValue omni_sendcanceltradesbyprice(const JSONRPCRequest& request)
            {"amountdesired", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendcanceltradesbyprice", "\"3BydPiSLPP3DR5cf726hDQ89fpqWLxPKLR\" 31 \"100.0\" 1 \"5.0\"")
@@ -1390,7 +1390,7 @@ static UniValue omni_sendcanceltradesbypair(const JSONRPCRequest& request)
            {"propertiddesired", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens desired in exchange\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendcanceltradesbypair", "\"3BydPiSLPP3DR5cf726hDQ89fpqWLxPKLR\" 1 31")
@@ -1443,7 +1443,7 @@ static UniValue omni_sendcancelalltrades(const JSONRPCRequest& request)
            {"ecosystem", RPCArg::Type::NUM, RPCArg::Optional::NO, "the ecosystem of the offers to cancel (1 for main ecosystem, 2 for test ecosystem)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendcancelalltrades", "\"3BydPiSLPP3DR5cf726hDQ89fpqWLxPKLR\" 1")
@@ -1492,7 +1492,7 @@ static UniValue omni_sendchangeissuer(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendchangeissuer", "\"1ARjWDkZ7kT9fwjPrjcQyvbXDkEySzKHwu\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 3")
@@ -1541,7 +1541,7 @@ static UniValue omni_sendenablefreezing(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendenablefreezing", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 3")
@@ -1591,7 +1591,7 @@ static UniValue omni_senddisablefreezing(const JSONRPCRequest& request)
            {"propertyid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the tokens\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_senddisablefreezing", "\"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 3")
@@ -1643,7 +1643,7 @@ static UniValue omni_sendfreeze(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::STR, RPCArg::Optional::NO, "the amount of tokens to freeze (note: this is unused - once frozen an address cannot send any transactions for the property)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 \"0\"")
@@ -1698,7 +1698,7 @@ static UniValue omni_sendunfreeze(const JSONRPCRequest& request)
            {"amount", RPCArg::Type::NUM, RPCArg::Optional::NO, "the amount of tokens to unfreeze (note: this is unused - once frozen an address cannot send any transactions for the property)\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendunfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
@@ -1751,7 +1751,7 @@ static UniValue omni_sendadddelegate(const JSONRPCRequest& request)
            {"delegateaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "the new delegate\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendadddelegate", "\"12GftZCQ3vwubWmRCmnfZAHdDWXj6ujenx\" 21 \"14TG9NsTxk2fvH8iGiFcVbquC5NPhHcFjh\"")
@@ -1802,7 +1802,7 @@ static UniValue omni_sendremovedelegate(const JSONRPCRequest& request)
            {"delegateaddress", RPCArg::Type::STR, RPCArg::Optional::NO, "the delegate to be removed\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendremovedelegate", "\"12GftZCQ3vwubWmRCmnfZAHdDWXj6ujenx\" 21 \"14TG9NsTxk2fvH8iGiFcVbquC5NPhHcFjh\"")
@@ -1855,7 +1855,7 @@ static UniValue omni_sendanydata(const JSONRPCRequest& request)
            {"toaddress", RPCArg::Type::STR, RPCArg::Optional::OMITTED, "the optional address of the receiver\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendanydata", "\"3M9qvHKtgARhqcMtM5cRT9VaiDJ5PSfQGY\" \"646578782032303230\"")
@@ -1906,7 +1906,7 @@ static UniValue omni_sendactivation(const JSONRPCRequest& request)
            {"minclientversion", RPCArg::Type::NUM, RPCArg::Optional::NO, "the minimum supported client version\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1 370000 999")
@@ -1953,7 +1953,7 @@ static UniValue omni_senddeactivation(const JSONRPCRequest& request)
            {"featureid", RPCArg::Type::NUM, RPCArg::Optional::NO, "the identifier of the feature to activate\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_senddeactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
@@ -2000,7 +2000,7 @@ static UniValue omni_sendalert(const JSONRPCRequest& request)
            {"message", RPCArg::Type::STR, RPCArg::Optional::NO, "the user-faced alert message\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+           "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            HelpExampleCli("omni_sendalert", "")
@@ -2056,7 +2056,7 @@ static UniValue trade_MP(const JSONRPCRequest& request)
            {"action", RPCArg::Type::NUM, RPCArg::Optional::NO, "trade action to take\n"},
        },
        RPCResult{
-           RPCResult::Type::STR_HEX, "hash", "the hex-encoded transaction hash"
+                   "\"hash\"      (hexstr) the hex-encoded transaction hash\n"
        },
        RPCExamples{
            " - sendtrade_OMNI\n"

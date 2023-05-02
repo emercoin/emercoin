@@ -41,13 +41,12 @@ bool AddressToPubKey(interfaces::Wallet* iWallet, const std::string& key, CPubKe
     // Case 1: Bitcoin address and the key is in the wallet
     CTxDestination dest = DecodeDestination(key);
     if (IsValidDestination(dest)) {
-        CKeyID keyID = GetKeyForDestination(iWallet, dest);
+        CKeyID keyID = iWallet->getKeyForDestination(dest);
         if (keyID.IsNull()) {
             PrintToLog("%s: ERROR: redemption address %s does not refer to a public key\n", __func__, key);
             return false;
         }
-        CScript script = GetScriptForDestination(dest);
-        if (!iWallet->getPubKey(script, keyID, pubKey)) {
+        if (!iWallet->getPubKey(keyID, pubKey)) {
             PrintToLog("%s: ERROR: no public key in wallet for redemption address %s\n", __func__, key);
             return false;
         }
@@ -151,7 +150,7 @@ int IsMyAddressAllWallets(const std::string& address, const bool matchAny, const
     if (!HasWallets())
         return 0;
 
-    for(const std::shared_ptr<CWallet> wallet : GetWallets()) {
+    for(const std::shared_ptr<CWallet> &wallet : GetWallets()) {
         CTxDestination destination = DecodeDestination(address);
         isminetype ismine = wallet->IsMine(destination);
         if (matchAny && ismine != ISMINE_NO)
@@ -189,6 +188,9 @@ CAmount GetEstimatedFeePerKb(interfaces::Wallet& iWallet)
  */
 int64_t GetEconomicThreshold(interfaces::Wallet& iWallet, const CTxOut& txOut)
 {
+    // emercoin has flat dust rate - 1 subcent
+    return MIN_TXOUT_AMOUNT;
+#if 0
     // Minimum value needed to relay the transaction
     int64_t nThresholdDust = GetDustThreshold(txOut, minRelayTxFee);
 
@@ -199,6 +201,7 @@ int64_t GetEconomicThreshold(interfaces::Wallet& iWallet, const CTxOut& txOut)
     int64_t nThresholdFees = GetDustThreshold(txOut, estimatedFeeRate) / 3;
 
     return std::max(nThresholdDust, nThresholdFees);
+#endif
 }
 
 #ifdef ENABLE_WALLET
