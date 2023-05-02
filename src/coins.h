@@ -109,7 +109,10 @@ class SaltedOutpointHasher
 {
 private:
     /** Salt */
-    const uint64_t k0, k1;
+    // const uint64_t k0, k1;
+    // Removed "const" qualifier to allow OMNI perform swap() CoinViewCache
+    // within omnicore/rpcrawtx.cpp:101
+    uint64_t k0, k1;
 
 public:
     SaltedOutpointHasher();
@@ -128,7 +131,10 @@ public:
      * @see https://gcc.gnu.org/onlinedocs/gcc-9.2.0/libstdc++/manual/manual/unordered_associative.html
      */
     size_t operator()(const COutPoint& id) const noexcept {
-        return SipHashUint256Extra(k0, k1, id.hash, id.n);
+        const size_t *idhash = (const size_t *)id.hash.GetDataPtr();
+        // emercoin has GetDataPtr(), we can reuse the hash directly
+        return ((idhash[0] + k1) ^ (id.n + k0) * 0xBabeCafeFeedDad) + (idhash[1] ^ k0);
+        // return SipHashUint256Extra(k0, k1, id.hash, id.n);
     }
 };
 
@@ -246,10 +252,12 @@ protected:
 public:
     CCoinsViewCache(CCoinsView *baseIn);
 
+    // Disabled following "delete" to allow OMNI perform swap() CoinViewCache
+    // within omnicore/rpcrawtx.cpp:101
     /**
      * By deleting the copy constructor, we prevent accidentally using it when one intends to create a cache on top of a base cache.
      */
-    CCoinsViewCache(const CCoinsViewCache &) = delete;
+    //     CCoinsViewCache(const CCoinsViewCache &) = delete;
 
     // Standard CCoinsView methods
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
