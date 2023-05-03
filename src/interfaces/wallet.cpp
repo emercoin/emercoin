@@ -61,7 +61,7 @@ WalletTx MakeWalletTx(interfaces::Chain::Lock& locked_chain, CWallet& wallet, co
     // OMNI
     result.hash_block = wtx.m_confirm.hashBlock;
     result.order_pos = wtx.nOrderPos;
-    result.available_credit = wtx.GetAvailableCredit();
+    result.available_credit = wtx.GetAvailableCredit(locked_chain);
 
     return result;
 }
@@ -213,13 +213,15 @@ public:
         bool sign,
         int& change_pos,
         CAmount& fee,
-        std::string& fail_reason) override
+        std::string& fail_reason,
+        bool omni,
+        CAmount min_fee) override
     {
         auto locked_chain = m_wallet->chain().lock();
         LOCK(m_wallet->cs_wallet);
         CTransactionRef tx;
         if (!m_wallet->CreateTransaction(*locked_chain, recipients, tx, fee, change_pos,
-                fail_reason, coin_control, sign)) {
+                fail_reason, coin_control, sign, omni, min_fee)) {
             return {};
         }
         return tx;
@@ -392,32 +394,6 @@ public:
         return result;
     }
 
-    void availableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount) override
-     {
-         auto locked_chain = m_wallet->chain().lock();
-         LOCK(m_wallet->cs_wallet);
-         m_wallet->AvailableCoins(*locked_chain, vCoins, fOnlySafe, coinControl, nMinimumAmount);
-     }
-
-    std::vector<WalletTxOut> getCoins(const std::vector<COutPoint>& outputs) override
-    {
-        auto locked_chain = m_wallet->chain().lock();
-        LOCK(m_wallet->cs_wallet);
-        std::vector<WalletTxOut> result;
-        result.reserve(outputs.size());
-        for (const auto& output : outputs) {
-            result.emplace_back();
-            auto it = m_wallet->mapWallet.find(output.hash);
-            if (it != m_wallet->mapWallet.end()) {
-                int depth = it->second.GetDepthInMainChain(*locked_chain);
-                if (depth >= 0) {
-                    result.back() = MakeWalletTxOut(*locked_chain, *m_wallet, it->second, output.n, depth);
-                }
-            }
-        }
-        return result;
-    }
-
     CAmount getRequiredFee(unsigned int tx_bytes) override { return GetRequiredFee(*m_wallet, tx_bytes); }
     CAmount getMinimumFee(unsigned int tx_bytes,
         const CCoinControl& coin_control,
@@ -516,6 +492,65 @@ public:
     virtual std::shared_ptr<CWallet> getWallet() override {
         return m_wallet;
     }
+
+    // OMNI functions
+
+    void availableCoins(std::vector<COutput> &vCoins, bool fOnlySafe, const CCoinControl *coinControl, const CAmount& nMinimumAmount) override
+    {
+        auto locked_chain = m_wallet->chain().lock();
+        LOCK(m_wallet->cs_wallet);
+        m_wallet->AvailableCoins(*locked_chain, vCoins, fOnlySafe, coinControl, nMinimumAmount);
+    }
+
+    std::vector<WalletTxOut> getCoins(const std::vector<COutPoint>& outputs) override
+    {
+        auto locked_chain = m_wallet->chain().lock();
+        LOCK(m_wallet->cs_wallet);
+        std::vector<WalletTxOut> result;
+        result.reserve(outputs.size());
+        for (const auto& output : outputs) {
+            result.emplace_back();
+            auto it = m_wallet->mapWallet.find(output.hash);
+            if (it != m_wallet->mapWallet.end()) {
+                int depth = it->second.GetDepthInMainChain(*locked_chain);
+                if (depth >= 0) {
+                    result.back() = MakeWalletTxOut(*locked_chain, *m_wallet, it->second, output.n, depth);
+                }
+            }
+        }
+        return result;
+    }
+
+    bool produceSignature(const BaseSignatureCreator& creator, const CScript& scriptPubKey, SignatureData& sigdata) override
+    {
+        return ProduceSignature(*m_wallet.get(), creator, scriptPubKey, sigdata);
+    }
+
+    CKeyID getKeyForDestination(const CTxDestination& dest) const override { return GetKeyForDestination(*m_wallet.get(), dest); }
+
+    isminetype isMine(const CTxDestination& dest) override { return IsMine(*m_wallet, dest); }
+
+     std::vector<WalletTx> getWalletTxsDetails(std::map<uint256, WalletTxStatus>& tx_status) override
+     {
+         auto locked_chain = m_wallet->chain().lock();
+         LOCK(m_wallet->cs_wallet);
+         std::vector<WalletTx> result;
+         result.reserve(m_wallet->mapWallet.size());
+         for (const auto& entry : m_wallet->mapWallet) {
+             tx_status.emplace(entry.first, MakeWalletTxStatus(*locked_chain, entry.second));
+             result.emplace_back(MakeWalletTx(*locked_chain, *m_wallet, entry.second));
+         }
+         return result;
+     }
+
+    bool isSpent(const uint256& hash, unsigned int n) override
+    {
+        auto locked_chain = m_wallet->chain().lock();
+        LOCK(m_wallet->cs_wallet);
+        return m_wallet->IsSpent(*locked_chain, hash, n);
+    }
+
+    // end OMNI
 
     std::shared_ptr<CWallet> m_wallet;
 };

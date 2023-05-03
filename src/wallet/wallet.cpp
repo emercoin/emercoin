@@ -3007,7 +3007,8 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
 
 bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         interfaces::Chain::Lock& locked_chain, const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
-        int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+        int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign,
+        bool omni, CAmount min_fee) // OMNI last 2, TODO
 {
     if (vecSend.empty()) {
         strFailReason = _("Transaction must have at least one recipient").translated;
@@ -3375,9 +3376,9 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
 } // CreateTransaction
 
 bool CWallet::CreateTransaction(interfaces::Chain::Lock& locked_chain, const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CAmount& nFeeRet,
-                         int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+                         int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, bool omni, CAmount min_fee)
 {
-    return CreateTransaction(0, false, locked_chain, vecSend, tx, nFeeRet, nChangePosInOut, strFailReason, coin_control, sign);
+    return CreateTransaction(0, false, locked_chain, vecSend, tx, nFeeRet, nChangePosInOut, strFailReason, coin_control, sign, omni, min_fee);
 }
 
 /**
