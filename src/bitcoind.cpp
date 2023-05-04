@@ -23,6 +23,8 @@
 
 #include <functional>
 
+#include <omnicore/utilsui.h>
+
 const std::function<std::string(const char*)> G_TRANSLATION_FUN = nullptr;
 
 static void WaitForShutdown()
@@ -169,6 +171,8 @@ int main(int argc, char* argv[])
     std::tie(argc, argv) = winArgs.get();
 #endif
     SetupEnvironment();
+    // Indicate no-UI mode
+    fQtMode = false;
 
     // Connect bitcoind signal handlers
     noui_connect();

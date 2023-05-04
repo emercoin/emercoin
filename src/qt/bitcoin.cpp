@@ -48,6 +48,8 @@
 #include <QTimer>
 #include <QTranslator>
 
+#include <omnicore/utilsui.h>
+
 #if defined(QT_STATICPLUGIN)
 #include <QtPlugin>
 #if defined(QT_QPA_PLATFORM_XCB)
@@ -419,6 +421,8 @@ int GuiMain(int argc, char* argv[])
 #endif
     SetupEnvironment();
     util::ThreadSetInternalName("main");
+    // Indicate UI mode
+    fQtMode = true;
 
     std::unique_ptr<interfaces::Node> node = interfaces::MakeNode();
 

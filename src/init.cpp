@@ -82,6 +82,8 @@
 #include <zmq/zmqrpc.h>
 #endif
 
+#include <omnicore/version.h>
+
 static bool fFeeEstimatesInitialized = false;
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;
@@ -106,6 +108,11 @@ EmcDns* emcdns = nullptr;
 #endif
 
 static const char* FEE_ESTIMATES_FILENAME="fee_estimates.dat";
+
+// Omni Core initialization and shutdown handlers
+extern int mastercore_init();
+extern int mastercore_shutdown();
+extern int CheckWalletUpdate(bool forceUpdate = false);
 
 /**
  * The PID file facilities.
@@ -285,6 +292,9 @@ void Shutdown(InitInterfaces& interfaces)
         client->stop();
     }
 
+    //! Omni Core shutdown
+    mastercore_shutdown();
+
 #if ENABLE_ZMQ
     if (g_zmq_notification_interface) {
         UnregisterValidationInterface(g_zmq_notification_interface);
@@ -323,6 +333,7 @@ static void HandleSIGTERM(int)
 static void HandleSIGHUP(int)
 {
     LogInstance().m_reopen_file = true;
+    fReopenOmniCoreLog = true;
 }
 #else
 static BOOL WINAPI consoleCtrlHandler(DWORD dwCtrlType)
@@ -417,7 +428,7 @@ void SetupServerArgs()
 #else
     hidden_args.emplace_back("-sysperms");
 #endif
-    gArgs.AddArg("-txindex", strprintf("Maintain a full transaction index, used by the getrawtransaction rpc call (default: %u)", DEFAULT_TXINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-txindex", strprintf("Maintain a full transaction index, used by the getrawtransaction rpc call (default: %u) and OMNI", DEFAULT_TXINDEX), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-blockfilterindex=<type>",
                  strprintf("Maintain an index of compact filters by block (default: %s, values: %s).", DEFAULT_BLOCKFILTERINDEX, ListBlockFilterTypes()) +
                  " If <type> is not supplied or if <type> = 1, indexes for all known types are enabled.",
@@ -613,6 +624,27 @@ void SetupServerArgs()
     gArgs.AddArg("-enumtollfree", "emcdns enum toll free (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-dapsize", "emcdns dap size (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-daptreshold", strprintf("emcdns dap treshold (default: %u)", EMCDNS_DAPTRESHOLD), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+
+    // OMNI
+
+    // TODO: append help messages somewhere else
+    // TODO: translation
+    gArgs.AddArg("-startclean", "Clear all persistence files on startup; triggers reparsing of Omni transactions (default: 0)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnitxcache", "The maximum number of transactions in the input transaction cache (default: 500000)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniprogressfrequency", "Time in seconds after which the initial scanning progress is reported (default: 30)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniseedblockfilter", "Set skipping of blocks without Omni transactions during initial scan (default: 1)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnilogfile", "The path of the log file (default: omnicore.log)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnidebug=<category>", "Enable or disable log categories, can be \"all\" or \"none\"", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-autocommit", "Enable or disable broadcasting of transactions, when creating transactions (default: 1)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-overrideforcedshutdown", "Overwrite shutdown, triggered by an alert (default: 0)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnialertallowsender", "Whitelist senders of alerts, can be \"any\")", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnialertignoresender", "Ignore senders of alerts", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniactivationignoresender", "Ignore senders of activations", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniactivationallowsender", "Whitelist senders of activations", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-disclaimer", "Explicitly show QT disclaimer on startup (default: 0)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniuiwalletscope", "Max. transactions to show in trade and transaction history (default: 65535)", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omnishowblockconsensushash", "Calculate and log the consensus hash for the specified block", false, OptionsCategory::OMNI);
+    gArgs.AddArg("-omniuseragent", "Show Omni and Omni version in user agent string (default: 1)", false, OptionsCategory::OMNI);
 
     // Add the hidden options
     gArgs.AddHiddenArgs(hidden_args);
@@ -1433,6 +1465,14 @@ bool AppInitMain(InitInterfaces& interfaces)
             return InitError(strprintf(_("User Agent comment (%s) contains unsafe characters.").translated, cmt));
         uacomments.push_back(cmt);
     }
+
+    if (gArgs.GetArg("-omniuseragent", true)) {
+        uacomments.emplace(uacomments.begin(), OMNI_CLIENT_NAME + ":" + FormatVersion(OMNI_USERAGENT_VERSION));
+       // if (gArgs.GetBoolArg("-experimental-btc-balances", DEFAULT_ADDRINDEX)) {
+       //     uacomments.push_back("bitcore");
+       // }
+    }
+
     strSubVersion = FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
     if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
         return InitError(strprintf(_("Total length of network version string (%i) exceeds maximum length (%i). Reduce the number or size of uacomments.").translated,
@@ -1801,12 +1841,56 @@ bool AppInitMain(InitInterfaces& interfaces)
             boost::filesystem::remove_all(pathNameAddress);
     }
 
+    // ********************************************************* Step 8.5: load omni core
+
+    if (!gArgs.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
+        // ask the user if they would like us to modify their config file for them
+        std::string msg = _("Disabled transaction index detected.\n\n"
+                            "Omni Core requires an enabled transaction index. To enable "
+                            "transaction indexing, please use the \"-txindex\" option as "
+                            "command line argument or add \"txindex=1\" to your client "
+                            "configuration file within your data directory.\n\n"
+                            "Configuration file").translated; // allow translation of main text body while still allowing differing config file string
+        msg += ": " + GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME)).string() + "\n\n";
+        msg += _("Would you like Omni Core to attempt to update your configuration file accordingly?").translated;
+        bool fRet = uiInterface.ThreadSafeMessageBox(msg, "", CClientUIInterface::MSG_INFORMATION | CClientUIInterface::BTN_OK | CClientUIInterface::MODAL | CClientUIInterface::BTN_ABORT);
+        if (fRet) {
+            // add txindex=1 to config file in GetConfigFile()
+            fs::path configPathInfo = GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME));
+            FILE *fp = fopen(configPathInfo.string().c_str(), "at");
+            if (!fp) {
+                std::string failMsg = _("Unable to update configuration file at").translated;
+                failMsg += ":\n" + GetConfigFile(gArgs.GetArg("-conf", BITCOIN_CONF_FILENAME)).string() + "\n\n";
+                failMsg += _("The file may be write protected or you may not have the required permissions to edit it.\n").translated;
+                failMsg += _("Please add txindex=1 to your configuration file manually.\n\nOmni Core will now shutdown.").translated;
+                return InitError(failMsg);
+            }
+            fprintf(fp, "\ntxindex=1\n");
+            fflush(fp);
+            fclose(fp);
+            std::string strUpdated = _(
+                    "Your configuration file has been updated.\n\n"
+                    "Omni Core will now shutdown - please restart the client for your new configuration to take effect.").translated;
+            uiInterface.ThreadSafeMessageBox(strUpdated, "", CClientUIInterface::MSG_INFORMATION | CClientUIInterface::BTN_OK | CClientUIInterface::MODAL);
+            return false;
+        } else {
+            return InitError(_("Please add txindex=1 to your configuration file manually.\n\nOmni Core will now shutdown.").translated);
+        }
+    }
+
+    uiInterface.InitMessage(_("Parsing Omni Layer transactions...").translated);
+    mastercore_init();
+
+
     // ********************************************************* Step 9: load wallet
     for (const auto& client : interfaces.chain_clients) {
         if (!client->load()) {
             return false;
         }
     }
+
+    // Omni Core code should be initialized and wallet should now be loaded, perform an initial populat$
+    CheckWalletUpdate();
 
     // ********************************************************* Step 10: data directory maintenance
 

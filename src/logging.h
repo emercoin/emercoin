@@ -24,6 +24,15 @@ extern const char * const DEFAULT_DEBUGLOGFILE;
 
 extern bool fLogIPs;
 
+// OMNI
+/** Flag to indicate, whether the Omni Core log file should be reopened. */
+extern std::atomic<bool> fReopenOmniCoreLog;
+
+/** override to print to omni log to console */
+extern std::atomic<bool> fOmniCoreConsoleLog;
+
+
+
 /** override to print to omni log to console */
 extern std::atomic<bool> fOmniCoreConsoleLog;
 
