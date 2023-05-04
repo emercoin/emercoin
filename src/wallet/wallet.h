@@ -1232,8 +1232,7 @@ public:
 
     // OMNI
     isminetype IsMine(const CTxDestination& dest) const;
-//?    isminetype IsMine(const CScript& script) const;
-
+    isminetype IsMine(const CScript& script) const;
     isminetype IsMine(const CTxIn& txin) const;
 
     /**

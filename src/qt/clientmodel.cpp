@@ -33,7 +33,9 @@ ClientModel::ClientModel(interfaces::Node& node, OptionsModel *_optionsModel, QO
     optionsModel(_optionsModel),
     peerTableModel(nullptr),
     banTableModel(nullptr),
-    m_thread(new QThread(this))
+    m_thread(new QThread(this)),
+    lockedOmniStateChanged(false),
+    lockedOmniBalanceChanged(false)
 {
     cachedBestHeaderHeight = -1;
     cachedBestHeaderTime = -1;
@@ -116,6 +118,51 @@ void ClientModel::updateNetworkActive(bool networkActive)
 {
     Q_EMIT networkActiveChanged(networkActive);
 }
+
+bool ClientModel::tryLockOmniStateChanged()
+{
+    // Try to avoid Omni queuing too many messages for the UI
+    if (lockedOmniStateChanged) {
+        return false;
+    }
+
+    lockedOmniStateChanged = true;
+    return true;
+}
+
+bool ClientModel::tryLockOmniBalanceChanged()
+{
+    // Try to avoid Omni queuing too many messages for the UI
+    if (lockedOmniBalanceChanged) {
+        return false;
+    }
+
+    lockedOmniBalanceChanged = true;
+    return true;
+}
+
+void ClientModel::updateOmniState()
+{
+    lockedOmniStateChanged = false;
+    Q_EMIT refreshOmniState();
+}
+
+void ClientModel::updateOmniPending(bool pending)
+{
+    Q_EMIT refreshOmniPending(pending);
+}
+
+void ClientModel::updateOmniBalance()
+{
+    lockedOmniBalanceChanged = false;
+    Q_EMIT refreshOmniBalance();
+}
+
+void ClientModel::invalidateOmniState()
+{
+    Q_EMIT reinitOmniState();
+}
+
 
 void ClientModel::updateAlert(const QString &hash, int status)
 {
@@ -280,6 +327,11 @@ void ClientModel::subscribeToCoreSignals()
     m_handler_banned_list_changed = m_node.handleBannedListChanged(std::bind(BannedListChanged, this));
     m_handler_notify_block_tip = m_node.handleNotifyBlockTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, false));
     m_handler_notify_header_tip = m_node.handleNotifyHeaderTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, true));
+    // Connect Omni signals
+    m_handler_omni_state_changed = m_node.handleOmniStateChanged(std::bind(OmniStateChanged, this));
+    m_handler_omni_pending_changed = m_node.handleOmniPendingChanged(std::bind(OmniPendingChanged, this, std::placeholders::_1));
+    m_handler_omni_balance_changed = m_node.handleOmniBalanceChanged(std::bind(OmniBalanceChanged, this));
+    m_handler_omni_state_invalidated = m_node.handleOmniStateInvalidated(std::bind(OmniStateInvalidated, this));
 }
 
 void ClientModel::unsubscribeFromCoreSignals()
@@ -292,6 +344,11 @@ void ClientModel::unsubscribeFromCoreSignals()
     m_handler_banned_list_changed->disconnect();
     m_handler_notify_block_tip->disconnect();
     m_handler_notify_header_tip->disconnect();
+    // Disconnect Omni signals
+    m_handler_omni_state_changed->disconnect();
+    m_handler_omni_pending_changed->disconnect();
+    m_handler_omni_balance_changed->disconnect();
+    m_handler_omni_state_invalidated->disconnect();
 }
 
 bool ClientModel::getProxyInfo(std::string& ip_port) const
