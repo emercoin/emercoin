@@ -3120,6 +3120,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
 //            CFeeRate nFeeRateNeeded = GetMinimumFeeRate(*this, coin_control, &feeCalc);
 
             nFeeRet = std::max(nFeeInput, MIN_TX_FEE);  // emercoin: a good starting point, probably...
+            nFeeRet = std::max(nFeeRet, min_fee); // From OMNI, maybe need del param
             bool pick_new_inputs = true;
             CAmount nValueIn = 0;
 
@@ -3178,10 +3179,24 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                         coin_selection_params.change_spend_size = (size_t)change_spend_size;
                     }
                     coin_selection_params.effective_fee = MIN_TX_FEE; // emercoin: oleg - fixed rate, no nFeeRateNeeded;
+
+                    CAmount nValueToSelect2 = nValueToSelect;
+                    if (omni) {
+                        // Omni funded send.
+                        // * Orig comment:
+                        // * If vin amount minus the amount to select is less than the dust
+                        // * threshold then add the dust threshold to the amount to select and try again. This
+                        // * avoids dropping the "change" output which would otherwise be added to the fee and
+                        // * generating an Omni "send to self without change" error.
+                        // To be sure - we always will generate change for OMNI, we will add MIN_TXOUT_AMOUNT to
+                        // amount, requested to select for vin[] subset.
+                        nValueToSelect2 += MIN_TXOUT_AMOUNT;
+                    }
+
                     // emercoin: in case of name tx we have already supplied input
                     //           skip coin selection if we have enough money in name input
-                    if (nValueToSelect > 0 &&
-                        !SelectCoins(vAvailableCoins, nValueToSelect, setCoins, nValueIn, coin_control, coin_selection_params, bnb_used))
+                    if (nValueToSelect2 > 0 &&
+                        !SelectCoins(vAvailableCoins, nValueToSelect2, setCoins, nValueIn, coin_control, coin_selection_params, bnb_used))
                     {
                         // If BnB was used, it was the first pass. No longer the first pass and continue loop with knapsack.
                         if (bnb_used) {
@@ -3198,6 +3213,8 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 }
 
                 CAmount nChange = nValueIn - nValueToSelect;
+
+                assert(nChange >= 0);
 
                 // emercoin: For name_udate for single name, move change to name output UTXO
                 if (nChange > 0 && op_single_name == OP_NAME_UPDATE && setCoins.empty() && txNew.vin.size() == 1 && txNew.vout.size() == 1) {
@@ -3231,6 +3248,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     std::vector<CTxOut>::iterator position = txNew.vout.begin()+nChangePosInOut;
                     txNew.vout.insert(position, newTxOut);
                 } else {
+                    if (omni) {
+                        strFailReason = _("Missing change for OMNI trasaction").translated;
+                        return false;
+                    }
                     nChangePosInOut = -1;
                 }
 
@@ -3250,6 +3271,7 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                 // nFeeNeeded = GetMinimumFee(*this, nBytes, coin_control, &feeCalc);
                 // emcTODOne - redo GetMinimumFee
                 nFeeNeeded = GetMinFee(nBytes); // The simple is best!
+                nFeeNeeded = std::max(nFeeNeeded, min_fee); // From OMNI, maybe need del param
                 if(nFeeNeeded > m_default_max_tx_fee) {
                     strFailReason = _("nFeeNeeded is over maxtxfee, transaction cancelled").translated;
                     return false;
@@ -3277,7 +3299,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
                     // change output. Only try this once.
                     if (nChangePosInOut == -1 && nSubtractFeeFromAmount == 0 && pick_new_inputs) {
                         unsigned int tx_size_with_change = nBytes + coin_selection_params.change_output_size + 2; // Add 2 as a buffer in case increasing # of outputs changes compact size
-                        CAmount fee_needed_with_change = GetMinimumFee(*this, tx_size_with_change, coin_control, nullptr);
+                        // original emercoin:
+                        //CAmount fee_needed_with_change = GetMinimumFee(*this, tx_size_with_change, coin_control, nullptr);
+                        // Imported from OMNI - maybe will del min_fee:
+                        CAmount fee_needed_with_change = std::max(min_fee, GetMinimumFee(*this, tx_size_with_change, coin_control, nullptr));
                         CAmount minimum_value_for_change = MIN_TXOUT_AMOUNT;  //emcTODOne [EM] - perhaps tweak this value to be larger?
                         if (nFeeRet >= fee_needed_with_change + minimum_value_for_change) {
                             pick_new_inputs = false;
