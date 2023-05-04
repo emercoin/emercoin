@@ -116,21 +116,24 @@ private:
     std::unique_ptr<interfaces::Handler> m_handler_question;
     ClientModel* clientModel = nullptr;
     WalletFrame* walletFrame = nullptr;
-
     UnitDisplayStatusBarControl* unitDisplayControl = nullptr;
     QLabel* labelWalletHDStatusIcon = nullptr;
     GUIUtil::ClickableLabel* labelProxyIcon = nullptr;
     GUIUtil::ClickableLabel* connectionsControl = nullptr;
     GUIUtil::ClickableLabel* labelBlocksIcon = nullptr;
+    QLabel *labelOmniPendingIcon = nullptr; // OMNI
+    QLabel *labelOmniPendingText = nullptr; // OMNI
     QLabel* progressBarLabel = nullptr;
     GUIUtil::ClickableProgressBar* progressBar = nullptr;
     QProgressDialog* progressDialog = nullptr;
-
     QMenuBar* appMenuBar = nullptr;
     QToolBar* appToolBar = nullptr;
     QAction* overviewAction = nullptr;
+    QAction* balancesAction = nullptr; // OMNI
     QAction* historyAction = nullptr;
     QAction* quitAction = nullptr;
+    QAction* toolboxAction = nullptr;  // OMNI
+    QAction* exchangeAction = nullptr; // OMNI
     QAction* sendCoinsAction = nullptr;
     QAction* sendCoinsMenuAction = nullptr;
     QAction* usedSendingAddressesAction = nullptr;
@@ -235,6 +238,9 @@ public Q_SLOTS:
     */
     void updateWalletStatus();
 
+    /** Set the Omni pending transactions label **/
+    void setOmniPendingStatus(bool pending);
+
 private:
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
@@ -279,10 +285,24 @@ public Q_SLOTS:
     void gotoManageNamesPage();
     /** Switch to minting page */
     void gotoMintingPage();
-
     /** Show open dialog */
     void openClicked();
+
+    // Emercoin - incomplete
     void playIncomingTransactionSound();
+
+    // OMNI
+    /** Switch to balances page */
+    void gotoBalancesPage();
+    /** Switch directly to Omni history tab */
+    void gotoOmniHistoryTab();
+    /** Switch directly to bitcoin history tab */
+    void gotoBitcoinHistoryTab();
+    /** Switch to utility page */
+    void gotoToolboxPage();
+    /** Switch to exchange page */
+    void gotoExchangePage();
+
 #endif // ENABLE_WALLET
     /** Show configuration dialog */
     void optionsClicked();

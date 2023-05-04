@@ -96,4 +96,16 @@ public Q_SLOTS:
     void usedReceivingAddresses();
     /** Pass on signal over requested out-of-sync-warning information */
     void outOfSyncWarningClicked();
+    // OMNI
+    /** Switch to balances page */
+    void gotoBalancesPage();
+    /** Switch to exchange page */
+    void gotoExchangePage();
+    /** Switch directory to Omni tx history tab */
+    void gotoOmniHistoryTab();
+    /** Switch directory to bitcoin tx history tab */
+    void gotoBitcoinHistoryTab();
+    /** Switch to utility page */
+    void gotoToolboxPage();
+
 };

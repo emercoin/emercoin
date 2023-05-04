@@ -22,6 +22,18 @@ class WalletFrame;
 class AddressBookPage;
 class MintingView;
 
+// OMNI
+class BalancesDialog;
+class SendMPDialog;
+class TradeHistoryDialog;
+class LookupSPDialog;
+class LookupTXDialog;
+class LookupAddressDialog;
+class MetaDExDialog;
+class MetaDExCancelDialog;
+class TXHistoryDialog;
+class QTabWidget;
+
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 class QProgressDialog;
@@ -74,6 +86,11 @@ private:
     MintingView *mintingView;
     QProgressDialog* progressDialog{nullptr};
     const PlatformStyle *platformStyle;
+    // OMNI
+    BalancesDialog *balancesPage;
+    QWidget *exchangePage;
+    QWidget *smartPropertyPage;
+    QWidget *toolboxPage;
 
 public Q_SLOTS:
     /** Switch to overview (home) page */

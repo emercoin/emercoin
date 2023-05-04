@@ -36,9 +36,12 @@ public:
     void setClientModel(ClientModel *clientModel);
     void setWalletModel(WalletModel *walletModel);
     void showOutOfSyncWarning(bool fShow);
+    void UpdatePropertyBalance(unsigned int propertyId, uint64_t available, uint64_t reserved); // OMNI
 
 public Q_SLOTS:
     void setBalance(const interfaces::WalletBalances& balances);
+    void updateOmni();
+    void reinitOmni();
 
 Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
@@ -56,6 +59,7 @@ private:
 private Q_SLOTS:
     void updateDisplayUnit();
     void handleTransactionClicked(const QModelIndex &index);
+    void updateOmniAlerts();
     void updateAlerts(const QString &warnings);
     void updateWatchOnlyLabels(bool showWatchOnly);
     void handleOutOfSyncWarningClicks();
