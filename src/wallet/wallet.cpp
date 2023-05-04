@@ -1512,6 +1512,7 @@ isminetype CWallet::IsMine(const CTxOut& txout) const
     return ::IsMine(*this, txout.scriptPubKey);
 }
 
+#if 0
 isminetype CWallet::IsMine(const CScript& script) const
 {
     isminetype result = ISMINE_NO;
@@ -1525,7 +1526,7 @@ isminetype CWallet::IsMine(const CTxDestination& dest) const
 {
     return IsMine(GetScriptForDestination(dest));
 }
-
+#endif
 
 CAmount CWallet::GetCredit(const CTxOut& txout, const isminefilter& filter) const
 {

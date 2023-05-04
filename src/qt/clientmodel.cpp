@@ -317,6 +317,37 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync, int heig
     }
 }
 
+// OMNI
+static void OmniStateChanged(ClientModel *clientmodel)
+{
+    // This will be triggered for each block that contains Omni layer transactions
+    if (clientmodel->tryLockOmniStateChanged()) {
+        QMetaObject::invokeMethod(clientmodel, "updateOmniState", Qt::QueuedConnection);
+    }
+}
+
+static void OmniPendingChanged(ClientModel *clientmodel, bool pending)
+{
+    // Triggered when Omni pending map adds/removes transactions
+    QMetaObject::invokeMethod(clientmodel, "updateOmniPending", Qt::QueuedConnection,
+                              Q_ARG(bool, pending));
+}
+
+static void OmniBalanceChanged(ClientModel *clientmodel)
+{
+    // Triggered when a balance for a wallet address changes
+    if (clientmodel->tryLockOmniBalanceChanged()) {
+        QMetaObject::invokeMethod(clientmodel, "updateOmniBalance", Qt::QueuedConnection);
+    }
+}
+
+static void OmniStateInvalidated(ClientModel *clientmodel)
+{
+    // This will be triggered if a reorg invalidates the state
+    QMetaObject::invokeMethod(clientmodel, "invalidateOmniState", Qt::QueuedConnection);
+}
+
+
 void ClientModel::subscribeToCoreSignals()
 {
     // Connect signals to client

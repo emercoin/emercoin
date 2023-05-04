@@ -1231,8 +1231,8 @@ public:
     bool GetNewChangeDestination(const OutputType type, CTxDestination& dest, std::string& error);
 
     // OMNI
-    isminetype IsMine(const CTxDestination& dest) const;
-    isminetype IsMine(const CScript& script) const;
+//    isminetype IsMine(const CTxDestination& dest) const;
+//    isminetype IsMine(const CScript& script) const;
     isminetype IsMine(const CTxIn& txin) const;
 
     /**
