@@ -291,6 +291,8 @@ void BitcoinGUI::createActions()
     // can be triggered from the tray menu, and need to show the GUI to be useful.
     connect(overviewAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(overviewAction, &QAction::triggered, this, &BitcoinGUI::gotoOverviewPage);
+      connect(balancesAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
+      connect(balancesAction, &QAction::triggered, [this]{ gotoBalancesPage(); });
     connect(sendCoinsAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(sendCoinsAction, &QAction::triggered, [this]{ gotoSendCoinsPage(); });
     connect(sendCoinsMenuAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
@@ -306,6 +308,13 @@ void BitcoinGUI::createActions()
     connect(manageNamesAction, &QAction::triggered, this, &BitcoinGUI::gotoManageNamesPage);
     connect(mintingAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(mintingAction, &QAction::triggered, this, &BitcoinGUI::gotoMintingPage);
+    // OMNI
+    /** trading ui is disabled in this version **/
+      connect(exchangeAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
+      connect(exchangeAction, &QAction::triggered, [this]{ gotoExchangePage(); });
+
+      connect(toolboxAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
+      connect(toolboxAction, &QAction::triggered, [this]{ gotoToolboxPage(); });
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(tr("E&xit"), this);
@@ -593,6 +602,12 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel)
 
         // Show progress dialog
         connect(_clientModel, &ClientModel::showProgress, this, &BitcoinGUI::showProgress);
+
+#ifdef ENABLE_WALLET
+        // Update Omni pending status
+        connect(clientModel, &ClientModel::refreshOmniPending, this, &BitcoinGUI::setOmniPendingStatus);
+#endif // ENABLE_WALLET
+
 
         rpcConsole->setClientModel(_clientModel);
 
@@ -1509,3 +1524,50 @@ void UnitDisplayStatusBarControl::onMenuSelection(QAction* action)
         optionsModel->setDisplayUnit(action->data());
     }
 }
+
+
+// OMNI imported
+void BitcoinGUI::setOmniPendingStatus(bool pending)
+{
+    if (!pending) {
+        labelOmniPendingIcon->hide();
+        labelOmniPendingText->hide();
+    } else {
+        labelOmniPendingIcon->show();
+        labelOmniPendingText->show();
+        labelOmniPendingIcon->setPixmap(QIcon(":/icons/omni_hourglass").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
+        labelOmniPendingIcon->setToolTip(tr("You have Omni transactions awaiting confirmation."));
+    }
+}
+
+void BitcoinGUI::gotoBalancesPage()
+{
+    balancesAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoBalancesPage();
+}
+
+void BitcoinGUI::gotoOmniHistoryTab()
+{
+    historyAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoOmniHistoryTab();
+}
+
+void BitcoinGUI::gotoBitcoinHistoryTab()
+{
+    historyAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoBitcoinHistoryTab();
+}
+
+void BitcoinGUI::gotoToolboxPage()
+{
+    toolboxAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoToolboxPage();
+}
+
+void BitcoinGUI::gotoExchangePage()
+{
+    exchangeAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoExchangePage();
+}
+
+
