@@ -27,7 +27,11 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsdialog.ui \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
-  qt/forms/transactiondescdialog.ui
+  qt/forms/transactiondescdialog.ui \
+  qt/forms/balancesdialog.ui \
+  qt/forms/lookuptxdialog.ui \
+  qt/forms/txhistorydialog.ui \
+  qt/forms/tradehistorydialog.ui
 
 QT_MOC_CPP = \
   qt/moc_BlockingHttp.cpp \
@@ -84,7 +88,11 @@ QT_MOC_CPP = \
   qt/moc_walletview.cpp \
   qt/moc_mintingfilterproxy.cpp \
   qt/moc_mintingtablemodel.cpp \
-  qt/moc_mintingview.cpp
+  qt/moc_mintingview.cpp \
+  qt/moc_balancesdialog.cpp \
+  qt/moc_lookuptxdialog.cpp \
+  qt/moc_txhistorydialog.cpp \
+  qt/moc_tradehistorydialog.cpp
 
 BITCOIN_MM = \
   qt/macdockiconhandler.mm \
@@ -247,7 +255,13 @@ BITCOIN_QT_H = \
   zlib/zutil.h \
   qt/mintingfilterproxy.h \
   qt/mintingtablemodel.h \
-  qt/mintingview.h
+  qt/mintingview.h \
+  qt/balancesdialog.h \
+  qt/omnicore_qtutils.h \
+  qt/omnicore_init.h \
+  qt/lookuptxdialog.h \
+  qt/txhistorydialog.h \
+  qt/tradehistorydialog.h
 
 RES_ICONS = \
   qt/res/icons/add.png \
@@ -345,7 +359,9 @@ BITCOIN_QT_BASE_CPP = \
   qt/rpcconsole.cpp \
   qt/splashscreen.cpp \
   qt/trafficgraphwidget.cpp \
-  qt/utilitydialog.cpp
+  qt/utilitydialog.cpp \
+  qt/omnicore_qtutils.cpp \
+  qt/omnicore_init.cpp
 
 BITCOIN_QT_WINDOWS_CPP = qt/winshutdownmonitor.cpp
 
@@ -453,7 +469,11 @@ BITCOIN_QT_WALLET_CPP = \
   zlib/inftrees.c \
   zlib/trees.c \
   zlib/uncompr.c \
-  zlib/zutil.c
+  zlib/zutil.c \
+  qt/lookuptxdialog.cpp \
+  qt/txhistorydialog.cpp \
+  qt/tradehistorydialog.cpp
+
   #ossl/apps.c \
   #ossl/app_rand.c \
   #ossl/enc.c \
