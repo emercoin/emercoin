@@ -409,7 +409,7 @@ void OverviewPage::UpdatePropertyBalance(unsigned int propertyId, uint64_t avail
     // property label
     std::string spName;
     if (propertyId == 0) {// Override for Overpageview init during GUI tests
-        spName = "Bitcoin";
+        spName = "Emercoin";
     } else {
         spName = getPropertyName(propertyId).c_str();
     }
@@ -419,9 +419,9 @@ void OverviewPage::UpdatePropertyBalance(unsigned int propertyId, uint64_t avail
     propLabel->setStyleSheet("QLabel { font-weight:bold; }");
     vlayout->addWidget(propLabel);
 
-    if (propertyId == 0) { // override for bitcoin
+    if (propertyId == 0) { // override for Emercoin
         divisible = true;
-        tokenStr = " BTC";
+        tokenStr = " EMC";
     } else {
         divisible = isPropertyDivisible(propertyId);
         tokenStr = getTokenLabel(propertyId);
@@ -430,7 +430,7 @@ void OverviewPage::UpdatePropertyBalance(unsigned int propertyId, uint64_t avail
     // Left Panel
     QVBoxLayout *vlayoutleft = new QVBoxLayout();
     QLabel *balReservedLabel = new QLabel;
-    if(propertyId != 0) { balReservedLabel->setText("Reserved:"); } else { balReservedLabel->setText("Pending:"); propLabel->setText("Bitcoin"); } // override for bitcoin
+    if(propertyId != 0) { balReservedLabel->setText("Reserved:"); } else { balReservedLabel->setText("Pending:"); propLabel->setText("Emercoin"); } // override for bitcoin
     QLabel *balAvailableLabel = new QLabel("Available:");
     QLabel *balTotalLabel = new QLabel("Total:");
     vlayoutleft->addWidget(balReservedLabel);

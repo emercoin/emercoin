@@ -84,7 +84,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     QVBoxLayout *txvbox = new QVBoxLayout();
     txTabHolder = new QTabWidget();
     txTabHolder->addTab(mpTXTab,tr("Omni Layer"));
-    txTabHolder->addTab(bitcoinTXTab,tr("Bitcoin"));
+    txTabHolder->addTab(bitcoinTXTab,tr("Emercoin"));
     txvbox->addWidget(txTabHolder);
     transactionsPage->setLayout(txvbox);
 
