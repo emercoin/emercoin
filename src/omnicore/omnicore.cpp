@@ -2069,7 +2069,7 @@ int mastercore_handler_block_end(int nBlockNow, CBlockIndex const * pBlockIndex,
 
     bool checkpointValid;
     {
-        LOCK(cs_tally);
+        LOCK2(::mempool.cs, cs_tally); // Oleg: Dirty fix possible deadlock
 
         // for every new received block must do:
         // 1) remove expired entries from the accept list (per spec accept entries are
