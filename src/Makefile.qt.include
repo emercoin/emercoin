@@ -31,6 +31,11 @@ QT_FORMS_UI = \
   qt/forms/balancesdialog.ui \
   qt/forms/lookuptxdialog.ui \
   qt/forms/txhistorydialog.ui \
+  qt/forms/sendmpdialog.ui \
+  qt/forms/lookupspdialog.ui \
+  qt/forms/lookupaddressdialog.ui \
+  qt/forms/metadexcanceldialog.ui \
+  qt/forms/metadexdialog.ui \
   qt/forms/tradehistorydialog.ui
 
 QT_MOC_CPP = \
@@ -92,6 +97,11 @@ QT_MOC_CPP = \
   qt/moc_balancesdialog.cpp \
   qt/moc_lookuptxdialog.cpp \
   qt/moc_txhistorydialog.cpp \
+  qt/moc_sendmpdialog.cpp \
+  qt/moc_lookupspdialog.cpp \
+  qt/moc_lookupaddressdialog.cpp \
+  qt/moc_metadexdialog.cpp \
+  qt/moc_metadexcanceldialog.cpp \
   qt/moc_tradehistorydialog.cpp
 
 BITCOIN_MM = \
@@ -261,6 +271,11 @@ BITCOIN_QT_H = \
   qt/omnicore_init.h \
   qt/lookuptxdialog.h \
   qt/txhistorydialog.h \
+  qt/sendmpdialog.h \
+  qt/lookupspdialog.h \
+  qt/lookupaddressdialog.h \
+  qt/metadexdialog.h \
+  qt/metadexcanceldialog.h \
   qt/tradehistorydialog.h
 
 RES_ICONS = \
@@ -472,6 +487,12 @@ BITCOIN_QT_WALLET_CPP = \
   zlib/zutil.c \
   qt/lookuptxdialog.cpp \
   qt/txhistorydialog.cpp \
+  qt/sendmpdialog.cpp \
+  qt/lookupspdialog.cpp \
+  qt/lookupaddressdialog.cpp \
+  qt/balancesdialog.cpp \
+  qt/metadexdialog.cpp \
+  qt/metadexcanceldialog.cpp \
   qt/tradehistorydialog.cpp
 
   #ossl/apps.c \

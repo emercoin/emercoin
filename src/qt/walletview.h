@@ -1,29 +1,21 @@
-// Copyright (c) 2011-2018 The Bitcoin Core developers
+// Copyright (c) 2011-2019 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#pragma once
+#ifndef BITCOIN_QT_WALLETVIEW_H
+#define BITCOIN_QT_WALLETVIEW_H
 
 #include <amount.h>
 
 #include <QStackedWidget>
 
 class BitcoinGUI;
+class BalancesDialog;
 class ClientModel;
 class OverviewPage;
 class PlatformStyle;
 class ReceiveCoinsDialog;
 class SendCoinsDialog;
-class ManageNamesPage;
-class SendCoinsRecipient;
-class TransactionView;
-class WalletModel;
-class WalletFrame;
-class AddressBookPage;
-class MintingView;
-
-// OMNI
-class BalancesDialog;
 class SendMPDialog;
 class TradeHistoryDialog;
 class LookupSPDialog;
@@ -31,12 +23,20 @@ class LookupTXDialog;
 class LookupAddressDialog;
 class MetaDExDialog;
 class MetaDExCancelDialog;
+class SendCoinsRecipient;
+class TransactionView;
 class TXHistoryDialog;
-class QTabWidget;
+class WalletModel;
+class AddressBookPage;
+
+class ManageNamesPage; // emc
+class WalletFrame; //???
+class MintingView; //emc
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
 class QProgressDialog;
+class QTabWidget;
 QT_END_NAMESPACE
 
 /*
@@ -53,7 +53,8 @@ public:
     explicit WalletView(const PlatformStyle *platformStyle, QWidget *parent);
     ~WalletView();
 
-    void setBitcoinGUI(BitcoinGUI *gui);
+    void setBitcoinGUI(BitcoinGUI *gui); // emc
+
     /** Set the client model.
         The client model represents the part of the core that communicates with the P2P network, and is wallet-agnostic.
     */
@@ -70,56 +71,60 @@ public:
     void showOutOfSyncWarning(bool fShow);
 
 private:
-    WalletFrame *walletFrame = 0;
-    ClientModel *clientModel = 0;
-    WalletModel *walletModel = 0;
-
-    OverviewPage *overviewPage;
-    QWidget *transactionsPage;
-    ReceiveCoinsDialog *receiveCoinsPage;
-    SendCoinsDialog *sendCoinsPage;
+    ClientModel *clientModel;
+    WalletModel *walletModel;
+    // ?? WalletFrame *walletFrame = 0;
     ManageNamesPage *manageNamesPage;
     QWidget *mintingPage;
-    AddressBookPage *usedSendingAddressesPage;
-    AddressBookPage *usedReceivingAddressesPage;
-    TransactionView *transactionView;
-    MintingView *mintingView;
-    QProgressDialog* progressDialog{nullptr};
-    const PlatformStyle *platformStyle;
-    // OMNI
+
+    OverviewPage *overviewPage;
     BalancesDialog *balancesPage;
+    QWidget *transactionsPage;
     QWidget *exchangePage;
     QWidget *smartPropertyPage;
     QWidget *toolboxPage;
+    ReceiveCoinsDialog *receiveCoinsPage;
+    AddressBookPage *usedSendingAddressesPage;
+    AddressBookPage *usedReceivingAddressesPage;
+//?!    QWidget *sendCoinsPage;
+    SendCoinsDialog *sendCoinsTab;
+    SendMPDialog *sendMPTab;
+    LookupSPDialog *spLookupTab;
+    LookupTXDialog *txLookupTab;
+    LookupAddressDialog *addressLookupTab;
+    TradeHistoryDialog *tradeHistoryTab;
+    MetaDExDialog *metaDExTab;
+    MetaDExCancelDialog *cancelTab;
+    TransactionView *transactionView;
+    MintingView *mintingView;
+    TXHistoryDialog *mpTXTab;
+    QWidget *bitcoinTXTab;
+
+    QProgressDialog* progressDialog{nullptr};
+    const PlatformStyle *platformStyle;
+
+    QTabWidget *txTabHolder;
+    QTabWidget *sendTabHolder;
 
 public Q_SLOTS:
     /** Switch to overview (home) page */
     void gotoOverviewPage();
+    /** Switch to balances page */
+    void gotoBalancesPage();
+    /** Switch to exchange page */
+    void gotoExchangePage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
-    /** Switch to manage names page */
-    void gotoManageNamesPage();
-    /** Switch to minting page */
-    void gotoMintingPage();
-
-    // OMNI
-    /** Switch to balances page */
-    void gotoBalancesPage();
     /** Switch specifically to omni tx history tab */
     void gotoOmniHistoryTab();
     /** Switch specifically to bitcoin tx history tab */
     void gotoBitcoinHistoryTab();
     /** Switch to utility page */
     void gotoToolboxPage();
-    /** Switch to exchange page */
-    void gotoExchangePage();
-
-
-
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
@@ -154,12 +159,23 @@ public Q_SLOTS:
     /** User has requested more information about the out of sync state */
     void requestedSyncWarningInfo();
 
+    // emercoin
     /** Unlock|Lock wallet when clicking on icon */
     void on_labelWalletEncryptionIcon_clicked();
 
+    /** Switch to manage names page */
+    void gotoManageNamesPage();
+
+    /** Switch to minting page */
+    void gotoMintingPage();
+
 Q_SIGNALS:
+    // emercoin
     /** Signal that we want to show the main window */
     void showNormalIfMinimized();
+
+    void transactionClicked();
+    void coinsSent();
     /**  Fired when a message should be reported to the user */
     void message(const QString &title, const QString &message, unsigned int style);
     /** Encryption status of wallet changed */
@@ -171,3 +187,5 @@ Q_SIGNALS:
     /** Notify that the out of sync warning icon has been pressed */
     void outOfSyncWarningClicked();
 };
+
+#endif // BITCOIN_QT_WALLETVIEW_H
