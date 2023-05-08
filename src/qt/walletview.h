@@ -106,6 +106,21 @@ public Q_SLOTS:
     /** Switch to minting page */
     void gotoMintingPage();
 
+    // OMNI
+    /** Switch to balances page */
+    void gotoBalancesPage();
+    /** Switch specifically to omni tx history tab */
+    void gotoOmniHistoryTab();
+    /** Switch specifically to bitcoin tx history tab */
+    void gotoBitcoinHistoryTab();
+    /** Switch to utility page */
+    void gotoToolboxPage();
+    /** Switch to exchange page */
+    void gotoExchangePage();
+
+
+
+
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */

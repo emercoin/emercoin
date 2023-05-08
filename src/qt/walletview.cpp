@@ -389,3 +389,36 @@ void WalletView::on_labelWalletEncryptionIcon_clicked()
         }
     }
 }
+
+
+// OMNI
+
+
+void WalletView::gotoBalancesPage()
+{
+    setCurrentWidget(balancesPage);
+}
+
+void WalletView::gotoOmniHistoryTab()
+{
+    setCurrentWidget(transactionsPage);
+    txTabHolder->setCurrentIndex(0);
+}
+
+void WalletView::gotoBitcoinHistoryTab()
+{
+    setCurrentWidget(transactionsPage);
+    txTabHolder->setCurrentIndex(1);
+}
+
+void WalletView::gotoToolboxPage()
+{
+    setCurrentWidget(toolboxPage);
+}
+
+void WalletView::gotoExchangePage()
+{
+    setCurrentWidget(exchangePage);
+}
+
+
