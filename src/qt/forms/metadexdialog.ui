@@ -446,7 +446,7 @@
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">QLabel { 
+             <string notr="true">QLabel {
 border: 1px solid rgb(142,61,0);padding:5px 5px 5px 5px;background-repeat: no-repeat;background-position: 10px center;color: #133959;background-color: rgb(255,191,142); color:rgb(142,61,0);} </string>
             </property>
             <property name="text">

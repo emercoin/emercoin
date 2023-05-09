@@ -292,7 +292,7 @@ void BitcoinGUI::createActions()
     connect(overviewAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(overviewAction, &QAction::triggered, this, &BitcoinGUI::gotoOverviewPage);
       connect(balancesAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
-      connect(balancesAction, &QAction::triggered, [this]{ gotoBalancesPage(); });
+      connect(balancesAction, &QAction::triggered, this, &BitcoinGUI::gotoBalancesPage);
     connect(sendCoinsAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(sendCoinsAction, &QAction::triggered, [this]{ gotoSendCoinsPage(); });
     connect(sendCoinsMenuAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
