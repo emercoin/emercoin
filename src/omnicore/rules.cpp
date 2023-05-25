@@ -111,6 +111,11 @@ std::vector<TransactionCheckpoint> CConsensusParams::GetTransactions() const
  */
 std::vector<ConsensusCheckpoint> CMainConsensusParams::GetCheckpoints() const
 {
+
+    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
+#if 1
+    return std::vector<ConsensusCheckpoint>();
+#else
     // block height, block hash and consensus hash
     const ConsensusCheckpoint vCheckpoints[] = {
         { 250000, uint256S("000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214"),
@@ -176,6 +181,7 @@ std::vector<ConsensusCheckpoint> CMainConsensusParams::GetCheckpoints() const
     const size_t nSize = sizeof(vCheckpoints) / sizeof(vCheckpoints[0]);
 
     return std::vector<ConsensusCheckpoint>(vCheckpoints, vCheckpoints + nSize);
+#endif
 }
 
 /**
@@ -183,6 +189,11 @@ std::vector<ConsensusCheckpoint> CMainConsensusParams::GetCheckpoints() const
  */
 std::vector<TransactionCheckpoint> CMainConsensusParams::GetTransactions() const
 {
+
+    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
+#if 1
+    return std::vector<TransactionCheckpoint>();
+#else
     // block height, transaction hash
     const TransactionCheckpoint vTransactions[] = {
         { 306906, uint256S("b7c66175a99ca0e7b1691905d50a46165adb7a8012d9ec5e1ecf8239f859df6d") },
@@ -218,6 +229,7 @@ std::vector<TransactionCheckpoint> CMainConsensusParams::GetTransactions() const
     const size_t nSize = sizeof(vTransactions) / sizeof(vTransactions[0]);
 
     return std::vector<TransactionCheckpoint>(vTransactions, vTransactions + nSize);
+#endif
 }
 
 /**
@@ -744,9 +756,6 @@ bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType,
  */
 bool VerifyCheckpoint(int block, const uint256& blockHash)
 {
-    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
-    return true;
-
     // optimization; we only checkpoint every 10,000 blocks - skip any further work if block not a multiple of 10K
     if (block % 10000 != 0) return true;
 
@@ -782,9 +791,6 @@ bool VerifyCheckpoint(int block, const uint256& blockHash)
  */
 bool VerifyTransactionExistence(int block)
 {
-    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
-    return true;
-
     PrintToLog("%s: verifying existence of historical transactions up to block %d..\n", __func__, block);
 
     const std::vector<TransactionCheckpoint>& vTransactionss = ConsensusParams().GetTransactions();
