@@ -291,16 +291,20 @@ void BitcoinGUI::createActions()
     // can be triggered from the tray menu, and need to show the GUI to be useful.
     connect(overviewAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(overviewAction, &QAction::triggered, this, &BitcoinGUI::gotoOverviewPage);
+
       connect(balancesAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
       connect(balancesAction, &QAction::triggered, this, &BitcoinGUI::gotoBalancesPage);
+// WORK
     connect(sendCoinsAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
-    connect(sendCoinsAction, &QAction::triggered, [this]{ gotoSendCoinsPage(); });
+//    connect(sendCoinsAction, &QAction::triggered, this, &BitcoinGUI::gotoSendCoinsPage);
     connect(sendCoinsMenuAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
-    connect(sendCoinsMenuAction, &QAction::triggered, [this]{ gotoSendCoinsPage(); });
+//    connect(sendCoinsMenuAction, &QAction::triggered, this, gotoSendCoinsPage);
+
     connect(receiveCoinsAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(receiveCoinsAction, &QAction::triggered, this, &BitcoinGUI::gotoReceiveCoinsPage);
     connect(receiveCoinsMenuAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(receiveCoinsMenuAction, &QAction::triggered, this, &BitcoinGUI::gotoReceiveCoinsPage);
+
     connect(historyAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
     connect(historyAction, &QAction::triggered, this, &BitcoinGUI::gotoHistoryPage);
 
@@ -311,10 +315,10 @@ void BitcoinGUI::createActions()
     // OMNI
     /** trading ui is disabled in this version **/
       connect(exchangeAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
-      connect(exchangeAction, &QAction::triggered, [this]{ gotoExchangePage(); });
+      connect(exchangeAction, &QAction::triggered, this, &BitcoinGUI::gotoExchangePage);
 
       connect(toolboxAction, &QAction::triggered, [this]{ showNormalIfMinimized(); });
-      connect(toolboxAction, &QAction::triggered, [this]{ gotoToolboxPage(); });
+      connect(toolboxAction, &QAction::triggered, this, &BitcoinGUI::gotoToolboxPage);
 #endif // ENABLE_WALLET
 
     quitAction = new QAction(tr("E&xit"), this);

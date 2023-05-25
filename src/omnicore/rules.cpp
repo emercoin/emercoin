@@ -72,7 +72,7 @@ std::vector<TransactionRestriction> CConsensusParams::GetRestrictions() const
         { MSC_TYPE_METADEX_CANCEL_ECOSYSTEM,  MP_TX_PKT_V0,  false,   MSC_METADEX_BLOCK  },
 
         { MSC_TYPE_SEND_ALL,                  MP_TX_PKT_V0,  false,   MSC_SEND_ALL_BLOCK },
-        
+
         { MSC_TYPE_ANYDATA,                   MP_TX_PKT_V0,  true,    MSC_ANYDATA_BLOCK },
 
         { MSC_TYPE_OFFER_ACCEPT_A_BET,        MP_TX_PKT_V0,  false,   MSC_BET_BLOCK      },
@@ -744,6 +744,9 @@ bool IsTransactionTypeAllowed(int txBlock, uint32_t txProperty, uint16_t txType,
  */
 bool VerifyCheckpoint(int block, const uint256& blockHash)
 {
+    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
+    return true;
+
     // optimization; we only checkpoint every 10,000 blocks - skip any further work if block not a multiple of 10K
     if (block % 10000 != 0) return true;
 
@@ -779,6 +782,9 @@ bool VerifyCheckpoint(int block, const uint256& blockHash)
  */
 bool VerifyTransactionExistence(int block)
 {
+    // emcTODO: reactivate OMNI consesus hash, stuff checkpoints list
+    return true;
+
     PrintToLog("%s: verifying existence of historical transactions up to block %d..\n", __func__, block);
 
     const std::vector<TransactionCheckpoint>& vTransactionss = ConsensusParams().GetTransactions();
