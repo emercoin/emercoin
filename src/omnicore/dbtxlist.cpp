@@ -340,7 +340,7 @@ int CMPTxList::GetOmniTxsInBlockRange(int blockFirst, int blockLast, std::set<ui
 {
     int count = 0;
     leveldb::Iterator* it = NewIterator();
-    
+
     for (it->SeekToFirst(); it->Valid(); it->Next()) {
         const leveldb::Slice& sKey = it->key();
         const leveldb::Slice& sValue = it->value();
@@ -352,7 +352,7 @@ int CMPTxList::GetOmniTxsInBlockRange(int blockFirst, int blockLast, std::set<ui
             if (4 == vStr.size()) {
                 int blockCurrent = atoi(vStr[1]);
                 if (blockCurrent >= blockFirst && blockCurrent <= blockLast) {
-                    retTxs.insert(uint256S(sKey.ToString()));                    
+                    retTxs.insert(uint256S(sKey.ToString()));
                     ++count;
                 }
             }
@@ -741,11 +741,12 @@ bool CMPTxList::LoadFreezeState(int blockHeight)
         }
         txnsLoaded++;
     }
-
+    // emcTODO: Checkpoints assertion OMNI
+#if 0
     if (blockHeight > 497000 && !isNonMainNet()) {
         assert(txnsLoaded >= 2); // sanity check against a failure to properly load the freeze state
     }
-
+#endif
     return true;
 }
 
