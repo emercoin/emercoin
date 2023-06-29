@@ -31,10 +31,11 @@
 #include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
 
+#include <ui_interface.h>
+#include <warnings.h>
+
 #include <stdint.h>
-
 #include <univalue.h>
-
 #include <functional>
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
@@ -1928,7 +1929,8 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
             "time that overrides the old one.\n",
                 {
                     {"passphrase", RPCArg::Type::STR, RPCArg::Optional::NO, "The wallet passphrase"},
-                    {"timeout", RPCArg::Type::NUM, RPCArg::Optional::NO, "The time to keep the decryption key in seconds; capped at 100000000 (~3 years)."},
+                    {"timeout",    RPCArg::Type::NUM, RPCArg::Optional::NO, "The time to keep the decryption key in seconds; capped at 100000000 (~3 years)."},
+                    {"mintonly",   RPCArg::Type::BOOL, "false" /* default */, "Optional true/false allowing only block minting."},
                 },
                 RPCResults{},
                 RPCExamples{
@@ -1997,7 +1999,15 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
         }
     }, nSleepTime);
 
-    return NullUniValue;
+    UniValue ret(UniValue::VOBJ);
+    ret.pushKV("mint only", fWalletUnlockMintOnly);
+    // clear locked wallet mint warning
+    strMintWarning = "";
+    // emcTODO
+    // build emercoin-qt with this msg, emercoin-wallet - without
+    // uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
+    return ret;
+    // return NullUniValue;
 }
 
 

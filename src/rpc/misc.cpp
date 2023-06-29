@@ -712,8 +712,8 @@ UniValue getinfo(const JSONRPCRequest& request)
     GetProxy(NET_IPV4, proxy);
 
     UniValue obj(UniValue::VOBJ);
-    obj.pushKV("deprecation-warning", "WARNING: getinfo is deprecated and will be fully removed in 0.16."
-        " Projects should transition to using getblockchaininfo, getnetworkinfo, and getwalletinfo before upgrading to 0.16");
+//    obj.pushKV("deprecation-warning", "WARNING: getinfo is deprecated and will be fully removed in 0.16."
+//        " Projects should transition to using getblockchaininfo, getnetworkinfo, and getwalletinfo before upgrading to 0.16");
     obj.pushKV("version", CLIENT_VERSION);
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
 #ifdef ENABLE_WALLET
@@ -730,7 +730,8 @@ UniValue getinfo(const JSONRPCRequest& request)
     if(g_connman)
         obj.pushKV("connections",   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
     obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
-    obj.pushKV("difficulty",    (double)GetDifficulty(::ChainActive().Tip()));
+    obj.pushKV("difficulty-PoW",        (double)GetDifficulty(::ChainActive().Tip()));
+    obj.pushKV("difficulty-PoS",       (double)GetDifficulty(GetLastBlockIndex(::ChainActive().Tip(), true)));
     obj.pushKV("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET);
 #ifdef ENABLE_WALLET
     if (wallet) {
@@ -743,6 +744,9 @@ UniValue getinfo(const JSONRPCRequest& request)
     obj.pushKV("paytxfee",      ValueFromAmount(wallet->m_pay_tx_fee.GetFeePerK()));
 #endif
     obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
+    // emercoin
+    obj.pushKV("encrypted",     wallet->IsCrypted());
+    obj.pushKV("mintonly",      fWalletUnlockMintOnly);
     obj.pushKV("errors",        GetWarnings("statusbar"));
     return obj;
 }
