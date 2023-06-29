@@ -714,7 +714,8 @@ UniValue getinfo(const JSONRPCRequest& request)
     UniValue obj(UniValue::VOBJ);
 //    obj.pushKV("deprecation-warning", "WARNING: getinfo is deprecated and will be fully removed in 0.16."
 //        " Projects should transition to using getblockchaininfo, getnetworkinfo, and getwalletinfo before upgrading to 0.16");
-    obj.pushKV("version", CLIENT_VERSION);
+    obj.pushKV("fullversion", FormatFullVersion());
+    obj.pushKV("version", EMERCOIN_VERSION);
     obj.pushKV("protocolversion", PROTOCOL_VERSION);
 #ifdef ENABLE_WALLET
     if (wallet) {
@@ -726,12 +727,13 @@ UniValue getinfo(const JSONRPCRequest& request)
     }
 #endif
     obj.pushKV("blocks",        (int)::ChainActive().Height());
+    obj.pushKV("moneysupply",   ValueFromAmount(::ChainActive().Tip()->nMoneySupply));
     obj.pushKV("timeoffset",    GetTimeOffset());
     if(g_connman)
         obj.pushKV("connections",   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL));
     obj.pushKV("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string()));
-    obj.pushKV("difficulty-PoW",        (double)GetDifficulty(::ChainActive().Tip()));
-    obj.pushKV("difficulty-PoS",       (double)GetDifficulty(GetLastBlockIndex(::ChainActive().Tip(), true)));
+    obj.pushKV("pow-difficulty",       (double)GetDifficulty(GetLastBlockIndex(::ChainActive().Tip(), false)));
+    obj.pushKV("pos-difficulty",       (double)GetDifficulty(GetLastBlockIndex(::ChainActive().Tip(), true)));
     obj.pushKV("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET);
 #ifdef ENABLE_WALLET
     if (wallet) {
