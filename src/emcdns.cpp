@@ -9,7 +9,7 @@
  * Supported fields: A, AAAA, NS, PTR, MX, TXT, CNAME
  * Does not support: SOA, WKS
  * Does not support recursive query, authority zone and namezone transfers.
- * 
+ *
  *
  * Author: maxihatop
  *
@@ -28,6 +28,10 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+// for MinGW build
+#ifndef MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0
+#endif
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -143,9 +147,9 @@ const static char *decodeQtype(uint16_t x) {
 /*---------------------------------------------------*/
 
 EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
-	  const char *gw_suffix, const char *allowed_suff, const char *local_fname, 
+	  const char *gw_suffix, const char *allowed_suff, const char *local_fname,
 	  uint32_t dapsize, uint32_t daptreshold,
-	  const char *enums, const char *tollfree, uint8_t verbose) 
+	  const char *enums, const char *tollfree, uint8_t verbose)
     : m_status(-1), m_flags(0), m_thread(StatRun, this) {
 
     // Clear vars [m_hdr..m_verbose)
@@ -158,7 +162,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         // Cannot create IPv46 - try IPv4
         // Create and bind socket - IPv4 Only
         ret = socket(PF_INET, SOCK_DGRAM, 0);
-        if(ret < 0) 
+        if(ret < 0)
             throw runtime_error("EmcDns::EmcDns: Cannot create ipv4 socket");
         m_sockfd = ret;
 
@@ -223,7 +227,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         if(*rd == '.')
           m_flags |= FLAG_LOCAL_SD; // Future local search for subdomains, too
 	rd = strchr(p, 0);
-        while(*--rd < 040) 
+        while(*--rd < 040)
 	  *rd = 0;
 	rd += 2;
 	local_qty++;
@@ -256,7 +260,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
             + 2        // ?
             + gw_suf_len + allowed_len + local_len + 4);
 
-    if(m_buf == NULL) 
+    if(m_buf == NULL)
       throw runtime_error("EmcDns::EmcDns: Cannot allocate buffer");
 
     // Assign data buffers inside m_value hyper-array
@@ -274,7 +278,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	  LogPrintf("\tEmcDns::EmcDns: enumtrust=%s\n", p_tok);
           m_verifiers[string(p_tok)] = empty_ver;
 	}
-    } // ENUMs completed 
+    } // ENUMs completed
 
 
     if(gw_suf_len) {
@@ -291,11 +295,11 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         m_gw_suffix_replace = m_gw_suffix + gw_suf_len; // pointer to \0
       // Compute dots in the gw-suffix
       for(const char *p = m_gw_suffix; *p; p++)
-        if(*p == '.') 
+        if(*p == '.')
           m_gw_suf_dots++;
       if(m_verbose > 1)
-	 LogPrintf("EmcDns::EmcDns: Setup translate GW-suffix: [%s:%d]->[%s] Ncut=%d\n", 
-                 m_gw_suffix, m_gw_suf_len, m_gw_suffix_replace, m_gw_suf_dots); 
+	 LogPrintf("EmcDns::EmcDns: Setup translate GW-suffix: [%s:%d]->[%s] Ncut=%d\n",
+                 m_gw_suffix, m_gw_suf_len, m_gw_suffix_replace, m_gw_suf_dots);
     }
 
 
@@ -313,7 +317,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	  *p = 64;
 	  if(p[1] > 040) { // if allowed domain is not empty - save it into ht
 	    step |= 1;
-	    do 
+	    do
 	      pos += step;
             while(m_ht_offset[pos] != 0);
 	    m_ht_offset[pos] = p + 1 - m_allowed_base;
@@ -359,7 +363,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	step |= 1;
 	if(m_verbose > 1)
 	  LogPrintf("\tEmcDns::EmcDns: Insert Local:[%s]->[%s] pos=%u step=%u\n", p, p_eq, pos, step);
-	do 
+	do
 	  pos += step;
         while(m_ht_offset[pos] != 0);
 	m_ht_offset[pos] = m_local_base - p; // negative value - flag LOCAL
@@ -368,7 +372,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
     } //  if(local_len)
 
     if(m_verbose > 1)
-	 LogPrintf("EmcDns::EmcDns: Created/Attached: [%s]:%u; TLD=%u Local=%u\n", 
+	 LogPrintf("EmcDns::EmcDns: Created/Attached: [%s]:%u; TLD=%u Local=%u\n",
 		 (bind_ip == NULL)? "INADDR_ANY" : bind_ip,
 		 port_no, m_allowed_qty, local_qty);
 
@@ -396,16 +400,16 @@ void EmcDns::AddTF(char *tf_tok) {
     if(end <= tf_tok)
       return;
   }
-  
+
   if(tf_tok[0] == '=') {
     if(tf_tok[1])
       m_tollfree.push_back(TollFree(tf_tok + 1));
-  } else 
+  } else
       if(!m_tollfree.empty())
         m_tollfree.back().e2u.push_back(string(tf_tok));
 
   if(m_verbose > 1)
-    LogPrintf("\tEmcDns::AddTF: Added token [%s] tf/e2u=%u:%u\n", tf_tok, m_tollfree.size(), m_tollfree.back().e2u.size()); 
+    LogPrintf("\tEmcDns::AddTF: Added token [%s] tf/e2u=%u:%u\n", tf_tok, m_tollfree.size(), m_tollfree.back().e2u.size());
 } // EmcDns::AddTF
 
 /*---------------------------------------------------*/
@@ -550,7 +554,7 @@ int EmcDns::HandlePacket() {
 
     // Handle questions here
     for(uint16_t qno = 0; qno < m_hdr->QDCount && m_snd < m_obufend; qno++) {
-      if(m_verbose > 5) 
+      if(m_verbose > 5)
         LogPrintf("\tEmcDns::HandlePacket: qno=%u m_hdr->QDCount=%u\n", qno, m_hdr->QDCount);
       rc = HandleQuery();
       if(rc) {
@@ -610,14 +614,14 @@ uint16_t EmcDns::HandleQuery() {
     *domain_ndx_p++ = key_end;
     do {
       unsigned char c = *m_rcv++;
-      if(c <= 'Z') 
+      if(c <= 'Z')
         c |= 040; // Tolower capital chars, do not need "_"
       *key_end++ = c;
     } while(--dom_len);
     *key_end++ = '.'; // Set DOT at domain end
   } //  while(dom_len)
 
-  uint16_t qtype  = *m_rcv++; qtype  = (qtype  << 8) + *m_rcv++; 
+  uint16_t qtype  = *m_rcv++; qtype  = (qtype  << 8) + *m_rcv++;
   uint16_t qclass = *m_rcv++; qclass = (qclass << 8) + *m_rcv++;
 
   if(qclass != 1)
@@ -625,26 +629,26 @@ uint16_t EmcDns::HandleQuery() {
 
   *--key_end = 0; // Remove last dot, set EOLN
 
-  if(m_verbose > 4) 
+  if(m_verbose > 4)
     LogPrintf("EmcDns::HandleQuery: Translated domain name: [%s]; DomainsQty=%d\n", key, (int)(domain_ndx_p - domain_ndx));
 
-  // If this is public gateway, gw-suffix can be specified, like 
+  // If this is public gateway, gw-suffix can be specified, like
   // emcdnssuffix=.xyz.com
   // Following block cuts this suffix, if exists.
   // If received domain name "xyz.com" only, key is empty string
   if(m_gw_suf_len) { // suffix defined [public DNS], need to cut/replace
     uint8_t *p_suffix = key_end - m_gw_suf_len;
     if(p_suffix >= key && strcmp((const char *)p_suffix, m_gw_suffix) == 0) {
-      strcpy((char*)p_suffix, m_gw_suffix_replace); 
+      strcpy((char*)p_suffix, m_gw_suffix_replace);
       key_end = p_suffix + m_gw_suffix_replace_len;
-      domain_ndx_p -= m_gw_suf_dots; 
-    } else 
+      domain_ndx_p -= m_gw_suf_dots;
+    } else
     // check special - if suffix == GW-site, e.g., request: emergate.net
     if(p_suffix == key - 1 && strcmp((const char *)p_suffix + 1, m_gw_suffix + 1) == 0) {
       *++p_suffix = 0; // Set empty search key
       key_end = p_suffix;
       domain_ndx_p = domain_ndx;
-    } 
+    }
   } // if(m_gw_suf_len)
 
   if(!CheckDAP(key, key - key_end, 0)) {
@@ -653,7 +657,7 @@ uint16_t EmcDns::HandleQuery() {
     return 0xDead; // Botnet detected, abort query processing
   }
 
-  if(m_verbose > 2) 
+  if(m_verbose > 2)
     LogPrintf("EmcDns::HandleQuery: Key=%s QType=0x%x[%s] mintemp=%u\n", key, qtype, decodeQtype(qtype), m_mintemp);
 
   // Search for TLD-suffix, like ".coin"
@@ -665,7 +669,7 @@ uint16_t EmcDns::HandleQuery() {
 
   uint8_t *p0 = key_end, *p_tld = key;
 
-  if(m_verbose > 4) 
+  if(m_verbose > 4)
     LogPrintf("EmcDns::HandleQuery: After GW-suffix cut: [%s]\n", key);
 
   while(p0 > key) {
@@ -698,18 +702,18 @@ uint16_t EmcDns::HandleQuery() {
     // Check domain by tld filters, if activated. Otherwise, pass to nameindex as is.
     if(m_allowed_qty) { // Activated TLD-filter
       if(*p_tld != '.') {
-        if(m_verbose > 0) 
+        if(m_verbose > 0)
           LogPrintf("EmcDns::HandleQuery: TLD-suffix=[.%s] is not specified in given key=%s; return NXDOMAIN\n", p_tld, key);
 	return 3; // TLD-suffix is not specified, so NXDOMAIN
-      } 
+      }
       p_tld++; // Set PTR after dot, to the suffix
       do {
         pos += step;
         if(m_ht_offset[pos] == 0) {
-          if(m_verbose > 0) 
+          if(m_verbose > 0)
   	    LogPrintf("EmcDns::HandleQuery: TLD-suffix=[.%s] in given key=%s is not allowed; return REFUSED\n", p_tld, key);
 	  return 5; // Reached EndOfList, so REFUSED
-        } 
+        }
       } while(m_ht_offset[pos] < 0 || strcmp((const char *)p_tld, m_allowed_base + (m_ht_offset[pos] & ~ENUM_FLAG)) != 0);
 
       // ENUM SPFUN works only if TLD-filter is active and if request NAPTR. Otherwise - NXDOMAIN
@@ -719,7 +723,7 @@ uint16_t EmcDns::HandleQuery() {
     } // if(m_allowed_qty)
 
     uint8_t **cur_ndx_p, **prev_ndx_p = domain_ndx_p - 2;
-    if(prev_ndx_p < domain_ndx) 
+    if(prev_ndx_p < domain_ndx)
       prev_ndx_p = domain_ndx;
 
     // Search in the nameindex db. Possible to search filtered indexes, or even pure names, like "dns:www"
@@ -748,8 +752,8 @@ uint16_t EmcDns::HandleQuery() {
 	return 0;
       // if cannot create REF - just ANSWER for parent domain (ignore prefix/subdomain)
     } while(step_next);
-    
-  } // if(p) - ends of DB search 
+
+  } // if(p) - ends of DB search
 
   char val2[VAL_SIZE];
   // There is generate ANSWER section
@@ -758,7 +762,7 @@ uint16_t EmcDns::HandleQuery() {
     int ttlqty = Tokenize("TTL", NULL, tokens, strcpy(val2, m_value));
     m_ttl = ttlqty? atoi(tokens[0]) : 3600; // 1 hour default TTL
   }
-  
+
   // List values for ANY:    A NS CNA PTR MX AAAA
   const uint16_t q_all[] = { 1, 2, 5, 12, 15, 28, 0 };
 
@@ -826,7 +830,7 @@ int EmcDns::Tokenize(const char *key, const char *sep2, char **tokens, char *buf
   mainsep[1] = 0;
 
   for(char *token = strtok(buf, mainsep);
-    token != NULL; 
+    token != NULL;
       token = strtok(NULL, mainsep)) {
       // LogPrintf("Token:%s\n", token);
       char *val = strchr(token, '=');
@@ -844,7 +848,7 @@ int EmcDns::Tokenize(const char *key, const char *sep2, char **tokens, char *buf
 	tokens[tokensN++] = val;
 	break;
       }
-     
+
       // if needed. redefine sep2
       char sepulka[2];
       if(*val == '~') {
@@ -854,8 +858,8 @@ int EmcDns::Tokenize(const char *key, const char *sep2, char **tokens, char *buf
 	  sep2 = sepulka;
       }
       // Tokenize value
-      for(token = strtok(val, sep2); 
-	 token != NULL && tokensN < MAX_TOK; 
+      for(token = strtok(val, sep2);
+	 token != NULL && tokensN < MAX_TOK;
 	   token = strtok(NULL, sep2)) {
 	  // LogPrintf("Subtoken=%s\n", token);
 	  tokens[tokensN++] = token;
@@ -890,7 +894,7 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
   }
 
   for(int tok_no = 0; tok_no < tokQty; tok_no++) {
-      if(m_verbose > 4) 
+      if(m_verbose > 4)
 	LogPrintf("\tEmcDns::Answer_ALL: Token:%u=[%s]\n", tok_no, tokens[tok_no]);
       Out2(m_label_ref);
       Out2(qtype); // A record, or maybe something else
@@ -916,7 +920,7 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
     m_hdr->NSCount += tokQty;
   else
     m_hdr->ANCount += tokQty;
-} // EmcDns::Answer_ALL 
+} // EmcDns::Answer_ALL
 
 /*---------------------------------------------------*/
 /*
@@ -945,7 +949,7 @@ void EmcDns::Fill_RD_IP(char *ipddrtxt, int af) {
       default: return;
   }
   Out2(out_sz);
-  if(inet_pton(af, ipddrtxt, m_snd)) 
+  if(inet_pton(af, ipddrtxt, m_snd))
     m_snd += out_sz;
   else
     m_snd -= 12, m_hdr->ANCount--; // 12 = clear this 2 and 10 bytes at caller
@@ -1042,7 +1046,7 @@ void EmcDns::Fill_RD_SRV(char *txt) {
 static unsigned GetHex(uint8_t c) {
   int rc = c - '0';
   if(rc >= 0) {
-    if(rc > 9) 
+    if(rc > 9)
         rc = (c | 040) - 'a' + 10;
   }
   return rc;
@@ -1149,7 +1153,7 @@ void EmcDns::Fill_RD_CAA(char *txt) {
 /*---------------------------------------------------*/
 
 int EmcDns::Search(uint8_t *key) {
-  if(m_verbose > 4) 
+  if(m_verbose > 4)
     LogPrintf("EmcDns::Search(%s)\n", key);
 
   string value;
@@ -1172,8 +1176,8 @@ int EmcDns::LocalSearch(const uint8_t *key, uint8_t pos, uint8_t step) {
     if(m_ht_offset[pos] == 0) {
       if(m_verbose > 6)
         LogPrintf("EmcDns::LocalSearch: Local key=[%s] not found\n", key);
-      return 0; // Reached EndOfList 
-    } 
+      return 0; // Reached EndOfList
+    }
   } while(m_ht_offset[pos] > 0 || strcmp((const char *)key, m_local_base - m_ht_offset[pos]) != 0);
 
   strcpy(m_value, strchr(m_local_base - m_ht_offset[pos], 0) + 1);
@@ -1185,7 +1189,7 @@ int EmcDns::LocalSearch(const uint8_t *key, uint8_t pos, uint8_t step) {
 /*---------------------------------------------------*/
 #define ROLADD(h,s,x)   h = ((h << s) | (h >> (32 - s))) + (x)
 // Returns true - can handle packet; false = ignore
-bool EmcDns::CheckDAP(void *key, int len, uint16_t inctemp) { 
+bool EmcDns::CheckDAP(void *key, int len, uint16_t inctemp) {
   if(m_dap_ht == NULL)
     return true; // Filter is inactive
 
@@ -1220,7 +1224,7 @@ bool EmcDns::CheckDAP(void *key, int len, uint16_t inctemp) {
     uint32_t new_temp = (dt > 15? 0 : dap->temp >> dt) + inctemp;
     dap->temp = (new_temp > 0xffff)? 0xffff : new_temp;
     dap->timestamp = m_timestamp;
-    if(new_temp < mintemp) 
+    if(new_temp < mintemp)
       mintemp = new_temp;
   } // for
 
@@ -1228,13 +1232,13 @@ bool EmcDns::CheckDAP(void *key, int len, uint16_t inctemp) {
   bool rc = mintemp < m_dap_treshold;
   if(m_verbose > 5 || (!rc && m_verbose > 3)) {
     char buf[80], outbuf[120];
-    snprintf(outbuf, sizeof(outbuf), "EmcDns::CheckDAP: IP=[%s] inctemp=%u, mintemp=%u dap_treshold=%u rc=%d\n", 
+    snprintf(outbuf, sizeof(outbuf), "EmcDns::CheckDAP: IP=[%s] inctemp=%u, mintemp=%u dap_treshold=%u rc=%d\n",
 		    len < 0? (const char *)key : inet_ntop(len == 4? AF_INET : AF_INET6, key, buf, len),
                     inctemp, mintemp, m_dap_treshold, rc);
     LogPrintf(outbuf);
   }
   return rc;
-} // EmcDns::CheckDAP 
+} // EmcDns::CheckDAP
 
 /*---------------------------------------------------*/
 // Handle Special function - phone number in the E.164 format
@@ -1247,7 +1251,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
   len &= 0177; // Cut flag no-check-sig
 
   if(m_verbose > 3)
-    LogPrintf("\tEmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u sigOK=%u\n", 
+    LogPrintf("\tEmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u sigOK=%u\n",
 	    (const char*)*domain_start, dom_length, tld, len, sigOK);
 
   do {
@@ -1280,8 +1284,8 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
     if(sigOK || !m_verifiers.empty()) {
       for(int16_t qno = 0; qno >= 0; qno++) {
         char q_str[160];
-        sprintf(q_str, "%s:%s:%u", tld, itut_num, qno); 
-        if(m_verbose > 4) 
+        sprintf(q_str, "%s:%s:%u", tld, itut_num, qno);
+        if(m_verbose > 4)
           LogPrintf("\tEmcDns::SpfunENUM Search(%s)\n", q_str);
 
         string value;
@@ -1290,18 +1294,18 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
 
         strcpy(m_value, value.c_str());
         Answer_ENUM(q_str, sigOK); // Body passed through m_value
-      } // for 
+      } // for
     } // if
 
     // If nothing found in the ENUM - try to search in the Toll-Free
     m_ttl = 24 * 3600; // 24h by default
     boost::xpressive::smatch nameparts;
-    for(vector<TollFree>::const_iterator tf = m_tollfree.begin(); 
-	      m_hdr->ANCount == 0 && tf != m_tollfree.end(); 
+    for(vector<TollFree>::const_iterator tf = m_tollfree.begin();
+	      m_hdr->ANCount == 0 && tf != m_tollfree.end();
 	      tf++) {
       bool matched = regex_match(string(itut_num), nameparts, tf->regex);
       // bool matched = regex_search(string(itut_num), nameparts, tf->regex);
-      if(m_verbose > 4) 
+      if(m_verbose > 4)
           LogPrintf("\tEmcDns::SpfunENUM TF-match N=[%s] RE=[%s] -> %u\n", itut_num, tf->regex_str.c_str(), matched);
       if(matched)
         for(vector<string>::const_iterator e2u = tf->e2u.begin(); e2u != tf->e2u.end(); e2u++)
@@ -1343,7 +1347,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
 
 	case ENC3('t', 't', 'l'):
 	  pttl = strchr(tok + 3, '=');
-	  if(pttl) 
+	  if(pttl)
 	    m_ttl = atoi(pttl + 1);
 	  continue;
 
@@ -1370,7 +1374,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
 void EmcDns::OutS(const char *p) {
   int len = strlen(strcpy((char *)m_snd + 1, p));
   *m_snd = len;
-  m_snd += len + 1; 
+  m_snd += len + 1;
 } // EmcDns::OutS
 
 /*---------------------------------------------------*/
@@ -1378,7 +1382,7 @@ void EmcDns::OutS(const char *p) {
  // E2U+sip=100|10|!^(.*)$!sip:17771234567@in.callcentric.com!
 void EmcDns::HandleE2U(char *e2u) {
   char *data = strchr(e2u, '=');
-  if(data == NULL) 
+  if(data == NULL)
     return;
 
   // Cleanum sufix for service; Service started from E2U
@@ -1428,7 +1432,7 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
     char *signature = strchr(sig_str, '|');
     if(signature == NULL)
       return false;
-    
+
     for(char *p = signature; *--p <= 040; *p = 0) {}
     *signature++ = 0;
 
@@ -1502,8 +1506,8 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
       } // if(ver.mask < 0) - after try-fill verifiyer
 
     } // if(ver.mask < 0) - main
- 
-    while(*signature <= 040 && *signature) 
+
+    while(*signature <= 040 && *signature)
       signature++;
 
     bool fInvalid = false;

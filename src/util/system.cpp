@@ -706,7 +706,7 @@ fs::path GetDefaultDataDir()
     return GetSpecialFolderPath(CSIDL_APPDATA) / "Emercoin";
 #else
     struct passwd *pw_ptr = getpwuid(geteuid());
-    const char *pszHome = pw_ptr? pw_ptr->pw_dir : getenv("HOME"); 
+    const char *pszHome = pw_ptr? pw_ptr->pw_dir : getenv("HOME");
     fs::path pathRet((pszHome == nullptr || *pszHome == 0)? "/" : pszHome);
 #ifdef MAC_OSX
     // Mac
@@ -955,7 +955,8 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
         }
     } else {
         // Missing config file
-        FILE *pFile = fopen(GetConfigFile(confPath).c_str(), "a");  // create empty config if it does not exist
+        // MinGW: force cast wchar->char
+        FILE *pFile = fopen((const char *)GetConfigFile(confPath).c_str(), "a");  // create empty config if it does not exist
         if (pFile != NULL)
             fclose(pFile);
     }
