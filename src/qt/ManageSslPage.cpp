@@ -104,7 +104,7 @@ struct ManageSslPage::TemplateDialog: public QDialog {
 			lay->addWidget(errorDesc);
 			_email->validator()->setErrorLabel(errorDesc);
 			errorDesc->hide();
-			
+
 			form->addRow(tr("E-mail:"), lay);
 		}
 		form->addRow(tr("Your UID to retrieve InfoCard info:"), _ecard);
@@ -148,7 +148,7 @@ QString ManageSslPage::randName() {
         do {
             uid[0] = uid[0] + (++x); // to mitigate low-probable case, when h(x) == x
             uid = QCryptographicHash::hash(uid, QCryptographicHash::Sha256);
-        } while(uid[0] < 0x10); // To preserve 0-prefix
+        } while(uid[0] < (char)0x10); // To preserve 0-prefix
         uid.truncate(8);
 	return uid.toHex();
 }

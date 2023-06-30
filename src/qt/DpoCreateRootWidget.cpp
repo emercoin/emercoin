@@ -7,6 +7,7 @@
 #include <QFormLayout>
 #include <QSettings>
 #include <QLabel>
+#include <cassert>
 
 DpoCreateRootWidget::DpoCreateRootWidget(WalletModel* model) : model(model) {
     assert(model);
@@ -39,7 +40,7 @@ DpoCreateRootWidget::DpoCreateRootWidget(WalletModel* model) : model(model) {
 		lay->addWidget(errorDesc);
 		email->validator()->setErrorLabel(errorDesc);
 		errorDesc->hide();
-			
+
 		form->addRow(tr("E-mail:"), lay);
 	}
 	{

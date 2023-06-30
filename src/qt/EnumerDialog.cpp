@@ -4,12 +4,13 @@
 #include <QFormLayout>
 #include <QIcon>
 #include <QLabel>
+#include <cassert>
 
 EnumerDialog::EnumerDialog(WalletModel* model) {
     assert(model);
 	setWindowTitle(tr("ENUMER"));
 	setWindowIcon(QIcon(":/icons/Enumer-32.png"));
-	
+
 	auto lay = new QFormLayout(this);
     _NVEdit = new NameValueLineEdits(model);
 	_NVEdit->setValueMultiline(true);
@@ -32,14 +33,14 @@ EnumerDialog::EnumerDialog(WalletModel* model) {
 		desc->setToolTip(str);
 		lay->addRow(desc, _antiSquatter);
 	}
-	
+
 	{
 		QString str = tr(R"DEMO(Add several lines here to value, like E2U+sip=Priority|Preference|Regex (i. e., E2U+sip=100|10|!^(.*)$!sip:17772325555@in.callcentric.com!) or signature records from steps below)DEMO");
 		_NVEdit->setValuePlaceholder(str);
 	}
 	lay->addRow(_NVEdit);
 	lay->addRow(new QLabel("Step 2: add this name-value pair to the emercoin blockchain"));
-	
+
 	auto labelEmail = new QLabel("Step 3: verify it by writing to <a href=\"mailto:enumer@emercoin.com\">enumer@emercoin.com</a>, get verification record and update value");
 	labelEmail->setOpenExternalLinks(true);
 	lay->addRow(labelEmail);

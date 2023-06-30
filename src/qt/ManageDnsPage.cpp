@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QCommandLinkButton>
+#include <cassert>
 
 ManageDnsPage::ManageDnsPage(WalletModel* model, QWidget*parent): model(model), QDialog(parent) {
     assert(model);
@@ -40,7 +41,7 @@ ManageDnsPage::ManageDnsPage(WalletModel* model, QWidget*parent): model(model), 
     addLineEdit(form, "TXT", tr("TXT"), tr("Arbitrary human-readable text. Nowdays more often carries machine-readable data, such as Policy Framework, DKIM, DMARC, DNS-SD, etc."));
     addLineEdit(form, "SD", tr("SD"), tr("Subdomain - EmerDns feature"));
 	lay->addWidget(_NVPair);
-  
+
     {
 		auto lay2 = new QHBoxLayout();
 		lay->addLayout(lay2);

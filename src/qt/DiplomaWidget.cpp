@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QCommandLinkButton>
 //#include "AboutTrustedDiplomaWidget.h"
+#include <cassert>
 
 DiplomaWidget::DiplomaWidget(WalletModel* model, QWidget* parent) : model(model), QDialog(parent) {
     assert(model);
@@ -15,10 +16,10 @@ DiplomaWidget::DiplomaWidget(WalletModel* model, QWidget* parent) : model(model)
 	setWindowIcon(QIcon(":/icons/TrustedDiploma-32.png"));
 
 	auto lay = new QVBoxLayout(this);
-    auto description = new QLabel(tr(	
+    auto description = new QLabel(tr(
 		"<a href=\"https://trusted-diploma.com/\">Trusted diploma</a> allows to store academic certificates in blockchain.<br>\n"
 		"<a href=\"https://www.youtube.com/watch?v=ltP57wyIOd8\">Watch video</a>"
-		));	
+		));
     description->setOpenExternalLinks(true);
     lay->addWidget(description);
 

@@ -9,6 +9,7 @@
 #include <QCommandLinkButton>
 #include <QSettings>
 #include <QLabel>
+#include <cassert>
 
 DocNotarWidget::DocNotarWidget(WalletModel* model, QWidget*parent) : model(model), QDialog(parent) {
     assert(model);
@@ -16,9 +17,9 @@ DocNotarWidget::DocNotarWidget(WalletModel* model, QWidget*parent) : model(model
 	setWindowIcon(QIcon(":/icons/DPO-32.png"));
 
 	auto lay = new QVBoxLayout(this);
-    auto description = new QLabel(tr(	
+    auto description = new QLabel(tr(
 		R"STR(DPO is <a href="https://emercoin.com/en/emerdpo">Digital Proof of Ownership</a>)STR"
-		));	
+		));
     description->setOpenExternalLinks(true);
     lay->addWidget(description);
 

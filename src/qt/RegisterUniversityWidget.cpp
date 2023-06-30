@@ -9,6 +9,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QIcon>
+#include <cassert>
 
 RegisterUniversityWidget::RegisterUniversityWidget(WalletModel* model) : model(model) {
     assert(model);
@@ -42,7 +43,7 @@ RegisterUniversityWidget::RegisterUniversityWidget(WalletModel* model) : model(m
 		lay->addWidget(errorDesc);
 		email->validator()->setErrorLabel(errorDesc);
 		errorDesc->hide();
-			
+
 		form->addRow(tr("E-mail:"), lay);
 	}
 	{
@@ -58,7 +59,7 @@ RegisterUniversityWidget::RegisterUniversityWidget(WalletModel* model) : model(m
 	connect(_editOther, &QPlainTextEdit::textChanged, this, &RegisterUniversityWidget::recalcValue);
 	form->addRow(_editOther);
 	{
-		_hrefForSite = addLineEdit(form, {}, tr("Hyperlink for your site (?)"), 
+		_hrefForSite = addLineEdit(form, {}, tr("Hyperlink for your site (?)"),
 			tr("You can place this hyperlink to your site, so visitors can check verified diplomas by it."), true);
 		_hrefForSite->setPlaceholderText(tr("This field will contain web address to check your university diplomas"));
 	}
