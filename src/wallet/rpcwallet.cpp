@@ -39,6 +39,8 @@
 #include <functional>
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
+static void __dummy_function() {};
+void (*EMC_Notify_UI_Changed)() = __dummy_function;
 
 bool GetAvoidReuseFlag(CWallet * const pwallet, const UniValue& param) {
     bool can_avoid_reuse = pwallet->IsWalletFlagSet(WALLET_FLAG_AVOID_REUSE);
@@ -2003,9 +2005,9 @@ static UniValue walletpassphrase(const JSONRPCRequest& request)
     ret.pushKV("mint only", fWalletUnlockMintOnly);
     // clear locked wallet mint warning
     strMintWarning = "";
-    // emcTODO
-    // build emercoin-qt with this msg, emercoin-wallet - without
-    // uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
+    // Call uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED); indirectly.
+    // This hack is need for compile emercoin-wallet without GUI
+    (*EMC_Notify_UI_Changed)();
     return ret;
     // return NullUniValue;
 }

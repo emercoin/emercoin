@@ -411,8 +411,16 @@ static void SetupUIArgs()
     gArgs.AddArg("-uiplatform", strprintf("Select platform to customize UI for (one of windows, macosx, other; default: %s)", BitcoinGUI::DEFAULT_UIPLATFORM), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::GUI);
 }
 
+// This callback from walletpassphrase
+extern void (*EMC_Notify_UI_Changed)();
+static void ui_notify_callback() {
+    uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED);
+}
+
 int GuiMain(int argc, char* argv[])
 {
+    // allow to emit UI-chhanged event from walletpassphrase
+    EMC_Notify_UI_Changed = ui_notify_callback;
 #ifdef WIN32
     util::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
