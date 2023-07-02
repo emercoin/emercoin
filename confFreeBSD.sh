@@ -23,6 +23,6 @@ export LDFLAGS CPPFLAGS CFLAGS CXXFLAGS
 
 #./configure --disable-tests --disable-dependency-tracking
 #./configure --enable-debug --disable-dependency-tracking
-#./configure --enable-debug --with-libs 
+#./configure --enable-debug --with-libs
 #./configure --disable-tests --enable-debug  --disable-util-tx --disable-gui-tests --enable-bip70 --disable-dependency-tracking
-./configure --disable-tests --enable-debug  --disable-util-tx --disable-gui-tests --enable-bip70
+./configure --disable-tests --enable-debug  --disable-util-tx --disable-gui-tests --disable-dependency-tracking

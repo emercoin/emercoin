@@ -149,7 +149,7 @@ public:
     bool read(const char *raw, size_t len, int mode = 0);
     bool read(const char *raw, int mode = 0) { return read(raw, strlen(raw)); }
     bool read(const std::string& rawStr, int mode = 0) {
-        return read(rawStr.data(), rawStr.size());
+        return read(rawStr.data(), rawStr.size(), mode);
     }
 
 private:
