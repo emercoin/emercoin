@@ -637,7 +637,7 @@ UniValue name_history(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_DATABASE_ERROR, "could not read transaction from disk");
 
         NameTxInfo nti;
-        if (!DecodeNameOutput(tx, nameRec.vNameOp.back().nOut, nti, true, pwallet))
+        if (!DecodeNameOutput(tx, nameRec.vNameOp[i].nOut, nti, true, pwallet))
             throw JSONRPCError(RPC_DATABASE_ERROR, "failed to decode name transaction");
 
         UniValue obj(UniValue::VOBJ);

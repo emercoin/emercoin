@@ -5078,7 +5078,8 @@ bool DecodeNameOutput(const CTransactionRef& tx, const uint32_t nOut, NameTxInfo
 {
     if (tx->nVersion != NAMECOIN_TX_VERSION)
         return false;
-
+    if(nOut >= tx->vout.size())
+        return false;
     const CTxOut& out = tx->vout[nOut];
     CScript::const_iterator pc = out.scriptPubKey.begin();
     if (!DecodeNameScript(out.scriptPubKey, nti, pc))
