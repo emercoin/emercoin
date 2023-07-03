@@ -236,7 +236,6 @@ const UniValue& find_value(const UniValue& obj, const std::string& name)
     for (unsigned int i = 0; i < obj.keys.size(); i++)
         if (obj.keys[i] == name)
             return obj.values.at(i);
-    static const UniValue nil(NullUniValue);
-    return nil;
+    return NullUniValue;
 }
 
