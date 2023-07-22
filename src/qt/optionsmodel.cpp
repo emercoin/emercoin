@@ -238,6 +238,8 @@ static const QString GetDefaultProxyAddress()
 
 void OptionsModel::SetPrune(bool prune, bool force)
 {
+    // emercoin: Ignore prune option from Bitcoin
+    prune = false;
     QSettings settings;
     settings.setValue("bPrune", prune);
     // Convert prune size from GB to MiB:

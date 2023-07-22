@@ -955,8 +955,7 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
         }
     } else {
         // Missing config file
-        // MinGW: force cast wchar->char
-        FILE *pFile = fopen((const char *)GetConfigFile(confPath).c_str(), "a");  // create empty config if it does not exist
+        FILE *pFile = fopen(GetConfigFile(confPath).string().c_str(), "a");  // create empty config if it does not exist
         if (pFile != NULL)
             fclose(pFile);
     }
