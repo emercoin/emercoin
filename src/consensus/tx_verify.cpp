@@ -182,8 +182,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
                     strprintf("tried to spend coinbase/coinstake at depth %d", nSpendHeight - coin.nHeight));
         }
 
-        // ppcoin: check transaction timestamp
-        if (coin.nTime > tx.nTime)
+        // ppcoin: check transaction timestamp [allow undef timestamp for mempool prevouts]
+        if (coin.nTime > tx.nTime && (coin.nTime != ~0 || coin.nHeight != MEMPOOL_HEIGHT))
             return state.Invalid(ValidationInvalidReason::CONSENSUS, false, REJECT_INVALID, "bad-txns-spent-too-early",
                     strprintf("coin.nTime=%d > tx.nTime=%d", coin.nTime, tx.nTime));
 
