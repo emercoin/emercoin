@@ -628,6 +628,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                 stun_timio_us += stun_timio_us / 128 + GetRand(1024 * 1024); // + ~0.5s randomization
                 stun_next_request = now + stun_timio_us;
             }
+            rc4ok_addentropy(now);
             if(pwallet->IsLocked()) {
                 if (strMintWarning != strMintMessage) {
                     strMintWarning = strMintMessage;
