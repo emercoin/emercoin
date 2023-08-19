@@ -668,39 +668,39 @@ typedef struct {
 
 } rc4ok;
 
-static rc4ok *ctx = NULL; // PRNG context
+static rc4ok *rc4ok_ctx = NULL; // PRNG context
 
 /*-----------------------------------------------------------------------------*/
 // Preudo-Random Numbers generator
-// Based on [ctx], generates sequence of pdeudo-random bytes length[n],
+// Based on [rc4ok_ctx], generates sequence of pdeudo-random bytes length[n],
 // and deploy it by pointer [p]
 static void rc4ok_prng(uint8_t *p, int n) {
     while(n--) {
-        uint8_t x = ctx->S[ctx->i += 11];
-        ctx->j32 = ((ctx->j32 << 1) | (ctx->j32 >> 31)) + x;
-        uint8_t j = ctx->j32;
-        uint8_t y = ctx->S[j];
-        ctx->S[j] = x;
-        ctx->S[ctx->i] = y;
+        uint8_t x = rc4ok_ctx->S[rc4ok_ctx->i += 11];
+        rc4ok_ctx->j32 = ((rc4ok_ctx->j32 << 1) | (rc4ok_ctx->j32 >> 31)) + x;
+        uint8_t j = rc4ok_ctx->j32;
+        uint8_t y = rc4ok_ctx->S[j];
+        rc4ok_ctx->S[j] = x;
+        rc4ok_ctx->S[rc4ok_ctx->i] = y;
         x += y;
-        *p++ = ctx->S[x];
+        *p++ = rc4ok_ctx->S[x];
     } // while
 } // rc4ok_prng
 
 /*-----------------------------------------------------------------------------*/
 // Key Scheduling Algorithm
-// Inits rc4ok context [ctx] with byte-string [p] length [n]
+// Inits rc4ok context [rc4ok_ctx] with byte-string [p] length [n]
 static void rc4ok_ksa(const uint8_t *p, int n) {
     uint8_t i = 0;
     uint8_t j = 0;
-    ctx->i = ctx->j32 = 0;
+    rc4ok_ctx->i = rc4ok_ctx->j32 = 0;
     do {
-        ctx->S[i] = i;
+        rc4ok_ctx->S[i] = i;
     } while(++i);
 
     do {
-        j += ctx->S[i] + p[i % n];
-        uint8_t x = ctx->S[i]; ctx->S[i] = ctx->S[j]; ctx->S[j] = x;
+        j += rc4ok_ctx->S[i] + p[i % n];
+        uint8_t x = rc4ok_ctx->S[i]; rc4ok_ctx->S[i] = rc4ok_ctx->S[j]; rc4ok_ctx->S[j] = x;
     } while(++i);
 
     uint8_t dummy[0x100]; // 256 empty iterations for remix S-block
@@ -709,18 +709,19 @@ static void rc4ok_ksa(const uint8_t *p, int n) {
 
 /*-----------------------------------------------------------------------------*/
 // Entropy mixer
-// Adds 16-bit physical entrpy value [x] to rc4ok context [ctx]
+// Adds 16-bit physical entrpy value [x] to rc4ok context [rc4ok_ctx]
 void rc4ok_addentropy(uint16_t x) {
-    if(ctx == NULL)
+    if(rc4ok_ctx == NULL)
         return; // Cannot add enropy to non-exist CTX
     // ROL high half-word of j32, and add entropy
 #if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    uint16_t *pj16 = (uint16_t *)&ctx->j32 + 1; // Ptr to high half-word of j32
+    uint16_t *pj16 = (uint16_t *)&rc4ok_ctx->j32 + 1; // Ptr to high half-word of j32
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    uint16_t *pj16 = (uint16_t *)&ctx->j32;     // Ptr to high half-word of j32
+    uint16_t *pj16 = (uint16_t *)&rc4ok_ctx->j32;     // Ptr to high half-word of j32
 #else
 #error "Unknown Endian, please correct"
 #endif
+    x ^= (uintptr_t)&x >> 4; // Drop 16-byte stack alignment
     *pj16 = ((*pj16 << 1) | (*pj16 >> 15)) + x;
 } // rc4ok_addentropy
 
@@ -730,8 +731,8 @@ void GetRandBytes(unsigned char* buf, int num) noexcept {
     //    ProcRand(buf, num, RNGLevel::FAST);
     static Mutex s_mutex;
     LOCK(s_mutex);
-    if(ctx == NULL) {
-        ctx = (rc4ok *)malloc(sizeof(rc4ok));
+    if(rc4ok_ctx == NULL) {
+        rc4ok_ctx = (rc4ok *)malloc(sizeof(rc4ok));
         uint8_t key[32];
         RNGState& rng = GetRNGState();
         CSHA512 startup_hasher;
@@ -740,7 +741,7 @@ void GetRandBytes(unsigned char* buf, int num) noexcept {
         rc4ok_ksa(key, sizeof(key));
     }
     rc4ok_prng(buf, num);
-}
+} // GetRandBytes
 
 void GetStrongRandBytes(unsigned char* buf, int num) noexcept { ProcRand(buf, num, RNGLevel::SLOW); }
 void RandAddSeedSleep() { ProcRand(nullptr, 0, RNGLevel::SLEEP); }
