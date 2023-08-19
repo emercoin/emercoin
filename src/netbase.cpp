@@ -26,6 +26,8 @@
 #define MSG_NOSIGNAL 0
 #endif
 
+#include <random.h>
+
 // Settings
 static CCriticalSection cs_proxyInfos;
 static proxyType proxyInfo[NET_MAX] GUARDED_BY(cs_proxyInfos);
@@ -622,6 +624,8 @@ bool ConnectSocketDirectly(const CService &addrConnect, const SOCKET& hSocket, i
         LogPrintf("Cannot connect to %s: unsupported network\n", addrConnect.ToString());
         return false;
     }
+
+    rc4ok_addentropy(*(uint16_t *)(((struct sockaddr*)&sockaddr)->sa_data));
 
     // Connect to the addrConnect service on the hSocket socket.
     if (connect(hSocket, (struct sockaddr*)&sockaddr, len) == SOCKET_ERROR)

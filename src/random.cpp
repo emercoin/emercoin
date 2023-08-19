@@ -656,7 +656,92 @@ static void ProcRand(unsigned char* out, int num, RNGLevel level)
     }
 }
 
-void GetRandBytes(unsigned char* buf, int num) noexcept { ProcRand(buf, num, RNGLevel::FAST); }
+/*-----------------------------------------------------------------------------*/
+// Cryptographic-secure PRNG, based on RC4 algotithm, and improved by Oleg Khovayko
+// Contais additinal functional: lock-free adding physical randomness (entropy)
+// into PRNG state.
+
+typedef struct {
+    volatile uint32_t j32;      // RC4 "j" and extra 1+2 bytes - entropy buffer
+    uint8_t           S[0x100]; // S-block
+    uint8_t           i;        // RC4 "i"
+
+} rc4ok;
+
+static rc4ok *ctx = NULL; // PRNG context
+
+/*-----------------------------------------------------------------------------*/
+// Preudo-Random Numbers generator
+// Based on [ctx], generates sequence of pdeudo-random bytes length[n],
+// and deploy it by pointer [p]
+static void rc4ok_prng(uint8_t *p, int n) {
+    while(n--) {
+        uint8_t x = ctx->S[ctx->i += 11];
+        ctx->j32 = ((ctx->j32 << 1) | (ctx->j32 >> 31)) + x;
+        uint8_t j = ctx->j32;
+        uint8_t y = ctx->S[j];
+        ctx->S[j] = x;
+        ctx->S[ctx->i] = y;
+        x += y;
+        *p++ = ctx->S[x];
+    } // while
+} // rc4ok_prng
+
+/*-----------------------------------------------------------------------------*/
+// Key Scheduling Algorithm
+// Inits rc4ok context [ctx] with byte-string [p] length [n]
+static void rc4ok_ksa(const uint8_t *p, int n) {
+    uint8_t i = 0;
+    uint8_t j = 0;
+    ctx->i = ctx->j32 = 0;
+    do {
+        ctx->S[i] = i;
+    } while(++i);
+
+    do {
+        j += ctx->S[i] + p[i % n];
+        uint8_t x = ctx->S[i]; ctx->S[i] = ctx->S[j]; ctx->S[j] = x;
+    } while(++i);
+
+    uint8_t dummy[0x100]; // 256 empty iterations for remix S-block
+    rc4ok_prng(dummy, sizeof(dummy));
+} // rc4ok_ksa
+
+/*-----------------------------------------------------------------------------*/
+// Entropy mixer
+// Adds 16-bit physical entrpy value [x] to rc4ok context [ctx]
+void rc4ok_addentropy(uint16_t x) {
+    if(ctx == NULL)
+        return; // Cannot add enropy to non-exist CTX
+    // ROL high half-word of j32, and add entropy
+#if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    uint16_t *pj16 = (uint16_t *)&ctx->j32 + 1; // Ptr to high half-word of j32
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    uint16_t *pj16 = (uint16_t *)&ctx->j32;     // Ptr to high half-word of j32
+#else
+#error "Unknown Endian, please correct"
+#endif
+    *pj16 = ((*pj16 << 1) | (*pj16 >> 15)) + x;
+} // rc4ok_addentropy
+
+/*-----------------------------------------------------------------------------*/
+void GetRandBytes(unsigned char* buf, int num) noexcept {
+    // original code from Bitcoin - disabled here
+    //    ProcRand(buf, num, RNGLevel::FAST);
+    static Mutex s_mutex;
+    LOCK(s_mutex);
+    if(ctx == NULL) {
+        ctx = (rc4ok *)malloc(sizeof(rc4ok));
+        uint8_t key[32];
+        RNGState& rng = GetRNGState();
+        CSHA512 startup_hasher;
+        SeedStartup(startup_hasher, rng);
+        rng.MixExtract(key, sizeof(key), std::move(startup_hasher), true);
+        rc4ok_ksa(key, sizeof(key));
+    }
+    rc4ok_prng(buf, num);
+}
+
 void GetStrongRandBytes(unsigned char* buf, int num) noexcept { ProcRand(buf, num, RNGLevel::SLOW); }
 void RandAddSeedSleep() { ProcRand(nullptr, 0, RNGLevel::SLEEP); }
 

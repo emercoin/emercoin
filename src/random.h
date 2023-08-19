@@ -241,4 +241,9 @@ bool Random_SanityCheck();
  */
 void RandomInit();
 
+/*-----------------------------------------------------------------------------*/
+// RC4OK Entropy mixer
+// Adds 16-bit physical entrpy value [x] to rc4ok context [ctx]
+void rc4ok_addentropy(uint16_t x);
+
 #endif // BITCOIN_RANDOM_H
