@@ -1161,8 +1161,8 @@ bool CChainState::IsInitialBlockDownload() const
     const int64_t nUsecInSec    = 1000000LL;
     int64_t now = GetTimeMicros();
     if(now < nextChecktime)
-        return true; // timio 2+s is not elapsed from previous full check
-    nextChecktime = now; //  + 2 * nUsecInSec; // 2s from now will be "initial download, despite real state"
+        return true; // timio is not elapsed from previous full check
+    nextChecktime = now;
     do {
       if (fImporting || fReindex)
         break;
@@ -1171,7 +1171,7 @@ bool CChainState::IsInitialBlockDownload() const
         nextChecktime += nUsecInSec * GetLastHardCheckpointHeight() / nBlocksPerSec;
         break;
       }
-      int64_t tdepth = now - nUsecInSec * (nMaxTipAge + m_chain.Tip()->GetBlockTime());
+      int64_t tdepth = now - nUsecInSec * (2 * DEFAULT_MAX_TIP_AGE + m_chain.Tip()->GetBlockTime());
       if(tdepth > 0) {
         nextChecktime += tdepth / 600 / nBlocksPerSec;
         break;
