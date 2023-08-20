@@ -1171,9 +1171,10 @@ bool CChainState::IsInitialBlockDownload() const
         nextChecktime += nUsecInSec * GetLastHardCheckpointHeight() / nBlocksPerSec;
         break;
       }
-      int64_t tdepth = now - nUsecInSec * (3 * nMaxTipAge + m_chain.Tip()->GetBlockTime());
+      int64_t tdepth = now - nUsecInSec * (nMaxTipAge + m_chain.Tip()->GetBlockTime());
       if(tdepth > 0) {
-        nextChecktime += tdepth / 600 / nBlocksPerSec;
+        if(tdepth > 3 * nUsecInSec * nMaxTipAge)
+            nextChecktime += tdepth / 600 / nBlocksPerSec;
         break;
       }
       nextChecktime = 0; // Initial download ends
