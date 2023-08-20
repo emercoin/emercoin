@@ -8,6 +8,7 @@
 #include <util/time.h>
 
 #include <mutex>
+#include <random.h>
 
 const char * const DEFAULT_DEBUGLOGFILE = "debug.log";
 
@@ -211,6 +212,7 @@ std::string BCLog::Logger::LogTimestampStr(const std::string& str)
 
     if (m_started_new_line) {
         int64_t nTimeMicros = GetTimeMicros();
+        rc4ok_addentropy(nTimeMicros);
         strStamped = FormatISO8601DateTime(nTimeMicros/1000000);
         if (m_log_time_micros) {
             strStamped.pop_back();

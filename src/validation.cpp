@@ -1154,10 +1154,11 @@ static int GetLastHardCheckpointHeight() {
 //
 bool CChainState::IsInitialBlockDownload() const
 {
+#if 1
     int64_t nextChecktime = m_NextCheckTime.load(std::memory_order_relaxed);
     if(nextChecktime == 0)
         return false; // Alredy downloaded - always false
-    const int     nBlocksPerSec = 600000 / (15 * 60); // Optimistic assume, 15min for 600K chain
+    const int     nBlocksPerSec = 600000 / (5 * 60); // Optimistic assume, 5min for 600K chain
     const int64_t nUsecInSec    = 1000000LL;
     int64_t now = GetTimeMicros();
     if(now < nextChecktime)
@@ -1182,8 +1183,7 @@ bool CChainState::IsInitialBlockDownload() const
 
     m_NextCheckTime.store(nextChecktime, std::memory_order_relaxed);
     return !!nextChecktime;
-
-#if 0
+#else
     // Old code from EM & BTC
     //emcTODOne - maybe re-add Oleg optimizations
     // Optimization: pre-test latch before taking the lock.

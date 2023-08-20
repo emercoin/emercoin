@@ -520,13 +520,18 @@ static void SeedTimestamp(CSHA512& hasher) noexcept
     hasher.Write((const unsigned char*)&perfcounter, sizeof(perfcounter));
 }
 
+static void rc4ok_prng(uint8_t *p, int n);
 static void SeedFast(CSHA512& hasher) noexcept
 {
-    unsigned char buffer[32];
+    unsigned char buffer[20];
 
     // Stack pointer to indirectly commit to thread/callstack
     const unsigned char* ptr = buffer;
     hasher.Write((const unsigned char*)&ptr, sizeof(ptr));
+
+    // RC4OK PRNG
+    rc4ok_prng(buffer, sizeof(buffer));
+    hasher.Write(buffer, sizeof(buffer));
 
     // Hardware randomness is very fast when available; use it always.
     SeedHardwareFast(hasher);
@@ -761,6 +766,7 @@ uint64_t GetRand(uint64_t nMax) noexcept
     return rnd % nMax;
 }
 
+
 std::chrono::microseconds GetRandMicros(std::chrono::microseconds duration_max) noexcept
 {
     return std::chrono::microseconds{GetRand(duration_max.count())};
@@ -879,6 +885,36 @@ FastRandomContext& FastRandomContext::operator=(FastRandomContext&& from) noexce
     from.bitbuf_size = 0;
     return *this;
 }
+
+/** Generate a random (bits)-bit integer. */
+uint64_t FastRandomContext::randbits(int bits) noexcept {
+    if(bits == 0)
+        return 0;
+    uint64_t rc;
+    int numbytes = (bits + 7) >> 3;
+    rc4ok_prng((uint8_t *)&rc, numbytes);
+#if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    return rc & (~(uint64_t)0 >> (64 - bits));
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    return rc >> (64 - bits);
+#else
+#error "Unknown Endian, please correct"
+#endif
+
+#if 0
+    if (bits == 0) {
+        return 0;
+    } else if (bits > 32) {
+        return rand64() >> (64 - bits);
+    } else {
+        if (bitbuf_size < bits) FillBitBuffer();
+        uint64_t ret = bitbuf & (~(uint64_t)0 >> (64 - bits));
+        bitbuf >>= bits;
+        bitbuf_size -= bits;
+        return ret;
+    }
+#endif
+} // randbits
 
 void RandomInit()
 {
