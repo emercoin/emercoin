@@ -1473,7 +1473,8 @@ void static ProcessGetBlockData(CNode* pfrom, const CChainParams& chainparams, c
         std::shared_ptr<const CBlock> pblock;
         if (a_recent_block && a_recent_block->GetHash() == pindex->GetBlockHash()) {
             pblock = a_recent_block;
-        } else if (inv.type == MSG_WITNESS_BLOCK) {
+        } else if (0 && inv.type == MSG_WITNESS_BLOCK) {
+            // emercoin: We do not use this fast path, sice add to net block extra flags, 4 bytes
             // Fast-path: in this case it is possible to serve the block directly from disk,
             // as the network format matches the format on disk
             std::vector<uint8_t> block_data;
