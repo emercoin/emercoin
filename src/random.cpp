@@ -748,9 +748,17 @@ void RandAddSeedSleep() { ProcRand(nullptr, 0, RNGLevel::SLEEP); }
 
 bool g_mock_deterministic_tests{false};
 
+// Generate random [0..nMax)
 uint64_t GetRand(uint64_t nMax) noexcept
 {
-    return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
+    // strange slowly code - commented out!
+    //     return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
+    const uint64_t maxu64 = std::numeric_limits<uint64_t>::max();
+    uint64_t rnd, maxrnd = maxu64 - (maxu64 % nMax);
+    do {
+        rc4ok_prng((uint8_t *)&rnd, sizeof(rnd));
+    } while(rnd >= maxrnd);
+    return rnd % nMax;
 }
 
 std::chrono::microseconds GetRandMicros(std::chrono::microseconds duration_max) noexcept
