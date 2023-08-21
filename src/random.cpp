@@ -520,7 +520,6 @@ static void SeedTimestamp(CSHA512& hasher) noexcept
     hasher.Write((const unsigned char*)&perfcounter, sizeof(perfcounter));
 }
 
-static void rc4ok_prng(uint8_t *p, int n);
 static void SeedFast(CSHA512& hasher) noexcept
 {
     unsigned char buffer[20];
@@ -528,10 +527,11 @@ static void SeedFast(CSHA512& hasher) noexcept
     // Stack pointer to indirectly commit to thread/callstack
     const unsigned char* ptr = buffer;
     hasher.Write((const unsigned char*)&ptr, sizeof(ptr));
-
+#if 0
     // RC4OK PRNG
-    rc4ok_prng(buffer, sizeof(buffer));
+    GetRandBytes(buffer, sizeof(buffer));
     hasher.Write(buffer, sizeof(buffer));
+#endif
 
     // Hardware randomness is very fast when available; use it always.
     SeedHardwareFast(hasher);
@@ -756,14 +756,17 @@ bool g_mock_deterministic_tests{false};
 // Generate random [0..nMax)
 uint64_t GetRand(uint64_t nMax) noexcept
 {
-    // strange slowly code - commented out!
-    //     return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
+#if 0
+    // strange slowly code - TODO
+         return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
+#else
     const uint64_t maxu64 = std::numeric_limits<uint64_t>::max();
     uint64_t rnd, maxrnd = maxu64 - (maxu64 % nMax);
     do {
-        rc4ok_prng((uint8_t *)&rnd, sizeof(rnd));
+        GetRandBytes((uint8_t *)&rnd, sizeof(rnd));
     } while(rnd >= maxrnd);
     return rnd % nMax;
+#endif
 }
 
 
@@ -888,11 +891,12 @@ FastRandomContext& FastRandomContext::operator=(FastRandomContext&& from) noexce
 
 /** Generate a random (bits)-bit integer. */
 uint64_t FastRandomContext::randbits(int bits) noexcept {
+#if 1
     if(bits == 0)
         return 0;
     uint64_t rc;
     int numbytes = (bits + 7) >> 3;
-    rc4ok_prng((uint8_t *)&rc, numbytes);
+    GetRandBytes((uint8_t *)&rc, numbytes);
 #if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return rc & (~(uint64_t)0 >> (64 - bits));
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -900,8 +904,7 @@ uint64_t FastRandomContext::randbits(int bits) noexcept {
 #else
 #error "Unknown Endian, please correct"
 #endif
-
-#if 0
+#else
     if (bits == 0) {
         return 0;
     } else if (bits > 32) {
