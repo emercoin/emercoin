@@ -520,18 +520,34 @@ static void SeedTimestamp(CSHA512& hasher) noexcept
     hasher.Write((const unsigned char*)&perfcounter, sizeof(perfcounter));
 }
 
+/*-----------------------------------------------------------------------------*/
+// Cryptographic-secure PRNG, based on RC4 algotithm, and improved by Oleg Khovayko
+// Contais additinal functional: lock-free adding physical randomness (entropy)
+// into PRNG state.
+
+typedef struct {
+    volatile uint32_t j32;      // RC4 "j" and extra 1+2 bytes - entropy buffer
+    uint8_t           S[0x100]; // S-block
+    uint8_t           i;        // RC4 "i"
+
+} rc4ok;
+
+static rc4ok *rc4ok_ctx = NULL; // PRNG context
+
 static void SeedFast(CSHA512& hasher) noexcept
 {
-    unsigned char buffer[20];
+    unsigned char buffer[40];
 
     // Stack pointer to indirectly commit to thread/callstack
     const unsigned char* ptr = buffer;
     hasher.Write((const unsigned char*)&ptr, sizeof(ptr));
-#if 0
+
     // RC4OK PRNG
-    GetRandBytes(buffer, sizeof(buffer));
-    hasher.Write(buffer, sizeof(buffer));
-#endif
+    // if NULL, this is call from RandBytes, RC4OK is not ready yet
+    if(rc4ok_ctx != NULL) {
+        GetRandBytes(buffer, sizeof(buffer));
+        hasher.Write(buffer, sizeof(buffer));
+    }
 
     // Hardware randomness is very fast when available; use it always.
     SeedHardwareFast(hasher);
@@ -662,20 +678,6 @@ static void ProcRand(unsigned char* out, int num, RNGLevel level)
 }
 
 /*-----------------------------------------------------------------------------*/
-// Cryptographic-secure PRNG, based on RC4 algotithm, and improved by Oleg Khovayko
-// Contais additinal functional: lock-free adding physical randomness (entropy)
-// into PRNG state.
-
-typedef struct {
-    volatile uint32_t j32;      // RC4 "j" and extra 1+2 bytes - entropy buffer
-    uint8_t           S[0x100]; // S-block
-    uint8_t           i;        // RC4 "i"
-
-} rc4ok;
-
-static rc4ok *rc4ok_ctx = NULL; // PRNG context
-
-/*-----------------------------------------------------------------------------*/
 // Preudo-Random Numbers generator
 // Based on [rc4ok_ctx], generates sequence of pdeudo-random bytes length[n],
 // and deploy it by pointer [p]
@@ -708,6 +710,8 @@ static void rc4ok_ksa(const uint8_t *p, int n) {
         uint8_t x = rc4ok_ctx->S[i]; rc4ok_ctx->S[i] = rc4ok_ctx->S[j]; rc4ok_ctx->S[j] = x;
     } while(++i);
 
+    i = j ^ 0x55;
+
     uint8_t dummy[0x100]; // 256 empty iterations for remix S-block
     rc4ok_prng(dummy, sizeof(dummy));
 } // rc4ok_ksa
@@ -737,12 +741,13 @@ void GetRandBytes(unsigned char* buf, int num) noexcept {
     static Mutex s_mutex;
     LOCK(s_mutex);
     if(rc4ok_ctx == NULL) {
-        rc4ok_ctx = (rc4ok *)malloc(sizeof(rc4ok));
         uint8_t key[32];
         RNGState& rng = GetRNGState();
         CSHA512 startup_hasher;
         SeedStartup(startup_hasher, rng);
         rng.MixExtract(key, sizeof(key), std::move(startup_hasher), true);
+        rc4ok_ctx = (rc4ok *)malloc(sizeof(rc4ok));
+        // This is OK, when rc4ok_addentropy() works during rc4ok_ksa()
         rc4ok_ksa(key, sizeof(key));
     }
     rc4ok_prng(buf, num);
