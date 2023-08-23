@@ -702,15 +702,16 @@ static void rc4ok_ksa(const uint8_t *p, int n) {
     uint8_t j = 0;
     rc4ok_ctx->i = rc4ok_ctx->j32 = 0;
     do {
-        rc4ok_ctx->S[i] = i;
+        j += 233;
+        rc4ok_ctx->S[i] = j;
     } while(++i);
-
+    // After 256 iterations here, both (i, j) == 0 again
     do {
         j += rc4ok_ctx->S[i] + p[i % n];
         uint8_t x = rc4ok_ctx->S[i]; rc4ok_ctx->S[i] = rc4ok_ctx->S[j]; rc4ok_ctx->S[j] = x;
     } while(++i);
 
-    i = j ^ 0x55;
+    rc4ok_ctx->i = rc4ok_ctx->S[j ^ 0x55]; // Randomize i
 
     uint8_t dummy[0x100]; // 256 empty iterations for remix S-block
     rc4ok_prng(dummy, sizeof(dummy));
