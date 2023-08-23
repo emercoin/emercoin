@@ -526,8 +526,8 @@ static void SeedTimestamp(CSHA512& hasher) noexcept
 // into PRNG state.
 
 typedef struct {
-    volatile uint32_t j32;      // RC4 "j" and extra 1+2 bytes - entropy buffer
     uint8_t           S[0x100]; // S-block
+    volatile uint32_t j32;      // RC4 "j" and extra 1+2 bytes - entropy buffer
     uint8_t           i;        // RC4 "i"
 
 } rc4ok;
@@ -536,7 +536,7 @@ static rc4ok *rc4ok_ctx = NULL; // PRNG context
 
 static void SeedFast(CSHA512& hasher) noexcept
 {
-    unsigned char buffer[40];
+    unsigned char buffer[20];
 
     // Stack pointer to indirectly commit to thread/callstack
     const unsigned char* ptr = buffer;
@@ -620,6 +620,8 @@ static void SeedStartup(CSHA512& hasher, RNGState& rng) noexcept
 #ifdef WIN32
     RAND_screen();
 #endif
+    pid_t pid = getpid();
+    hasher.Write((uint8_t *)&pid, sizeof(pid));
 
     // Gather 256 bits of hardware randomness, if available
     SeedHardwareSlow(hasher);
@@ -682,15 +684,18 @@ static void ProcRand(unsigned char* out, int num, RNGLevel level)
 // Based on [rc4ok_ctx], generates sequence of pdeudo-random bytes length[n],
 // and deploy it by pointer [p]
 static void rc4ok_prng(uint8_t *p, int n) {
-    while(n--) {
-        uint8_t x = rc4ok_ctx->S[rc4ok_ctx->i += 11];
-        rc4ok_ctx->j32 = ((rc4ok_ctx->j32 << 1) | (rc4ok_ctx->j32 >> 31)) + x;
-        uint8_t j = rc4ok_ctx->j32;
+    uint8_t *p_end = p + n;
+    while(p < p_end) {
+        uint8_t    i = rc4ok_ctx->i += 11;
+        uint32_t j32 = rc4ok_ctx->j32;
+        uint8_t x = rc4ok_ctx->S[i];
+        j32 = ((j32 << 1) | (j32 >> 31)) + x;
+        rc4ok_ctx->j32  = j32;
+        uint8_t j = j32;
         uint8_t y = rc4ok_ctx->S[j];
         rc4ok_ctx->S[j] = x;
-        rc4ok_ctx->S[rc4ok_ctx->i] = y;
-        x += y;
-        *p++ = rc4ok_ctx->S[x];
+        rc4ok_ctx->S[i] = y;
+        *p++ = rc4ok_ctx->S[(uint8_t)(x + y)];
     } // while
 } // rc4ok_prng
 
@@ -700,7 +705,6 @@ static void rc4ok_prng(uint8_t *p, int n) {
 static void rc4ok_ksa(const uint8_t *p, int n) {
     uint8_t i = 0;
     uint8_t j = 0;
-    rc4ok_ctx->i = rc4ok_ctx->j32 = 0;
     do {
         j += 233;
         rc4ok_ctx->S[i] = j;
@@ -712,7 +716,7 @@ static void rc4ok_ksa(const uint8_t *p, int n) {
     } while(++i);
 
     rc4ok_ctx->i = rc4ok_ctx->S[j ^ 0x55]; // Randomize i
-
+    // don't cleanup rc4ok_ctx->j here, keep undef/random
     uint8_t dummy[0x100]; // 256 empty iterations for remix S-block
     rc4ok_prng(dummy, sizeof(dummy));
 } // rc4ok_ksa

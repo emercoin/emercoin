@@ -1168,6 +1168,7 @@ bool CChainState::IsInitialBlockDownload() const
       if (fImporting || fReindex)
         break;
       LOCK(cs_main);
+      // Possible secondary call here, when m_NextCheckTime already set to 0
       if (m_chain.Tip() == NULL) {
         nextChecktime += nUsecInSec * GetLastHardCheckpointHeight() / nBlocksPerSec;
         break;
@@ -1177,6 +1178,7 @@ bool CChainState::IsInitialBlockDownload() const
         nextChecktime += tdepth / 600 / nBlocksPerSec;
         break;
       }
+      rc4ok_addentropy(tdepth);
       nextChecktime = 0; // Initial download ends
       LogPrintf("Leaving InitialBlockDownload (m_NextCheckTime set to 0)\n");
     } while(false);
