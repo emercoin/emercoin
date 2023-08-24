@@ -842,7 +842,14 @@ UniValue getauxblock(const JSONRPCRequest& request)
             nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
             pindexPrev = ::ChainActive().Tip();
             nStart = GetTime();
-
+#if 1
+            CWallet* cur_wallet = wallet.get();
+            ReserveDestination reservedest(cur_wallet);
+            CTxDestination dest;
+            if (!reservedest.GetReservedDestination(OutputType::LEGACY, dest, true))
+                throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
+            pblocktemplate = BlockAssembler(Params()).CreateNewBlock(BuildCoinbaseScript(dest, cur_wallet));
+#else
             // Create new block with nonce = 0 and extraNonce = 1
             ReserveDestination reservedest(wallet.get());
             OutputType output_type = pwallet->m_default_change_type != OutputType::CHANGE_AUTO ? pwallet->m_default_change_type : pwallet->m_default_address_type;
@@ -851,6 +858,7 @@ UniValue getauxblock(const JSONRPCRequest& request)
                 throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
 
             pblocktemplate = BlockAssembler(Params()).CreateNewBlock(GetScriptForDestination(dest));
+#endif
             if (!pblocktemplate)
                 throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
 
