@@ -268,7 +268,7 @@ static bool GetKernelStakeModifierV05(CBlockIndex* pindexPrev, unsigned int nTim
     static unsigned int  cache_nTimeTx;
     static int           modcache = -1; // 0=disable; 1=InitialDownload; 2=always
     if(modcache < 0)
-        modcache = gArgs.GetArg("-modcache", 2);
+        modcache = gArgs.GetArg("-modcache", 1);
     if (modcache > 1 || (modcache > 0 && ::ChainstateActive().IsInitialBlockDownload())) {
         if(nTimeTx <= cache_TimeTxBarrier && nStakeModifierTime >= cache_nStakeModifierTime_in && nTimeTx >= cache_nTimeTx) {
             nStakeModifier       = cache_nStakeModifier;
