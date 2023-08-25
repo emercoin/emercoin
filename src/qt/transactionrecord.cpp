@@ -47,7 +47,11 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const interface
     }
     else if (wtx.tx->IsCoinStake()) // ppcoin: coinstake transaction
     {
-        parts.append(TransactionRecord(hash, nTime, TransactionRecord::StakeMint, "", -nDebit, wtx.tx->GetValueOut()));
+        CTxDestination addressRet;
+        for (const auto& txout : wtx.tx->vout)
+            if(ExtractDestination(txout.scriptPubKey, addressRet) == TX_PUBKEY)
+                break;
+        parts.append(TransactionRecord(hash, nTime, TransactionRecord::StakeMint, EncodeDestination(addressRet), -nDebit, wtx.tx->GetValueOut()));
     }
     else if (nNet > 0 || wtx.is_coinbase)
     {
