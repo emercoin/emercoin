@@ -48,7 +48,8 @@ vector<KernelRecord> KernelRecord::decomposeOutput(interfaces::Wallet& wallet, c
                 std::string addrStr;
 
                 uint64_t coinAge = max(txOut.nValue * nDayWeight / COIN, (int64_t)0);
-
+#if 0
+                // oleg: Old code from Peercoin/EM
                 if (ExtractDestination(txOut.scriptPubKey, address)) {
                     // Sent to Bitcoin Address
                     addrStr = EncodeDestination(address);
@@ -56,9 +57,21 @@ vector<KernelRecord> KernelRecord::decomposeOutput(interfaces::Wallet& wallet, c
                     // Sent to IP, or other non-address transaction like OP_EVAL
                     addrStr = mapValue["to"];
                 }
-                std::vector<interfaces::WalletTxOut> coins = wallet.getCoins({COutPoint(hash, nOut)});
-                bool isSpent = coins.size() >= 1 ? coins[0].is_spent : true;
-                parts.push_back(KernelRecord(hash, nTime, addrStr, txOut.nValue, nOut, isSpent, coinAge));
+#endif
+                // We add only mintable UTXOs into minting list
+                // don't add nonstandard or name UTXOs
+                txnouttype utxo_type = ExtractDestination(txOut.scriptPubKey, address);
+                if (
+                    utxo_type == TX_PUBKEY ||
+                    utxo_type == TX_PUBKEYHASH ||
+                    utxo_type == TX_SCRIPTHASH ||
+                    utxo_type == TX_WITNESS_V0_SCRIPTHASH ||
+                    utxo_type == TX_WITNESS_V0_KEYHASH
+                ) {
+                    std::vector<interfaces::WalletTxOut> coins = wallet.getCoins({COutPoint(hash, nOut)});
+                    bool isSpent = coins.size() >= 1 ? coins[0].is_spent : true;
+                    parts.push_back(KernelRecord(hash, nTime, addrStr, txOut.nValue, nOut, isSpent, coinAge));
+                }
             }
         }
     }
