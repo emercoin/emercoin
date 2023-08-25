@@ -596,12 +596,8 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
 
     unsigned int nExtraNonce = 0;
 
-    ReserveDestination reservedest(pwallet.get());
     OutputType output_type = pwallet->m_default_change_type != OutputType::CHANGE_AUTO ? pwallet->m_default_change_type : pwallet->m_default_address_type;
-    CTxDestination dest;
-    if (!reservedest.GetReservedDestination(output_type, dest, true))
-        throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
-
+    CScript no_dest_script; // Dummy script for COINBASE TX in minted block
     // Compute timeout for pos as sqrt(numUTXO)
     unsigned int pos_timio;
     {
@@ -655,7 +651,9 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             CBlockIndex* pindexPrev = ::ChainActive().Tip();
 
             bool fPoSCancel = false;
-            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(GetScriptForDestination(dest), pwallet.get(), &fPoSCancel));
+            // For PoS, do not used new destination address for COINBASE
+            // because of COINSTAKE uses and pays to already exists, matured address in the wallet
+            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(no_dest_script, pwallet.get(), &fPoSCancel));
             if (!pblocktemplate.get())
             {
                 if (fPoSCancel == true)
@@ -682,7 +680,6 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                 }
                 LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString());
                 ProcessBlockFound(pblock, Params());
-                reservedest.KeepDestination();
                 // Rest for ~3 minutes after successful block to preserve close quick
                 MilliSleep(60 * 1000 + GetRand(4 * 60 * 1000));
             }
