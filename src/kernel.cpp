@@ -599,7 +599,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
             return false;
         }
         prev_committed_txes = pwallet->m_nCommitCnt;
-        // Cleanum non-mintable UTXOs
+        // Cleanup non-mintable UTXOs
         for (auto pcoin = setCoins.begin(); pcoin != setCoins.end(); ) {
             // We keep only mintable UTXOs into minting view list
             // Don't add nonstandard or name UTXOs
@@ -614,7 +614,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                )
                 ++pcoin;
             else
-                setCoins.erase(pcoin);
+                pcoin = setCoins.erase(pcoin);
         } // for - cleanup set
     }
 
@@ -675,7 +675,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         int not_mature_secs = header.GetBlockTime() + params.nStakeMinAge - (txNew.nTime - nMaxStakeSearchInterval);
         if (not_mature_secs > 0) {
             if (not_mature_secs > 24 * 3600)
-                setCoins.erase(pcoin); // Remove from setCoins very non-matured
+                pcoin = setCoins.erase(pcoin); // Remove from setCoins cache very non-matured UTXO
             else
                 ++pcoin;
             continue; // only count coins meeting min age requirement
