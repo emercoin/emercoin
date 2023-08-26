@@ -599,6 +599,23 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
             return false;
         }
         prev_committed_txes = pwallet->m_nCommitCnt;
+        // Cleanum non-mintable UTXOs
+        for (auto pcoin = setCoins.begin(); pcoin != setCoins.end(); ) {
+            // We keep only mintable UTXOs into minting view list
+            // Don't add nonstandard or name UTXOs
+            CTxDestination address;
+            txnouttype utxo_type = ExtractDestination(pcoin->txout.scriptPubKey, address);
+            if (
+                    utxo_type == TX_PUBKEY ||
+                    utxo_type == TX_PUBKEYHASH ||
+                    utxo_type == TX_SCRIPTHASH ||
+                    utxo_type == TX_WITNESS_V0_SCRIPTHASH ||
+                    utxo_type == TX_WITNESS_V0_KEYHASH
+               )
+                ++pcoin;
+            else
+                setCoins.erase(pcoin);
+        } // for - cleanup set
     }
 
     if (setCoins.empty())
@@ -617,9 +634,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
 
     int nSplitPos = gArgs.GetArg("-splitpos", 1); // 0=No Split, 1=RandSplit before 90d, -1=Principal+Reward
 
-    for (const auto& pcoin : setCoins)
-    {
-        uint256 tx_hash = pcoin.outpoint.hash;
+    for (auto pcoin = setCoins.begin(); pcoin != setCoins.end(); ) {
+        uint256 tx_hash = pcoin->outpoint.hash;
         pbo = CacheBlockOffset.Search(tx_hash);
         // Try Load, if missing or temporary removed
         if (pbo == NULL || pbo->value.first == NULL) {
@@ -645,18 +661,27 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         } // if(pbo == NULL)
 
         // Don't work, if reaadErr=0x1, or temporary removed=NULL
-        if(pbo->value.first < (CBlock*)0x4)
+        if(pbo->value.first < (CBlock*)0x4) {
+            ++pcoin;
             continue;
+        }
 
         CBlockHeader& header = *(pbo->value.first);
         unsigned int offset  = pbo->value.second;
 
 
         static int nMaxStakeSearchInterval = 60;
-        if (header.GetBlockTime() + params.nStakeMinAge > txNew.nTime - nMaxStakeSearchInterval)
+        // ORIG: if (header.GetBlockTime() + params.nStakeMinAge > txNew.nTime - nMaxStakeSearchInterval)
+        int not_mature_secs = header.GetBlockTime() + params.nStakeMinAge - (txNew.nTime - nMaxStakeSearchInterval);
+        if (not_mature_secs > 0) {
+            if (not_mature_secs > 24 * 3600)
+                setCoins.erase(pcoin); // Remove from setCoins very non-matured
+            else
+                ++pcoin;
             continue; // only count coins meeting min age requirement
+        }
 
-        uint256 hashBlock = uint256();
+        uint256 hashBlock;
         CTransactionRef tx;
         if (!g_txindex->FindTx(tx_hash, hashBlock, tx))
             return error("failed to find tx");
@@ -667,14 +692,14 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         {
             // Search backward in time from the given txNew timestamp
             // Search nSearchInterval seconds back up to nMaxStakeSearchInterval
-            if (CheckStakeKernelHash(nBits, ::ChainActive().Tip(), header, offset, tx, pcoin.outpoint, txNew.nTime - n, hashProofOfStake))
+            if (CheckStakeKernelHash(nBits, ::ChainActive().Tip(), header, offset, tx, pcoin->outpoint, txNew.nTime - n, hashProofOfStake))
             {
                 // Found a kernel
                 bool f_printcoinstake = gArgs.GetBoolArg("-printcoinstake", false);
                 if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : kernel found\n");
                 std::vector<valtype> vSolutions;
-                scriptPubKeyKernel = pcoin.txout.scriptPubKey;
+                scriptPubKeyKernel = pcoin->txout.scriptPubKey;
                 txnouttype whichType = Solver(scriptPubKeyKernel, vSolutions);
                 CScript scriptPubKeyOut;
                 if (f_printcoinstake)
@@ -732,8 +757,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 }
 
                 txNew.nTime -= n;
-                txNew.vin.push_back(CTxIn(pcoin.outpoint));
-                nCredit += pcoin.txout.nValue;
+                txNew.vin.push_back(CTxIn(pcoin->outpoint));
+                nCredit += pcoin->txout.nValue;
                 vtxPrev.push_back(tx);
                 txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
                 if ((nSplitPos < 0) || (nSplitPos && header.GetBlockTime() + nStakeSplitAge > txNew.nTime && nCredit > nPoWReward))
@@ -746,7 +771,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         }
         if (fKernelFound)
             break; // if kernel is found stop searching
-    }
+        ++pcoin;
+    } // for pcoins
     if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
         return false;
 
