@@ -162,7 +162,7 @@ uint256 AutoSelectSyncCheckpoint()
     static uint32_t s_slots, s_node_no;
     if (s_depth < 0)
     {
-        s_depth   = gArgs.GetArg("-checkpointdepth", 174 * 5); // default is 5 days backward deep
+        s_depth   = gArgs.GetArg("-checkpointdepth", 32); // default is 32 blocks
         s_slots   = gArgs.GetArg("-checkpointslots", 1); // quantity of check slots, def=1
         s_node_no = gArgs.GetArg("-checkpointnode", 0); // Number of current slot,  def=0
     }

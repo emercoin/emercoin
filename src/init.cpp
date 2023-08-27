@@ -582,7 +582,7 @@ void SetupServerArgs()
     gArgs.AddArg("-exchtest", "Enable exchange testing (for code debugging only) (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-randkeymapsz", "Debug parameter (default: 16)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-sortir", "Debug parameter (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-maxdp", "Debug parameter (default: 128 * 1024 * 1024)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-maxdp", "Maximal table size for DP TX optimizer (default: 128 * 1024 * 1024 i.e. max DP-selected amount is 13,421 EMC)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printselectcoin", "Debug print (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-disablesafemode", strprintf("Disable safemode, override a real safe mode event (default: %u)", DEFAULT_DISABLE_SAFEMODE), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
@@ -596,6 +596,9 @@ void SetupServerArgs()
     gArgs.AddArg("-splitpos", "Stake creation parameter 0=No Split, 1=RandSplit before 90d, -1=Principal+Reward (default: 1)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-staketimio", "Stake creation timeout (default: 530 * sqrt(number of wallet txs))", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-checkpointkey", "Checkpoint master key, used to print checkpoints (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-checkpointdepth", "Checkpoint depth (delay from chain tip)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-checkpointslots", "Quantity of distributed checkpoints slots", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-checkpointnode", "Number of currenct checkpoint node [0..checkpointslots)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printcoinstake", "Print to debug log coinstake kernel processing", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nametxoutamount", "Amount for attach to NameUTXO. By default, MIN_TX_AMOUNT=0.0001EMC", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-posprotect", "Protection vs PoS header flood. 0=(no protection), 1=After initial Download, 2=Always", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
