@@ -205,6 +205,7 @@ CBlockHeader CBlockIndex::GetBlockHeader() const {
 
 bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, const Consensus::Params& params) {
     unsigned int nToCheck = params.nToCheckBlockUpgradeMajority;
+#if 1
     unsigned nBlocksPoW[2]; // 0 is not match supermajority, 1 is match
     unsigned nBlocksPoS[2]; // 0 is not match supermajority, 1 is match
     nBlocksPoW[0] = nBlocksPoW[1] = nBlocksPoS[0] = nBlocksPoS[1] = 0;
@@ -216,18 +217,21 @@ bool IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRe
     }
     // Calculation: Both block types, PoW/PoS. Must match SuperMajority:
     //         match / (match + not_match) > required / num_To_Check
-    // Or same: match * num_To_Check >= required * match + not_match)
+    // Or same: match * num_To_Check >= required * (match + not_match)
     return nBlocksPoW[1] * nToCheck >= nRequired * (nBlocksPoW[0] + nBlocksPoW[1])
         && nBlocksPoS[1] * nToCheck >= nRequired * (nBlocksPoS[0] + nBlocksPoS[1]);
-#if 0
+#else
     unsigned int nFound = 0;
     for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != NULL; i++)
     {
-        if (pstart->GetBlockVersion() >= minVersion)
+        if (pstart->GetBlockVersion() >= minVersion) {
             ++nFound;
+            if(nFound >= nRequired)
+                return true;
+        }
         pstart = pstart->pprev;
     }
-    return (nFound >= nRequired);
+    return false;
 #endif
 }
 

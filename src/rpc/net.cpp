@@ -757,6 +757,7 @@ UniValue getcheckpoint(const JSONRPCRequest& request)
 
     UniValue result(UniValue::VOBJ);
     result.pushKV("synccheckpoint", CheckpointsSync::hashSyncCheckpoint.ToString());
+    LOCK(cs_main); // ?? oleg added, othervise failed in assert "validation.cpp", nLine=175,
     const CBlockIndex* pindexCheckpoint = LookupBlockIndex(CheckpointsSync::hashSyncCheckpoint);
     result.pushKV("height", pindexCheckpoint->nHeight);
     result.pushKV("timestamp", FormatISO8601DateTime(pindexCheckpoint->GetBlockTime()));
