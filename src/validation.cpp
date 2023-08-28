@@ -571,8 +571,12 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     if (!CheckTransaction(tx, state))
         return false; // state filled in by CheckTransaction
 
+    // Allow to mempool only for 24h in future TXes
+    if(tx.nTime > nAcceptTime + 24 * 3600)
+        return error("MemPoolAccept::PreChecks: tx.nTime is far in future, rejected");
+
     if (!CheckMinTxOut(ptx))
-        return error("AcceptToMemoryPool: : CheckMinTxOut failed");
+        return error("MemPoolAccept::PreChecks: CheckMinTxOut failed");
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase() || tx.IsCoinStake())
