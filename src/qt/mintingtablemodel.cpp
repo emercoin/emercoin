@@ -68,8 +68,7 @@ public:
     void refreshWallet()
     {
         cachedWallet.clear();
-        const auto& vwtx = walletModel->wallet().getWalletTxs();
-        for(const auto& wtx : vwtx) {
+        for(const auto& wtx : walletModel->wallet().getWalletTxs()) {
             std::vector<KernelRecord> txList = KernelRecord::decomposeOutput(walletModel->wallet(), wtx);
 
             int numBlocks;
