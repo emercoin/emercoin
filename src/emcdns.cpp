@@ -247,7 +247,8 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
       do m_dapmask = dapsize; while(dapsize &= dapsize - 1); // compute mask as 2^N
       m_dap_ht = (DNSAP*)calloc(m_dapmask, sizeof(DNSAP));
       m_dapmask--;
-      m_daprand = GetRand(0xffffffff) | 1;
+      GetRandBytes((uint8_t *)&m_daprand, sizeof(m_daprand));
+      m_daprand |= 1;
       m_dap_treshold = daptreshold;
     }
 
@@ -455,8 +456,10 @@ void EmcDns::Run() {
 
     if(m_dap_ht) {
       uint32_t now = time(NULL);
-      if(((now ^ m_daprand) & 0xfffff) == 0) // ~weekly update daprand
-        m_daprand = GetRand(0xffffffff) | 1;
+      if(((now ^ m_daprand) & 0xfffff) == 0) {// ~weekly update daprand
+        GetRandBytes((uint8_t *)&m_daprand, sizeof(m_daprand));
+        m_daprand |= 1;
+      }
       m_timestamp = now >> EMCDNS_DAPSHIFTDECAY; // time in 256s (~4 min)
     }
     if(CheckDAP(&sin6.sin6_addr, sin6len, m_rcvlen >> 5)) {
@@ -886,7 +889,7 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
 
   // Shuffle tokens for randomization output order
   for(int i = tokQty; i > 1; ) {
-    int randndx = GetRand(i);
+    int randndx = GetRandInt(i);
     char *tmp = tokens[randndx];
     --i;
     tokens[randndx] = tokens[i];

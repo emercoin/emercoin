@@ -621,7 +621,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             if(now > stun_next_request) {
                 ThreadGetMyExternalIP_STUN();
                 // Seqientially add ~1% to stun_timio_us, for slowly increase STUN request intervals
-                stun_timio_us += stun_timio_us / 128 + GetRand(1024 * 1024); // + ~0.5s randomization
+                stun_timio_us += stun_timio_us / 128 + GetRandInt(1024 * 1024); // + ~0.5s randomization
                 stun_next_request = now + stun_timio_us;
             }
             rc4ok_addentropy(bswap_16(now)); // For value other than in the Logger
@@ -681,7 +681,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                 LogPrintf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString());
                 ProcessBlockFound(pblock, Params());
                 // Rest for ~3 minutes after successful block to preserve close quick
-                MilliSleep(60 * 1000 + GetRand(4 * 60 * 1000));
+                MilliSleep(60 * 1000 + GetRandInt(4 * 60 * 1000));
             }
             MilliSleep(pos_timio);
 

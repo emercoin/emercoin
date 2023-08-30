@@ -766,19 +766,13 @@ bool g_mock_deterministic_tests{false};
 // Generate random [0..nMax)
 uint64_t GetRand(uint64_t nMax) noexcept
 {
-#if 0
-    // strange slowly code - TODO
-         return FastRandomContext(g_mock_deterministic_tests).randrange(nMax);
-#else
     const uint64_t maxu64 = std::numeric_limits<uint64_t>::max();
     uint64_t rnd, maxrnd = maxu64 - (maxu64 % nMax);
     do {
         GetRandBytes((uint8_t *)&rnd, sizeof(rnd));
     } while(rnd >= maxrnd);
     return rnd % nMax;
-#endif
 }
-
 
 std::chrono::microseconds GetRandMicros(std::chrono::microseconds duration_max) noexcept
 {
@@ -787,7 +781,12 @@ std::chrono::microseconds GetRandMicros(std::chrono::microseconds duration_max) 
 
 int GetRandInt(int nMax) noexcept
 {
-    return GetRand(nMax);
+    const uint32_t maxu32 = std::numeric_limits<uint32_t>::max();
+    uint32_t rnd, maxrnd = maxu32 - (maxu32 % nMax);
+    do {
+        GetRandBytes((uint8_t *)&rnd, sizeof(rnd));
+    } while(rnd >= maxrnd);
+    return rnd % nMax;
 }
 
 uint256 GetRandHash() noexcept
