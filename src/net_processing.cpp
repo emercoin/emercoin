@@ -3088,21 +3088,16 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         cas_barrier();
         const uint256 hash2(pblock2->GetHash());
 
-        // DBG - TODO olegarch
-        // Strange bug, realted with incorrect unserialization.
-        // Currently, bypass with check pblock2->vtx.empty() foolowing
-        // Maybe, something compiler-related
+        // Peer 0.8.0 proivdes incorrectly serialized block, or another peer malfunction
         if(pblock2->vtx.empty()) {
-            pfrom->fDisconnect = true; // Drop bugged connector TODO: Remove after fix
-            {
-                LOCK(cs_main);
-                mapBlockSource.erase(hash2);
-                MarkBlockAsReceived(hash2); // Clear InFlight status
-            }
-            vRecv.clear();
             char buf[256];
             sprintf(buf, "Unable unserialize block %s peer=%ld, dropped\n", hash2.ToString().c_str(), pfrom->GetId());
-            // fprintf(stderr, buf);
+            pfrom->fDisconnect = true; // Drop bugged connector
+            vRecv.clear();
+            LOCK(cs_main);
+            Misbehaving(pfrom->GetId(), 100, buf);
+            mapBlockSource.erase(hash2);
+            MarkBlockAsReceived(hash2); // Clear InFlight status
             return error(buf); // Stop processing right not, maybe next time will be more lucky
         }
 
