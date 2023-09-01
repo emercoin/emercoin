@@ -24,14 +24,14 @@ namespace Checkpoints {
     bool ValidateBlockHeader(const CCheckpointData& data, int nHeight, const uint256& hash) {
         const MapCheckpoints& checkpoints = data.mapCheckpoints;
         MapCheckpoints::const_iterator cpit = checkpoints.upper_bound(nHeight - 1);
-        return cpit == checkpoints.end() || cpit->first != nHeight || hash == cpit->second;
-      // Old code from 0.7.x
-      //   if (cpit == checkpoints.end())
-      //      return true;
-      //
-      //  return (cpit->first == nHeight)?
-      //      hash == cpit->second :
-      //      LookupBlockIndex(cpit->second) == nullptr;
+      //  return cpit == checkpoints.end() || cpit->first != nHeight || hash == cpit->second;
+         if (cpit == checkpoints.end())
+            return true;
+        return (cpit->first == nHeight)?
+            hash == cpit->second :
+            LookupBlockIndex(cpit->second) == nullptr;
+            // Last condition, for reject branches from already accepted and
+            // confiremd by checkpoints trusted chain
     }
 } // namespace Checkpoints
 

@@ -3453,6 +3453,7 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
     return commitment;
 }
 
+#if 0
 //! Returns last CBlockIndex* that is a checkpoint
 static CBlockIndex* GetLastCheckpoint(const CCheckpointData& data) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -3468,6 +3469,7 @@ static CBlockIndex* GetLastCheckpoint(const CCheckpointData& data) EXCLUSIVE_LOC
     }
     return nullptr;
 }
+#endif
 
 /** Context-dependent validity checks.
  *  By "context", we mean only the previous block headers, but not the UTXO
@@ -3500,6 +3502,11 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, bool fProofOfS
     }
 
     // Check against checkpoints
+    if(fCheckpointsEnabled && !Checkpoints::ValidateBlockHeader(params.Checkpoints(), nHeight, block.GetHash()))
+        return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT, error("%s: Hard checkpoint mismatch for height=%u", __func__, nHeight), REJECT_CHECKPOINT, "mismatch-hard-checkpoint");
+
+#if 0
+    // This code pass mismatched checkpoints, disables only deep forks. Fixed above
     if (fCheckpointsEnabled) {
         // Don't accept any forks from the main chain prior to last checkpoint.
         // GetLastCheckpoint finds the last checkpoint in MapCheckpoints that's in our
@@ -3508,6 +3515,7 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, bool fProofOfS
         if (pcheckpoint && nHeight < pcheckpoint->nHeight)
             return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT, error("%s: forked chain older than last checkpoint (height %d)", __func__, nHeight), REJECT_CHECKPOINT, "bad-fork-prior-to-checkpoint");
     }
+#endif
 
     // Check timestamp against prev
     if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast() || block.GetBlockTime() + MAX_FUTURE_BLOCK_TIME < pindexPrev->GetBlockTime())
@@ -3666,9 +3674,6 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
         if (mi == m_block_index.end())
             return state.Invalid(ValidationInvalidReason::BLOCK_MISSING_PREV, error("%s: prev block not found", __func__), 0, "prev-blk-not-found");
         pindexPrev = (*mi).second;
-
-        if(!Checkpoints::ValidateBlockHeader(chainparams.Checkpoints(), pindexPrev->nHeight + 1, hash))
-            return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT, error("%s: Hard checkpoint invalid for height=%u", __func__, pindexPrev->nHeight + 1), REJECT_INVALID, "bad-hard-chekpoint");
 
         if (pindexPrev->nStatus & BLOCK_FAILED_MASK)
             return state.Invalid(ValidationInvalidReason::BLOCK_INVALID_PREV, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
