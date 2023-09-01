@@ -58,6 +58,8 @@
 #include <sstream>
 #include <string>
 
+#include <./checkpoints.h>
+
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 
@@ -3664,6 +3666,10 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
         if (mi == m_block_index.end())
             return state.Invalid(ValidationInvalidReason::BLOCK_MISSING_PREV, error("%s: prev block not found", __func__), 0, "prev-blk-not-found");
         pindexPrev = (*mi).second;
+
+        if(!Checkpoints::ValidateBlockHeader(chainparams.Checkpoints(), pindexPrev->nHeight + 1, hash))
+            return state.Invalid(ValidationInvalidReason::BLOCK_CHECKPOINT, error("%s: Hard checkpoint invalid for height=%u", __func__, pindexPrev->nHeight + 1), REJECT_INVALID, "bad-hard-chekpoint");
+
         if (pindexPrev->nStatus & BLOCK_FAILED_MASK)
             return state.Invalid(ValidationInvalidReason::BLOCK_INVALID_PREV, error("%s: prev block invalid", __func__), REJECT_INVALID, "bad-prevblk");
         if (!ContextualCheckBlockHeader(block, fProofOfStake, state, chainparams, pindexPrev, GetAdjustedTime()))
@@ -3707,6 +3713,8 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
             }
         }
     }
+
+
     if (pindex == nullptr)
         pindex = AddToBlockIndex(block, fProofOfStake);
 
