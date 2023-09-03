@@ -835,7 +835,7 @@ struct TokBucketPoS {
     void Increase(int n);
     void ApplyHeader(const CBlockHeader &header, uint32_t now = 0);
     // We call this function instantly after ApplyHeader, so do not update object inside
-    bool isNeedBan() const;
+    bool isNeedBan();
 }; // TokBucketPoS
 
 extern std::map<CNetAddr, TokBucketPoS> mapTokBucketPoS GUARDED_BY(cs_main);

@@ -5592,6 +5592,7 @@ void TokBucketPoS::ApplyHeader(const CBlockHeader &header, uint32_t now) {
         add_tokens += (dt_hdr < 0)?
             20 :                    // Strong alertness for RT
             50.0 / (dt_hdr + 10.0); // Max penalty 5 for dt=0
+//        LogPrintf("DBG: cur=%p  _bucket=%f add_tokens=%f dt_hdr=%d dt_clear=%d\n", this, _bucket, add_tokens, dt_hdr, dt_clear);
     }
 //    float bu0 = _bucket;
     _bucket -= bucket_limit * (float)dt_clear / (float)bucket_period;
@@ -5599,16 +5600,20 @@ void TokBucketPoS::ApplyHeader(const CBlockHeader &header, uint32_t now) {
         _bucket = 0;
 //    LogPrintf("DBG: cur=%p bu0=%f dbu=%f _bucket=%f add_tokens=%f dt_hdr=%d dt_clear=%d\n", this, bu0, bucket_limit * (float)dt_clear / (float)bucket_period, _bucket, add_tokens, dt_hdr, dt_clear);
     _bucket += add_tokens;
-    if(_bucket >= bucket_limit)
-        _bucket = bucket_limit + 0.0001;
     _time_last_header = header.nTime;
     _time_presented   = now;
 } // TokBucketPoS::ApplyHeader
 
 // We call this function instantly after ApplyHeader, so do not update object inside
-bool TokBucketPoS::isNeedBan() const {
+bool TokBucketPoS::isNeedBan() {
     // We will ban incoming connections at 85% bucket fill, will keep outgoing only
-    return _bucket >= ((_flags & 2)? bucket_limit * 0.85 : bucket_limit);
+    float treshold = (_flags & 2)? bucket_limit * 0.85 : bucket_limit;
+    if(_bucket > treshold) {
+        LogPrintf("DBG: Ban by Tokens %p _bucket=%f _flags=%o treshhold=%f\n", this, _bucket, _flags, treshold);
+        _bucket = treshold;
+        return true;
+    }
+    return false;
 } // TokBucketPoS::isNeedBan
 
 void TokBucketPoS::SetIO(bool fInbound) {
