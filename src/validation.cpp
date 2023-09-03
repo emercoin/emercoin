@@ -5608,7 +5608,7 @@ void TokBucketPoS::ApplyHeader(const CBlockHeader &header, uint32_t now) {
 // We call this function instantly after ApplyHeader, so do not update object inside
 bool TokBucketPoS::isNeedBan() const {
     // We will ban incoming connections at 85% bucket fill, will keep outgoing only
-    return _bucket >= (_flags & 2)? bucket_limit * 0.85 : bucket_limit;
+    return _bucket >= ((_flags & 2)? bucket_limit * 0.85 : bucket_limit);
 } // TokBucketPoS::isNeedBan
 
 void TokBucketPoS::SetIO(bool fInbound) {
