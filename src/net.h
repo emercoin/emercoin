@@ -94,8 +94,6 @@ static const size_t DEFAULT_MAXSENDBUFFER    = 1 * 1000;
 static const int32_t MAX_CONSECUTIVE_POS_HEADERS = 174 * 90; // 90 days allowed 15660 headers
 
 
-// const unsigned int POW_HEADER_COOLING = 70;  - defined in protocol.cpp, so that it is visible to other files
-
 typedef int64_t NodeId;
 
 struct AddedNodeInfo
@@ -580,8 +578,6 @@ extern std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalH
 extern const std::string NET_MESSAGE_COMMAND_OTHER;
 typedef std::map<std::string, uint64_t> mapMsgCmdSize; //command, total bytes
 
-extern std::map<CNetAddr, int32_t> mapPoSTemperature;
-
 class CNodeStats
 {
 public:
@@ -813,8 +809,6 @@ public:
 
     // emercoin: temperature to measure how many tx has been sent by this client.
     uint32_t temperature{0};
-    // emercoin: used to detect branch switches
-    uint256 lastAcceptedHeader{uint256()};
     // ppcoin: known sent sync-checkpoint
     uint256 hashCheckpointKnown{uint256()};
 private:

@@ -601,7 +601,6 @@ void SetupServerArgs()
     gArgs.AddArg("-checkpointnode", "Number of currenct checkpoint node [0..checkpointslots)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printcoinstake", "Print to debug log coinstake kernel processing", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nametxoutamount", "Amount for attach to NameUTXO. By default, MIN_TX_AMOUNT=0.0001EMC", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-posprotect", "Protection vs PoS header flood. 0=(no protection), 1=After initial Download, 2=Always", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-stuntimio", "Initial timeout for discover external IP by STUN, secs. -1=disabled; 0=request once at start; by default, 900s (15m)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // emcdns stuff

@@ -92,10 +92,6 @@ std::map<CNetAddr, LocalServiceInfo> mapLocalHost GUARDED_BY(cs_mapLocalHost);
 static bool vfLimited[NET_MAX] GUARDED_BY(cs_mapLocalHost) = {};
 std::string strSubVersion;
 
-// emercoin: temperature to measure how many PoS headers have been sent by this client
-extern CCriticalSection cs_main;
-std::map<CNetAddr, int32_t> mapPoSTemperature GUARDED_BY(cs_main);
-
 void CConnman::AddOneShot(const std::string& strDest)
 {
     LOCK(cs_vOneShots);

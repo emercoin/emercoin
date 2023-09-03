@@ -410,44 +410,24 @@ limitedmap<uint256, std::chrono::microseconds> g_already_asked_for GUARDED_BY(cs
 /** Map maintaining per-node state. */
 static std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
 
-// posprotect - protect node from PoS header attacks
-// 0 - no protection
-// 1 - Protect for realtime only, no protection at initial download
-// 2 - Full protection, including initial download
-static bool MaybeBanPoS(const CNetAddr &addr) {
-    static int posprotect = -1;
-    if(posprotect < 0)
-        posprotect = gArgs.GetArg("-posprotect", 0);
-    switch(posprotect) {
-        case 0: return false;
-        case 1: if(::ChainstateActive().IsInitialBlockDownload())
-                    return false;
-                // Force cooling after initial download: drop temp to 1/2 of max on testnet or another case,
-                // when temperature increased too high during initial download.
-                // It is need to preventing ban peers with initial high temperature
-                for(auto it : mapPoSTemperature)
-                    if(it.second >= MAX_CONSECUTIVE_POS_HEADERS)
-                        it.second = MAX_CONSECUTIVE_POS_HEADERS / 2;
-                posprotect = 2; // next time, skip this force cooling
-                // IsInitialBlockDownload ends - passthroug to 2
-        default:
-                int32_t& nPoSTemperature = mapPoSTemperature[addr];
-                if(nPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                    nPoSTemperature = (MAX_CONSECUTIVE_POS_HEADERS * 3) / 4;
-                    if(g_banman)
-                        g_banman->Ban(addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 7);
-                    return true;
-                 }
-                 return false;
-    } // switch
-} // MaybeBanPoS
-
 static CNodeState *State(NodeId pnode) EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     std::map<NodeId, CNodeState>::iterator it = mapNodeState.find(pnode);
     if (it == mapNodeState.end())
         return nullptr;
     return &it->second;
 }
+
+static bool MaybeBanPoS(const CNetAddr &addr) {
+    AssertLockHeld(cs_main);
+    auto bucket = mapTokBucketPoS.find(addr);
+    if(bucket == mapTokBucketPoS.end())
+        return false; // No sense to ban non-existing peer
+    if(!bucket->second.isNeedBan())
+        return false; // Don't need ban this peer, continue
+    if(g_banman)
+        g_banman->Ban(addr, BanReasonNodeMisbehaving, gArgs.GetArg("-bantime", DEFAULT_MISBEHAVING_BANTIME) * 3);
+    return true;
+} // MaybeBanPoS
 
 static void UpdatePreferredDownload(CNode* node, CNodeState* state) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
@@ -1676,6 +1656,7 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
 
     bool received_new_header = false;
     const CBlockIndex *pindexLast = nullptr;
+    TokBucketPoS *scam_bucket;
     {
         LOCK(cs_main);
         CNodeState *nodestate = State(pfrom->GetId());
@@ -1721,23 +1702,23 @@ bool static ProcessHeadersMessage(CNode *pfrom, CConnman *connman, const std::ve
         if (!LookupBlockIndex(hashLastBlock)) {
             received_new_header = true;
         }
+        scam_bucket = &mapTokBucketPoS[pfrom->addr];
+        scam_bucket->SetIO(pfrom->fInbound);
     }
 
-    int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
     CValidationState state;
     CBlockHeader first_invalid_header;
-    if (!ProcessNewBlockHeaders(nPoSTemperature, pfrom->lastAcceptedHeader, headers, state, chainparams, &pindexLast, &first_invalid_header)) {
+    if (!ProcessNewBlockHeaders(scam_bucket, headers, state, chainparams, &pindexLast, &first_invalid_header)) {
         if (state.IsInvalid()) {
             MaybePunishNode(pfrom->GetId(), state, via_compact_block, "invalid header received");
             return false;
         }
     }
-    if(MaybeBanPoS(pfrom->addr))
-        return false;
-    pfrom->lastAcceptedHeader = headers.back().GetHash();
 
     {
         LOCK(cs_main);
+        if(MaybeBanPoS(pfrom->addr))
+            return false;
         CNodeState *nodestate = State(pfrom->GetId());
         if (nodestate->nUnconnectingHeaders > 0) {
             LogPrint(BCLog::NET, "peer=%d: resetting nUnconnectingHeaders (%d -> 0)\n", pfrom->GetId(), nodestate->nUnconnectingHeaders);
@@ -1967,11 +1948,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     }
 
     if (strCommand == NetMsgType::VERSION) {
-        auto it = mapPoSTemperature.find(pfrom->addr);
-        if (it == mapPoSTemperature.end()) {
-            LOCK(cs_main);
-            mapPoSTemperature[pfrom->addr] = MAX_CONSECUTIVE_POS_HEADERS / 4; // Initial suspicious
-        }
         // Each connection can only send one version message
         if (pfrom->nVersion != 0)
         {
@@ -2583,7 +2559,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         pfrom->nLastTXTime = now_time;
         pfrom->temperature = 10 + ((minutes_gone < 32)? pfrom->temperature >> minutes_gone : 0);
         // Random exit, if temp too high
-        if (pfrom->temperature > temp_limit && pfrom->temperature - temp_limit > GetRand(temp_limit))
+        if (pfrom->temperature > temp_limit && pfrom->temperature - temp_limit > GetRandInt(temp_limit))
             return true; // drop this tx from hot peer - maybe he is spammer
 
         CTransactionRef ptx;
@@ -2734,6 +2710,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
         bool received_new_header = false;
 
+        TokBucketPoS *scam_bucket;
         {
         LOCK(cs_main);
 
@@ -2747,20 +2724,24 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         if (!LookupBlockIndex(cmpctblock.header.GetHash())) {
             received_new_header = true;
         }
+        scam_bucket = &mapTokBucketPoS[pfrom->addr];
+        scam_bucket->SetIO(pfrom->fInbound);
         }
 
-        int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
         const CBlockIndex *pindex = nullptr;
         CValidationState state;
-        if (!ProcessNewBlockHeaders(nPoSTemperature, ::ChainActive().Tip()->GetBlockHash(),{cmpctblock.header}, state, chainparams, &pindex)) {
+        if (!ProcessNewBlockHeaders(scam_bucket,{cmpctblock.header}, state, chainparams, &pindex)) {
             if (state.IsInvalid()) {
                 MaybePunishNode(pfrom->GetId(), state, /*via_compact_block*/ true, "invalid header via cmpctblock");
                 return true;
             }
         }
 
-        if(MaybeBanPoS(pfrom->addr))
-              return error("too many consecutive pos headers");
+        {
+            LOCK(cs_main);
+            if(MaybeBanPoS(pfrom->addr))
+                return error("too many consecutive pos headers");
+        }
 
         // When we succeed in decoding a block's txids from a cmpctblock
         // message we typically jump to the BLOCKTXN handling code, with a
@@ -3053,23 +3034,6 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             vRecv >> headers[n];
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
             ReadCompactSize(vRecv); // ignore vchBlockSig.
-#if 0
-            // Oleg: Moved pos temperature check into ProcessNewBlockHeaders()
-            // emercoin: quick check to see if we should ban peers for PoS spam
-            // note: at this point we don't know if PoW headers are valid - we just assume they are
-            // so we need to update pfrom->nPoSTemperature once we actualy check them
-            bool fPoS = headers[n].nFlags & BLOCK_PROOF_OF_STAKE;
-            nTmpPoSTemperature += fPoS ? 1 : -POW_HEADER_COOLING;
-            // peer cannot cool himself by PoW headers from other branches
-            if (n == 0 && !fPoS && headers[n].hashPrevBlock != pfrom->lastAcceptedHeader)
-                nTmpPoSTemperature += POW_HEADER_COOLING;
-            nTmpPoSTemperature = std::max(nTmpPoSTemperature, 0);
-            if (nTmpPoSTemperature >= MAX_CONSECUTIVE_POS_HEADERS) {
-                nPoSTemperature = nTmpPoSTemperature; // Activate ban, if need for MaybeBanPoS()
-                if(MaybeBanPoS(pfrom->addr))
-                    return error("too many consecutive pos headers");
-            }
-#endif
         } // for
         } // lock
 
@@ -3116,10 +3080,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             if (!fRequested) {
                 if (pblock2->IsProofOfStake() && !::ChainstateActive().IsInitialBlockDownload()) {
-                    int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-                    nPoSTemperature += 1;
+                    mapTokBucketPoS[pfrom->addr].SetIO(pfrom->fInbound);
+                    mapTokBucketPoS[pfrom->addr].ApplyHeader(*pblock2, 0);
                 }
-
                 if(MaybeBanPoS(pfrom->addr))
                     return error("too many consecutive pos headers");
 
@@ -3201,8 +3164,8 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             if (fPoSDuplicate)
             {
                 LOCK(cs_main);
-                int32_t& nPoSTemperature = mapPoSTemperature[pfrom->addr];
-                nPoSTemperature += 100;
+                mapTokBucketPoS[pfrom->addr].SetIO(pfrom->fInbound);
+                mapTokBucketPoS[pfrom->addr].Increase(50);
             }
             if (fNewBlock) {
                 int64_t blocktime = pblock->nTime;
@@ -3904,6 +3867,8 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                    got back an empty response.  */
                 if (pindexStart->pprev)
                     pindexStart = pindexStart->pprev;
+
+                mapTokBucketPoS[pto->addr].SetReqHeaders(); // Flag: requested headers from this peer
                 LogPrint(BCLog::NET, "initial getheaders (%d) to peer=%d (startheight:%d)\n", pindexStart->nHeight, pto->GetId(), pto->nStartingHeight);
                 connman->PushMessage(pto, msgMaker.Make(NetMsgType::GETHEADERS, ::ChainActive().GetLocator(pindexStart), uint256()));
             }
@@ -4384,12 +4349,4 @@ public:
 };
 static CNetProcessingCleanup instance_of_cnetprocessingcleanup;
 
-#if 0
-// DBG
-unsigned int CDataStream::DBGcrc() {
-    unsigned int rc = 1;
-    for(unsigned c: vch)
-        rc = ((rc << 1) | (rc >> 31)) + c;
-    return rc;
-}
-#endif
+

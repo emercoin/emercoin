@@ -244,7 +244,8 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
  * @param[out] ppindex If set, the pointer will be set to point to the last new block index object for the given headers
  * @param[out] first_invalid First header that fails validation, if one exists
  */
-bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAcceptedHeader, const std::vector<CBlockHeader>& block, CValidationState& state, const CChainParams& chainparams, const CBlockIndex** ppindex = nullptr, CBlockHeader* first_invalid = nullptr) LOCKS_EXCLUDED(cs_main);
+struct TokBucketPoS; // defined in util/validation.h
+bool ProcessNewBlockHeaders(TokBucketPoS *scam_bucket, const std::vector<CBlockHeader>& block, CValidationState& state, const CChainParams& chainparams, const CBlockIndex** ppindex = nullptr, CBlockHeader* first_invalid = nullptr) LOCKS_EXCLUDED(cs_main);
 
 /** Open a block file (blk?????.dat) */
 FILE* OpenBlockFile(const FlatFilePos &pos, bool fReadOnly = false);
@@ -819,5 +820,24 @@ bool CheckMinTxOut(const CBlock& block, bool fV7Enabled);
 bool IsV8Enabled(const CBlockIndex* pindexPrev, const Consensus::Params& params);
 
 void CleanMapBlockIndex();
+
+//------- PoS scam protection code, based on TokenBucket algorithm ---------
+// https://en.wikipedia.org/wiki/Token_bucket
+struct TokBucketPoS {
+    float     _bucket;           // bucket value
+    uint32_t  _time_last_header; // Time of last header from this IP/peer
+    uint32_t  _time_presented;   // Local time, when last header presented
+    int16_t   _flags;            // 1=inbound 2=outbiund 4=headers_requested
+
+    TokBucketPoS();
+    void SetIO(bool fInbound);
+    void SetReqHeaders();
+    void Increase(int n);
+    void ApplyHeader(const CBlockHeader &header, uint32_t now = 0);
+    // We call this function instantly after ApplyHeader, so do not update object inside
+    bool isNeedBan() const;
+}; // TokBucketPoS
+
+extern std::map<CNetAddr, TokBucketPoS> mapTokBucketPoS GUARDED_BY(cs_main);
 
 #endif // BITCOIN_VALIDATION_H

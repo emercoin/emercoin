@@ -972,9 +972,9 @@ static UniValue submitheader(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_VERIFY_ERROR, "Must submit previous header (" + h.hashPrevBlock.GetHex() + ") first");
         }
     }
-
-    CValidationState state; int tmpTemp = 0;
-    ProcessNewBlockHeaders(tmpTemp, ::ChainActive().Tip()->GetBlockHash(), {h}, state, Params(), /* ppindex */ nullptr, /* first_invalid */ nullptr);
+    TokBucketPoS tmpTokBucketPoS;
+    CValidationState state;
+    ProcessNewBlockHeaders(&tmpTokBucketPoS, {h}, state, Params(), /* ppindex */ nullptr, /* first_invalid */ nullptr);
     if (state.IsValid()) return NullUniValue;
     if (state.IsError()) {
         throw JSONRPCError(RPC_VERIFY_ERROR, FormatStateMessage(state));

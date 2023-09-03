@@ -58,8 +58,6 @@
 #include <sstream>
 #include <string>
 
-#include <./checkpoints.h>
-
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 
@@ -3749,23 +3747,13 @@ bool BlockManager::AcceptBlockHeader(const CBlockHeader& block, bool fProofOfSta
 }
 
 // Exposed wrapper for AcceptBlockHeader
-bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAcceptedHeader, const std::vector<CBlockHeader>& headers, CValidationState& state, const CChainParams& chainparams, const CBlockIndex** ppindex, CBlockHeader *first_invalid)
-{
+bool ProcessNewBlockHeaders(TokBucketPoS *scam_bucket, const std::vector<CBlockHeader>& headers, CValidationState& state, const CChainParams& chainparams, const CBlockIndex** ppindex, CBlockHeader *first_invalid) {
     if (first_invalid != nullptr)
         first_invalid->SetNull();
-    int  nCooling         = POW_HEADER_COOLING;
     bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
-
-    const uint256 *prev_block_hash = lastAcceptedHeader.IsNull()? &headers[0].hashPrevBlock : &lastAcceptedHeader;
-
-    if (headers[0].hashPrevBlock != *prev_block_hash) {
-        nPoSTemperature += 3;
-        nCooling         = POW_HEADER_COOLING / 8;
-    }
-
     int nLastCheckpointHeight = GetLastHardCheckpointHeight();
     CBlockIndex *pindex; // Use a temp pindex instead of ppindex to avoid a const_cast
-
+    int64_t now = GetTime();
     {
         LOCK(cs_main);
 
@@ -3777,8 +3765,9 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
             ::ChainstateActive().CheckBlockIndex(chainparams.GetConsensus());
 
             if (!accepted) {
-                if (first_invalid) *first_invalid = header;
-                nPoSTemperature += POW_HEADER_COOLING;
+                if (first_invalid)
+                    *first_invalid = header;
+                scam_bucket->Increase(100);
                 return false;
             }
             if (ppindex)
@@ -3786,34 +3775,27 @@ bool ProcessNewBlockHeaders(int32_t& nPoSTemperature, const uint256& lastAccepte
 
             if(!fInitialDownload) {
                 if(pindex->nHeight < nLastCheckpointHeight) {
-                    nPoSTemperature += 3 * POW_HEADER_COOLING;
+                    scam_bucket->Increase(200);
                     return false;
                 }
             }
-
-            if(header.hashPrevBlock != *prev_block_hash)
-                nPoSTemperature += POW_HEADER_COOLING;
-            prev_block_hash = &header.hashMyself; // Micro-hack - remeber ptr to inner cache of BlockHash
 
             // emercoin: sometimes multiple peers will send us the same headers
             // this is not necessarily an attack, so we don't want end up banning honest peers
             if (fHaveHeader)
                 continue;
 
-            if (!fPoS) { // PoW - cooling
-                nPoSTemperature = std::max((int)nPoSTemperature - nCooling, 0);
-            } else { // PoS - increase temperature
-                nPoSTemperature++; // Maybe add floating temp-rate
-            }
-             // fprintf(stderr, "nPoSTemperature=%d cool=%d fpos=%d\n", nPoSTemperature, nCooling, fPoS);
-             // ATTN: Do not abort accepting headers or make another decision here!
+            if(fPoS)
+                scam_bucket->ApplyHeader(header, now);
+            // ATTN: Do not abort accepting headers or make another decision here!
              // On testnet, this is normal situation, when temperature is over!
         } // for
         CleanMapBlockIndex();
     } // LOCK
     if (NotifyHeaderTip()) {
         if (::ChainstateActive().IsInitialBlockDownload() && ppindex && *ppindex) {
-            LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n", (*ppindex)->nHeight, 100.0/((*ppindex)->nHeight+(GetAdjustedTime() - (*ppindex)->GetBlockTime()) / Params().GetConsensus().nTargetSpacing) * (*ppindex)->nHeight);
+            LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n", (*ppindex)->nHeight,
+                    100.0/((*ppindex)->nHeight+(GetAdjustedTime() - (*ppindex)->GetBlockTime()) / Params().GetConsensus().nTargetSpacing) * (*ppindex)->nHeight);
         }
     }
     return true;
@@ -5554,3 +5536,84 @@ void CleanMapBlockIndex() {
         }
     }
 }
+
+#if 0
+// DBG
+unsigned int CDataStream::DBGcrc() {
+    unsigned int rc = 1;
+    for(unsigned c: vch)
+        rc = ((rc << 1) | (rc >> 31)) + c;
+    return rc;
+}
+#endif
+
+//------- PoS scam protection code, based on TokenBucket algorithm ---------
+// Time of last historical header
+static uint32_t s_LastHistHeaderTime = ~0U;
+// Token buckets to control peers activity and detect PoS scamers
+std::map<CNetAddr, TokBucketPoS> mapTokBucketPoS GUARDED_BY(cs_main);
+
+static const float    bucket_limit = 1000; // Usually +1.6 token per header
+static const uint32_t bucket_period = 24 * 3600; // Allowed 1000 blocks per day max
+
+TokBucketPoS::TokBucketPoS() {
+    bzero(this, sizeof(TokBucketPoS));
+} // TokBucketPoS::TokBucketPoS
+
+void TokBucketPoS::Increase(int n) {
+    AssertLockHeld(cs_main);
+    _bucket += n;
+} // TokBucketPoS::Increase
+
+void TokBucketPoS::ApplyHeader(const CBlockHeader &header, uint32_t now) {
+    AssertLockHeld(cs_main);
+    if(now == 0)
+        now = GetTime();
+
+    if(s_LastHistHeaderTime > now && header.nTime + DEFAULT_MAX_TIP_AGE > now) {
+        s_LastHistHeaderTime = now; // Initial headers load completed
+        LogPrintf("Download headers completed\n");
+    }
+
+    int32_t dt_hdr = header.nTime - _time_last_header;
+    int32_t dt_clear = 0;
+    float add_tokens = 1; // Tokens qty per header
+    // _flag == 2: inbound only. We do not expecting historical headers here
+    // Thus, force to realtime
+    if(s_LastHistHeaderTime >= now && _flags != 2) {
+        // Historical headers
+        if(dt_hdr >= 0)
+            dt_clear = dt_hdr;
+        else
+            add_tokens = 10; // Weak alertness for historical
+    } else {
+        // RT headers
+        dt_clear = now - _time_presented;
+        add_tokens += (dt_hdr < 0)?
+            20 :                    // Strong alertness for RT
+            50.0 / (dt_hdr + 10.0); // Max penalty 5 for dt=0
+    }
+//    float bu0 = _bucket;
+    _bucket -= bucket_limit * (float)dt_clear / (float)bucket_period;
+    if(_bucket < 0)
+        _bucket = 0;
+//    LogPrintf("DBG: cur=%p bu0=%f dbu=%f _bucket=%f add_tokens=%f dt_hdr=%d dt_clear=%d\n", this, bu0, bucket_limit * (float)dt_clear / (float)bucket_period, _bucket, add_tokens, dt_hdr, dt_clear);
+    _bucket += add_tokens;
+    if(_bucket >= bucket_limit)
+        _bucket = bucket_limit + 0.0001;
+    _time_last_header = header.nTime;
+    _time_presented   = now;
+} // TokBucketPoS::ApplyHeader
+
+// We call this function instantly after ApplyHeader, so do not update object inside
+bool TokBucketPoS::isNeedBan() const {
+    return _bucket >= bucket_limit;
+} // TokBucketPoS::isNeedBan
+
+void TokBucketPoS::SetIO(bool fInbound) {
+    _flags |= fInbound? 2 : 1;
+} // TokBucketPoS::SetIO
+void TokBucketPoS::SetReqHeaders() {
+    _flags |= 4;
+} // TokBucketPoS::SetReqHeaders
+
