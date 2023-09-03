@@ -3159,13 +3159,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             bool fNewBlock = false;
             bool fPoSDuplicate = false;
-            if(!ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate)) {
-                pfrom->fDisconnect = true; // Drop bugged connector
-                LOCK(cs_main);
-                Misbehaving(pfrom->GetId(), 100, "ProcessNewBlock failed");
-            }
-            if (fPoSDuplicate)
-            {
+            // This ProcessNewBlock can return FALSE for block duplicate, so we do not analyze result here
+            // This is old behavior here
+            ProcessNewBlock(chainparams, pblock, forceProcessing, &fNewBlock, &pindexLastAccepted, &fPoSDuplicate);
+           if (fPoSDuplicate) {
                 LOCK(cs_main);
                 mapTokBucketPoS[pfrom->addr].SetIO(pfrom->fInbound);
                 mapTokBucketPoS[pfrom->addr].Increase(3);
