@@ -5590,7 +5590,7 @@ void TokBucketPoS::ApplyHeader(const CBlockHeader &header, uint32_t now) {
         // RT headers
         dt_clear = now - _time_presented;
         add_tokens += (dt_hdr < 0)?
-            20 :                    // Strong alertness for RT
+            20.0 - (dt_hdr >> 8)  : // Strong alertness for RT
             50.0 / (dt_hdr + 10.0); // Max penalty 5 for dt=0
 //        LogPrintf("DBG: cur=%p  _bucket=%f add_tokens=%f dt_hdr=%d dt_clear=%d\n", this, _bucket, add_tokens, dt_hdr, dt_clear);
     }
