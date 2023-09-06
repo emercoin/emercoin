@@ -5557,7 +5557,7 @@ static const float    bucket_limit = 1000; // Usually +1.6 token per header
 static const uint32_t bucket_period = 24 * 3600; // Allowed 1000 blocks per day max
 
 TokBucketPoS::TokBucketPoS() {
-    bzero(this, sizeof(TokBucketPoS));
+    memset(this, 0, sizeof(TokBucketPoS));
 } // TokBucketPoS::TokBucketPoS
 
 void TokBucketPoS::Increase(int n) {
