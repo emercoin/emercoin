@@ -1,3 +1,4 @@
+{"freestun.net",	3478},
 {"iphone-stun.strato-iphone.de",	3478},
 {"relay.webwormhole.io",	3478},
 {"stun-01.schulen-fulda.de",	3478},
