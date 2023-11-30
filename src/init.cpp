@@ -1798,6 +1798,7 @@ bool AppInitMain(InitInterfaces& interfaces)
         pNameAddressDB = MakeUnique<CNameAddressDB>(nTxIndexCache, false, fReindexNameAddress);
         if (fReindexNameAddress)
             reindexNameAddressIndex();
+        fNameAddressIndex = true; // allow retrieval at name_scan_address
     } else {
         if (boost::filesystem::exists(pathNameAddress))
             boost::filesystem::remove_all(pathNameAddress);

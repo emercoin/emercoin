@@ -931,7 +931,9 @@ UniValue name_scan_address(const JSONRPCRequest& request)
         oName.pushKV("name", stringFromNameVal(name));
         oName.pushKV("value", limitString(encodeNameVal(nti.value, outputType), nMaxShownValue, "\n...(value too large - use name_show to see full value)"));
         oName.pushKV("txid", tx->GetHash().GetHex());
-        oName.pushKV("address", nti.strAddress);
+        oName.pushKV("nOut", (int)nti.nOut);
+        // We do not use DecodeNameScript here, and address always is empty
+        //oName.pushKV("address", nti.strAddress);
         oName.pushKV("expires_in", nameRec.nExpiresAt - ::ChainActive().Height());
         oName.pushKV("expires_at", nameRec.nExpiresAt);
         oName.pushKV("time", (boost::int64_t)tx->nTime);
