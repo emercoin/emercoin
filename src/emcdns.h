@@ -19,8 +19,7 @@ using namespace std;
 #define EMCDNS_DAPTRESHOLD	(4 << EMCDNS_DAPSHIFTDECAY)	// ~4r/s found name, ~1 r/s - clien IP
 
 #define VERMASK_NEW	-1
-#define VERMASK_BLOCKED -2
-#define VERMASK_NOSRL	(1 << 24)	// ENUM: undef/missing mask for Signature Revocation List
+#define VERMASK_NOSRL	(1 << 16)	// ENUM: undef/missing mask for Signature Revocation List
 
 #define FLAG_LOCAL_SD   0x1            // Check subdomains in emcdnslocal resolver (lines starts from '.')
 
@@ -52,8 +51,12 @@ struct DNSAP {		// DNS Amplifier Protector ExpDecay structure
 } __attribute__((packed));
 
 struct Verifier {
-    Verifier() : mask(VERMASK_NEW) {}	// -1 == uninited, neg != -1 == cant fetch
-    int32_t  mask;		// Signature Revocation List mask
+    Verifier() :
+        mask(VERMASK_NEW),	// -1 == uninited
+        forgot(0) {};           // Initially, everything is forgot
+
+    uint32_t mask;		// Signature Revocation List mask
+    uint32_t forgot;            // Expiration time for in-mem caching
     string   srl_tpl;		// Signature Revocation List template
     CKeyID   keyID;		// Key for verify message
 }; // 72 bytes = 18 words
@@ -71,10 +74,10 @@ struct TollFree {
 class EmcDns {
   public:
      EmcDns(const char *bind_ip, uint16_t port_no,
-	    const char *gw_suffix, const char *allowed_suff, 
-	    const char *local_fname, 
+	    const char *gw_suffix, const char *allowed_suff,
+	    const char *local_fname,
 	    uint32_t dapsize, uint32_t daptreshold,
-	    const char *enums, const char *tollfree, 
+	    const char *enums, const char *tollfree,
 	    uint8_t verbose);
     ~EmcDns();
 
@@ -103,7 +106,7 @@ class EmcDns {
     void AddTF(char *tf_tok);
     bool CheckDAP(void *key, int len, uint16_t inctemp);
 
-    void Fill_RD_SRV(char *txt); 
+    void Fill_RD_SRV(char *txt);
     // Wire format: Usage[1] Selector[1] Matching[1] TXT[*]
     void Fill_RD_TLSA(char *txt);
     // Wire format: flag[1] tag_len[1] tag[tag_len] value[*]

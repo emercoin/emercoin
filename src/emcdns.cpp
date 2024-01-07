@@ -1445,10 +1445,11 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
 
     Verifier &ver = it->second;
 
-    if(ver.mask < 0) {
-      if(ver.mask == VERMASK_BLOCKED)
-	return false; // Already unable to fetch
-
+    uint32_t now = time(NULL);
+    if(now > ver.forgot) {
+      ver.forgot = now + 3 * 60;    // Remember status for 3 mins
+      ver.mask = VERMASK_NOSRL + 1; // Read/check breaks will produce out-of-range mask
+      // Remember time is expired - try to upgrade the ver-record
       do {
         CNameRecord nameRec;
         CTransactionRef tx;
@@ -1466,12 +1467,24 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
         if (!IsValidDestination(dest))
             break; // Invalid address
 
+        const WitnessV0KeyHash *w0pkhash;
+        const PKHash           *pkhash;
+        if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != NULL)
+          ver.keyID = CKeyID(*w0pkhash);
+        else
+        if((pkhash = boost::get<PKHash>(&dest)) != NULL)
+          ver.keyID = CKeyID(*pkhash);
+        else
+          break; // We support p2[w]pkh only
+
 	// Verifier has been read successfully, configure SRL if exist
 	char valbuf[VAL_SIZE], *str_val = valbuf;
         memcpy(valbuf, &nti.value[0], nti.value.size());
         valbuf[nti.value.size()] = 0;
 
-	// Proces SRL-line like
+	// Proces Signatures Revocation list[s] in the format:
+        // SRL=nBits|Templete
+        // like:
 	// SRL=5|srl:hello-%02x
 	ver.mask = VERMASK_NOSRL;
         while(char *tok = strsep(&str_val, "\n\r"))
@@ -1502,13 +1515,10 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
 	      break; // Mask found
 	  } // while + if
       } while(false);
+    } // if(now > ver.forgot)
 
-      if(ver.mask < 0) {
-	ver.mask = VERMASK_BLOCKED; // Unable to read - block next read
-	return false;
-      } // if(ver.mask < 0) - after try-fill verifiyer
-
-    } // if(ver.mask < 0) - main
+    if(ver.mask > VERMASK_NOSRL)
+      return false; // DB read error, or ver-list size > 64K
 
     while(*signature <= 040 && *signature)
       signature++;

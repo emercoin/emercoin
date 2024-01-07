@@ -1282,7 +1282,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
             }
         } else {
             if (op == OP_NAME_UPDATE || op == OP_NAME_DELETE) {
-                ret.err_msg = stringFromOp(op) + " on an expired name";
+                ret.err_msg = stringFromOp(op) + " on an inactive name";
                 return ret;
             }
         }
