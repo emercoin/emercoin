@@ -57,7 +57,7 @@ string stringFromNameVal(const CNameVal& nameVal) {
     return res;
 }
 
-string limitString(const string& inp, unsigned int size, string message = "")
+static string limitString(const string& inp, unsigned int size)
 {
     if (size == 0)
         return inp;
@@ -65,7 +65,7 @@ string limitString(const string& inp, unsigned int size, string message = "")
     if (inp.size() > size)
     {
         ret.resize(size);
-        ret += message;
+        ret += "\n...(value too large - use name_show to see full value)";
     }
 
     return ret;
@@ -737,7 +737,7 @@ bool mycompare2 (const UniValue& lhs, const UniValue& rhs)
 }
 UniValue name_filter(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() > 6)
+    if (request.fHelp || request.params.size() > 7)
         throw runtime_error(
                 "name_filter [regexp] [maxage=0] [from=0] [nb=0] [stat] [valuetype]\n"
                 "scan and filter names\n"
@@ -747,6 +747,7 @@ UniValue name_filter(const JSONRPCRequest& request)
                 "[nb] : show [nb] results, 0 means all\n"
                 "[stat] : show some stats instead of results\n"
                 "[valuetype] : if \"hex\" or \"base64\" is specified then it will print value in corresponding format instead of string.\n"
+                "[max-value-length] : control how much of value is shown (0 = full value)\n"
                 "name_filter \"\" 5 # list names updated in last 5 blocks\n"
                 "name_filter \"^id/\" # list all names from the \"id\" namespace\n"
                 "name_filter \"^id/\" 0 0 0 stat # display stats (number of names) on active names from the \"id\" namespace\n"
@@ -764,6 +765,7 @@ UniValue name_filter(const JSONRPCRequest& request)
     int nNb           = request.params.size() > 3 ? request.params[3].get_int() : 0;
     bool fStat        = request.params.size() > 4 ? (request.params[4].get_str() == "stat" ? true : false) : false;
     string outputType = request.params.size() > 5 ? request.params[5].get_str() : "";
+    int nMaxShownValue= request.params.size() > 6 ? request.params[6].get_int() : 0;
 
     vector<UniValue> oRes;
 
@@ -806,7 +808,7 @@ UniValue name_filter(const JSONRPCRequest& request)
         UniValue oName(UniValue::VOBJ);
         if (!fStat) {
             oName.pushKV("name", name);
-            oName.pushKV("value", limitString(encodeNameVal(txName.value, outputType), 300, "\n...(value too large - use name_show to see full value)"));
+            oName.pushKV("value", limitString(encodeNameVal(txName.value, outputType), nMaxShownValue));
             oName.pushKV("registered_at", nHeight); // pos = 2 in comparison function (above name_filter)
             int nExpiresIn = nameRec.nExpiresAt - ::ChainActive().Height();
             oName.pushKV("expires_in", nExpiresIn);
@@ -875,7 +877,7 @@ UniValue name_scan(const JSONRPCRequest& request)
         int nExpiresAt    = pairScan.second.second;
         CNameVal value = txName.value;
 
-        oName.pushKV("value", limitString(encodeNameVal(value, outputType), nMaxShownValue, "\n...(value too large - use name_show to see full value)"));
+        oName.pushKV("value", limitString(encodeNameVal(value, outputType), nMaxShownValue));
         oName.pushKV("expires_in", nExpiresAt - ::ChainActive().Height());
         if (nExpiresAt - ::ChainActive().Height() <= 0)
             oName.pushKV("expired", true);
@@ -929,7 +931,7 @@ UniValue name_scan_address(const JSONRPCRequest& request)
             throw JSONRPCError(RPC_WALLET_ERROR, "failed to decode name");
 
         oName.pushKV("name", stringFromNameVal(name));
-        oName.pushKV("value", limitString(encodeNameVal(nti.value, outputType), nMaxShownValue, "\n...(value too large - use name_show to see full value)"));
+        oName.pushKV("value", limitString(encodeNameVal(nti.value, outputType), nMaxShownValue));
         oName.pushKV("txid", tx->GetHash().GetHex());
         oName.pushKV("nOut", (int)nti.nOut);
         // We do not use DecodeNameScript here, and address always is empty

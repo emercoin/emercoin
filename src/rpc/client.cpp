@@ -196,6 +196,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "name_filter", 1, "maxage" },
     { "name_filter", 2, "from" },
     { "name_filter", 3, "nb" },
+    { "name_filter", 6, "max-value-length" },
     { "name_history", 1, "fullhistory" },
     { "name_indexinfo", 0, "indextype" },
     { "sendtoname", 1, "amount" },
