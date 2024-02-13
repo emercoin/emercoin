@@ -85,8 +85,6 @@ void BlockAssembler::resetBlock()
     // Reserve space for coinbase tx
     nBlockWeight = 4000;
     nBlockSigOpsCost = 400;
-    fIncludeWitness = false;
-
     // These counters do not include coinbase tx
     nBlockTx = 0;
     nFees = 0;
@@ -513,10 +511,6 @@ void BlockAssembler::addTxs()
             continue;
         }
 
-        // cannot accept witness transactions into a non-witness block
-        if (!fIncludeWitness && iter->GetTx().HasWitness())
-            continue;
-
         // If tx is dependent on other mempool txs which haven't yet been included
         // then put it in the waitSet
         if (isStillDependent(iter)) {
@@ -596,7 +590,6 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
 
     unsigned int nExtraNonce = 0;
 
-    OutputType output_type = pwallet->m_default_change_type != OutputType::CHANGE_AUTO ? pwallet->m_default_change_type : pwallet->m_default_address_type;
     CScript no_dest_script; // Dummy script for COINBASE TX in minted block
     // Compute timeout for pos as sqrt(numUTXO)
     unsigned int pos_timio;

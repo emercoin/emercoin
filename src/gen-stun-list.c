@@ -1022,4 +1022,7 @@
 {"stunx.externet.hu",	3478},
 {"stunx.novuscom.net",	3478},
 {"stuny.externet.hu",	3478},
-{"stuny.megafone.hu",	3478}
+{"stuny.megafone.hu",	3478},
+{"stun.cloudflare.com",	3478},
+{"stun.flashdance.cx",	3478}
+
