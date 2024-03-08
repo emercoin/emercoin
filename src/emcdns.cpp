@@ -218,7 +218,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
     uint8_t local_qty = 0;
     if(local_fname != NULL && (flocal = fopen(local_fname, "r")) != NULL) {
       char *rd = local_tmp;
-      while(rd < local_tmp + (1 << 15) - 200 && fgets(rd, 200, flocal)) {
+      while(rd < local_tmp + sizeof(local_tmp) - 2000 && fgets(rd, 2000, flocal)) {
 	if(*rd < '.' || *rd == ';')
 	  continue;
 	char *p = strchr(rd, '=');
@@ -967,39 +967,59 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
   uint16_t mx_pri = 1; // Default MX priority
   char c;
 
-  uint8_t *bufend = m_snd + 255;
-
-  if(m_obufend < bufend)
-    bufend = m_obufend;
-
   int label_ref = (tok_sz - m_buf - (m_rcvend - m_rcv)) | 0xc000;
 
-  do {
-    c = *m_snd++ = *txt++;
-    if(c == ':' && mxsz) { // split for MX only
-      c = m_snd[-1] = 0;
-      mx_pri = atoi(txt);
-    }
-    if((c == '.' && txtcor == 0) || c == 0) {
-      int tok_len = m_snd - tok_sz - 2;
-      if(tok_len < 64 || txtcor != 0) { // check for rfc1035 2.3.1 (label length)
+  int tok_len = 0;
+  if(txtcor) {
+    // This is TXT field
+    while(m_snd < m_obufend && (c = *txt++) != 0) {
+      *m_snd++ = c;
+      if(++tok_len == 255) {
         *tok_sz = tok_len;
-        if(tok_len == 0)
-            m_snd--; // Malformed domain name, like "mail...ya." - reduce to 1-dot
-      } else {
-        // Object domain label, set ERR msg and SERFFAL
-        const int msg_len = sizeof("Size-of--DomainLabel-->-63"); // including \0
-        strcpy((char *)tok_sz + 1, "Size-of--DomainLabel-->-63");
-        m_snd = tok_sz + msg_len + 1; // Set after trailing \0
-        *tok_sz = msg_len - 1; // Actual length, without trailing \0
-        m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
+        tok_sz = m_snd;
+        m_snd++;
+        tok_len = 0;
       }
-      tok_sz = m_snd - 1;
+    } // while - TXT field
+  } else {
+    // This is domain field
+    const char *errmsg = NULL;
+    while(m_snd < m_obufend && (c = *txt++) != 0) {
+     if(c == ':' && mxsz) { // split for MX only
+        mx_pri = atoi(txt);
+        break;
+      }
+      if(c == '.') {
+        if(tok_len == 0) {
+            errmsg = "MalformedEmptyDomain";
+            break;
+        }
+        *tok_sz = tok_len;
+        tok_sz = m_snd;
+        *m_snd++ = 0;
+        tok_len = 0;
+        continue;
+      }
+      *m_snd++ = c;
+       if(++tok_len == 64) {  // check for rfc1035 2.3.1 (label length)
+        errmsg = "SizeOfDomainLabelOver63";
+        break;
+      }
+    } // while - domain field
+    if(errmsg) {
+      tok_len = strlen(errmsg);
+      memcpy((char *)tok_sz + 1, errmsg, tok_len);
+      m_snd = tok_sz + 1 + tok_len;
+      m_hdr->Bits |= 2; // SERVFAIL - Server failed to complete the DNS request
     }
-  } while(c && m_snd < bufend);
+    // Terminate token chain with last 0,
+    // if not empty (empty will be below)
+    if(tok_len)
+        *m_snd++ = 0;
+  } // else - domain field
 
-  // Remove trailing \0 at end of text for TXT field
-  m_snd -= txtcor;
+  // Complete last tolen (empty, too)
+  *tok_sz = tok_len;
 
   uint16_t len = m_snd - snd0 - 2;
   *snd0++ = len >> 8;
