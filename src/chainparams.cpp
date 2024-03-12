@@ -195,8 +195,8 @@ public:
         vAlertPubKey = ParseHex("04e14603d29d0a051df1392c6256bb271ff4a7357260f8e2b82350ad29e1a5063d4a8118fa4cc8a0175cb45776e720cf4ef02cc2b160f5ef0144c3bb37ba3eea58");
         nDefaultPort = 6661;
         nPruneAfterHeight = 100000;
-        m_assumed_blockchain_size = 280;
-        m_assumed_chain_state_size = 4;
+        m_assumed_blockchain_size = 3; // 280;
+        m_assumed_chain_state_size = 1; // 4;
 
         genesis = CreateGenesisBlock(1386627289, 1386628033, 139946546, 0x1d00ffff, 1, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
@@ -295,8 +295,8 @@ public:
         pchMessageStart[3] = 0xef;
         nDefaultPort = 6663;
         nPruneAfterHeight = 1000;
-        m_assumed_blockchain_size = 30;
-        m_assumed_chain_state_size = 2;
+        m_assumed_blockchain_size  = 2; // 30;
+        m_assumed_chain_state_size = 1; // 2;
 
         genesis = CreateGenesisBlock(1386627290, 1386628036, 38942574, 0x1d0fffff, 1, 0);
         consensus.hashGenesisBlock = genesis.GetHash();
