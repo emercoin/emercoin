@@ -183,8 +183,10 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     m_last_block_weight = nBlockWeight;
 
     // Compute final coinbase transaction.
-    if (pblock->IsProofOfWork())
+    if (pblock->IsProofOfWork()) {
+        // Add quant protection here
         coinbaseTx.vout[0].nValue = GetProofOfWorkReward(pblock->nBits);
+    }
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());

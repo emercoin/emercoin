@@ -539,6 +539,26 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
     return true;
 }
 
+// emercoin: GetQuantProtection
+// This global function is used here within CreateCoinStake(),
+// and in the miner.cpp for generate AuxPOW block
+CAmount GetQuantProtection() {
+    CAmount nQuantProtection;
+    bool neg_quantprotection = false;
+    // We will process sign '-' here, for disable possible side effects, where is ParseMoney called somewhere else
+    const char *quantprotection_str = gArgs.GetArg("-quantprotection", "0").c_str();
+    while(*quantprotection_str && *quantprotection_str <= ' ')
+        quantprotection_str++;
+    if(*quantprotection_str == '-') {
+        neg_quantprotection = true; // wil be used as fixed value
+        quantprotection_str++;
+    }
+    if (!ParseMoney(quantprotection_str, nQuantProtection) || !MoneyRange(nQuantProtection))
+        nQuantProtection = 0;
+    // NEG - fixed P2PK amount
+    return neg_quantprotection? -nQuantProtection : nQuantProtection;
+}
+
 // ppcoin: create coin stake transaction
 typedef std::vector<unsigned char> valtype;
 bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew)
@@ -631,21 +651,7 @@ bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterv
     uint256HashMap<std::pair<CBlockHeader*, unsigned int> >::Data *pbo = NULL;
 
     int nSplitPos = gArgs.GetArg("-splitpos", 1); // 0=No Split, 1=RandSplit before 90d, -1=Principal+Reward
-    CAmount nQuantProtection;
-    bool neg_quantprotection = false;
-    // We will process sign '-' here, for disable possible side effects, where is ParseMoney called somewhere else
-    const char *quantprotection_str = gArgs.GetArg("-quantprotection", "0").c_str();
-    while(*quantprotection_str && *quantprotection_str <= ' ')
-        quantprotection_str++;
-    if(*quantprotection_str == '-') {
-        neg_quantprotection = true; // wil be used as fixed value
-        quantprotection_str++;
-    }
-    if (!ParseMoney(quantprotection_str, nQuantProtection) || !MoneyRange(nQuantProtection))
-        nQuantProtection = 0;
-    if(neg_quantprotection)
-        nQuantProtection = -nQuantProtection; // NEG - fixed P2PK amount
-
+    CAmount nQuantProtection = GetQuantProtection();
     time_t header_blocktime = 0;
 
     CScript scriptPubKeyOut; // For use in vout[1] for signing
@@ -834,7 +840,7 @@ bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterv
         if (!GetEmc7POSReward(CTransaction(txNew), view, nReward))
             return error("CreateCoinStake() : %s unable to get coin reward for coinstake", txNew.GetHash().ToString());
         if (nReward <= 10 * TX_DP_AMOUNT)
-            return false; // Prevent extra small UTXO
+            return false; // Prevent extra small reward
         nCredit += nReward;
     }
     CAmount nMinFee = 0;
@@ -847,7 +853,7 @@ bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterv
         nActualCredit -= nActualCreditTail;
         if(!MoneyRange(nActualCredit) || nActualCredit <= MIN_TXOUT_AMOUNT)
             return false; // Just sanity check
-        CAmount vout1_p2pk;
+        CAmount vout1_p2pk = 0;
         if(nQuantProtection != 0) {
             if(nQuantProtection < 0)
                 vout1_p2pk = -nQuantProtection; // Fixed value
@@ -867,8 +873,9 @@ bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterv
         if(nActualCredit > 0) {
             // Still exists some undisribuded balance
             if(nSplitPos == 0                       // Split is disabled by config
+                    || vout1_p2pk == nReward        // nSplitPos < 0 and all reward fit into p2pk
                     || vout1_p2pk > nCredit / 4     // Quart of the credit is already spent within QuantProtection
-                    || nCredit < nPoWReward         // Too few credit - allow to grow
+                    || nActualCredit < nPoWReward   // Too few credit - allow to grow
                     || header_blocktime + nStakeSplitAge < txNew.nTime // age > 90days
               ) {
                 // No split, single output
@@ -883,8 +890,11 @@ bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterv
                     txNew.vout.push_back(CTxOut(nActualCredit, scriptPubKeyOut));
             } else {
                 // Split remain amount
-                CAmount amount1 = (nActualCredit / 4 + GetRand(nActualCredit / 2)) / TX_DP_AMOUNT * TX_DP_AMOUNT;
+                CAmount amount1 = nSplitPos < 0? nReward : (nActualCredit / 4 + GetRand(nActualCredit / 2)) / TX_DP_AMOUNT * TX_DP_AMOUNT;
                 CAmount amount2 = nActualCredit - amount1;
+                if(amount2 <= 0) // Must not be happen, just check
+                        return error("CreateCoinStake : nActualCredit=%s amount1=%s amount2=%s",
+                                FormatMoney(nActualCredit), FormatMoney(amount1), FormatMoney(amount2));
                 if(nQuantProtection != 0) {
                     ReserveDestination reservedest(pwallet);
                     CTxDestination dest;
