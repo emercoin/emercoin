@@ -37,6 +37,8 @@
 
 int64_t nLastCoinStakeSearchInterval = 0;
 
+// Located in kernel.cpp
+extern CAmount GetQuantProtection();
 
 int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
@@ -185,8 +187,34 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     // Compute final coinbase transaction.
     if (pblock->IsProofOfWork()) {
         // Add quant protection here
-        coinbaseTx.vout[0].nValue = GetProofOfWorkReward(pblock->nBits);
+        CAmount nQuantProtection = GetQuantProtection();
+        CAmount nReward = GetProofOfWorkReward(pblock->nBits);
+        CAmount vout0;
+        if(nQuantProtection < 0)
+            vout0 = -nQuantProtection;
+        else
+        if(nQuantProtection > 0)
+            vout0 = GetRand(nQuantProtection) / TX_DP_AMOUNT * TX_DP_AMOUNT;
+        else
+            vout0 = nReward;
+
+        if(vout0 < MIN_TXOUT_AMOUNT)
+            vout0 = MIN_TXOUT_AMOUNT;
+        if(vout0 > nReward)
+            vout0 = nReward;
+
+        if(vout0 <= nReward - MIN_TXOUT_AMOUNT) {
+            ReserveDestination reservedest(pwallet);
+            CTxDestination dest;
+            if (reservedest.GetReservedDestination(OutputType::BECH32, dest, true)) {
+                coinbaseTx.vout.push_back(CTxOut(nReward - vout0, GetScriptForDestination(dest)));
+                reservedest.KeepDestination();
+            } else
+                vout0 = nReward; // Revert back enrire reward to p2pk
+        }
+        coinbaseTx.vout[0].nValue = vout0;
     }
+
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
