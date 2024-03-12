@@ -541,7 +541,7 @@ bool CheckStakeModifierCheckpoints(int nHeight, unsigned int nStakeModifierCheck
 
 // ppcoin: create coin stake transaction
 typedef std::vector<unsigned char> valtype;
-bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew)
+bool CreateCoinStake(CWallet* pwallet, unsigned int nBits, int64_t nSearchInterval, CMutableTransaction& txNew)
 {
     // Transaction index is required to get to block header
     if (!g_txindex)
@@ -559,11 +559,9 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     bnTargetPerCoinDay.SetCompact(nBits);
 
     txNew.vin.clear();
-    txNew.vout.clear();
     // Mark coin stake transaction
     CScript scriptEmpty;
     scriptEmpty.clear();
-    txNew.vout.push_back(CTxOut(0, scriptEmpty));
     // Choose coins to use
     CAmount nBalance = pwallet->GetBalance().m_mine_trusted;
     CAmount nReserveBalance = 0;
@@ -633,7 +631,24 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     uint256HashMap<std::pair<CBlockHeader*, unsigned int> >::Data *pbo = NULL;
 
     int nSplitPos = gArgs.GetArg("-splitpos", 1); // 0=No Split, 1=RandSplit before 90d, -1=Principal+Reward
+    CAmount nQuantProtection;
+    bool neg_quantprotection = false;
+    // We will process sign '-' here, for disable possible side effects, where is ParseMoney called somewhere else
+    const char *quantprotection_str = gArgs.GetArg("-quantprotection", "0").c_str();
+    while(*quantprotection_str && *quantprotection_str <= ' ')
+        quantprotection_str++;
+    if(*quantprotection_str == '-') {
+        neg_quantprotection = true; // wil be used as fixed value
+        quantprotection_str++;
+    }
+    if (!ParseMoney(quantprotection_str, nQuantProtection) || !MoneyRange(nQuantProtection))
+        nQuantProtection = 0;
+    if(neg_quantprotection)
+        nQuantProtection = -nQuantProtection; // NEG - fixed P2PK amount
 
+    time_t header_blocktime = 0;
+
+    CScript scriptPubKeyOut; // For use in vout[1] for signing
     for (auto pcoin = setCoins.begin(); pcoin != setCoins.end(); ) {
         uint256 tx_hash = pcoin->outpoint.hash;
         pbo = CacheBlockOffset.Search(tx_hash);
@@ -669,10 +684,10 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         CBlockHeader& header = *(pbo->value.first);
         unsigned int offset  = pbo->value.second;
 
-
         static int nMaxStakeSearchInterval = 60;
         // ORIG: if (header.GetBlockTime() + params.nStakeMinAge > txNew.nTime - nMaxStakeSearchInterval)
-        int not_mature_secs = header.GetBlockTime() + params.nStakeMinAge - (txNew.nTime - nMaxStakeSearchInterval);
+        header_blocktime = header.GetBlockTime();
+        int not_mature_secs = header_blocktime + params.nStakeMinAge - (txNew.nTime - nMaxStakeSearchInterval);
         if (not_mature_secs > 0) {
             if (not_mature_secs > 24 * 3600)
                 pcoin = setCoins.erase(pcoin); // Remove from setCoins cache very non-matured UTXO
@@ -701,7 +716,6 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 std::vector<valtype> vSolutions;
                 scriptPubKeyKernel = pcoin->txout.scriptPubKey;
                 txnouttype whichType = Solver(scriptPubKeyKernel, vSolutions);
-                CScript scriptPubKeyOut;
                 if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : parsed kernel type=%s\n", GetTxnOutputType(whichType));
 
@@ -760,9 +774,6 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 txNew.vin.push_back(CTxIn(pcoin->outpoint));
                 nCredit += pcoin->txout.nValue;
                 vtxPrev.push_back(tx);
-                txNew.vout.push_back(CTxOut(0, scriptPubKeyOut));
-                if ((nSplitPos < 0) || (nSplitPos && header.GetBlockTime() + nStakeSplitAge > txNew.nTime && nCredit > nPoWReward))
-                    txNew.vout.push_back(CTxOut(0, scriptPubKeyOut)); //split stake if (age < 90 && value > POW)
                 if (f_printcoinstake)
                     LogPrintf("CreateCoinStake : added kernel type=%s\n", GetTxnOutputType(whichType));
                 fKernelFound = true;
@@ -781,6 +792,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
     // - practically, it almost never happening
     // - dust is useful in DP TX optimizer
     // - after unpack p2sh/p2wsh scriptPubKeyKernel is changed, need control it
+    // ATTN - adrer reorg for quant protection, need update this code, if decide return bacl collect inputs
     for (const auto& pcoin : setCoins)
     {
         // Attempt to add more inputs
@@ -825,28 +837,83 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
             return false; // Prevent extra small UTXO
         nCredit += nReward;
     }
-
     CAmount nMinFee = 0;
     while(true)
     {
-        // Set output amount
-        if (txNew.vout.size() == 3)
-        {
-            if(nSplitPos < 0) {
-                txNew.vout[1].nValue = nReward;
-            } else {
-                CAmount vout1 = nCredit / 4 + GetRand(nCredit / 2);
-                txNew.vout[1].nValue = (vout1 / TX_DP_AMOUNT) * TX_DP_AMOUNT;
-            }
-            txNew.vout[2].nValue = nCredit - nMinFee - txNew.vout[1].nValue;
+        txNew.vout.clear();
+        txNew.vout.push_back(CTxOut(0, scriptEmpty)); // vout[0] - empty UTXO
+        CAmount nActualCredit = nCredit - nMinFee;
+        CAmount nActualCreditTail = nActualCredit % TX_DP_AMOUNT;
+        nActualCredit -= nActualCreditTail;
+        if(!MoneyRange(nActualCredit) || nActualCredit <= MIN_TXOUT_AMOUNT)
+            return false; // Just sanity check
+        CAmount vout1_p2pk;
+        if(nQuantProtection != 0) {
+            if(nQuantProtection < 0)
+                vout1_p2pk = -nQuantProtection; // Fixed value
+            else
+            if(nReward <= nQuantProtection && nSplitPos < 0)
+               vout1_p2pk = nReward; // Put entire reward, if possible
+            else
+               vout1_p2pk = GetRand(nQuantProtection) / TX_DP_AMOUNT * TX_DP_AMOUNT; // random
+            if(vout1_p2pk < MIN_TXOUT_AMOUNT)
+                vout1_p2pk = MIN_TXOUT_AMOUNT;
+            if(vout1_p2pk > nActualCredit)
+                vout1_p2pk = nActualCredit;
+            txNew.vout.push_back(CTxOut(vout1_p2pk, scriptPubKeyOut)); // set vout[1] P2PK for signing
+            nActualCredit -= vout1_p2pk;
         }
-        else
-            txNew.vout[1].nValue = nCredit - nMinFee;
+
+        if(nActualCredit > 0) {
+            // Still exists some undisribuded balance
+            if(nSplitPos == 0                       // Split is disabled by config
+                    || vout1_p2pk > nCredit / 4     // Quart of the credit is already spent within QuantProtection
+                    || nCredit < nPoWReward         // Too few credit - allow to grow
+                    || header_blocktime + nStakeSplitAge < txNew.nTime // age > 90days
+              ) {
+                // No split, single output
+                if(nQuantProtection != 0) {
+                    ReserveDestination reservedest(pwallet);
+                    CTxDestination dest;
+                    if (!reservedest.GetReservedDestination(OutputType::BECH32, dest, true))
+                        return error("CreateCoinStake : failed to get BECH32 address");
+                    txNew.vout.push_back(CTxOut(nActualCredit, GetScriptForDestination(dest)));
+                    reservedest.KeepDestination();
+                } else
+                    txNew.vout.push_back(CTxOut(nActualCredit, scriptPubKeyOut));
+            } else {
+                // Split remain amount
+                CAmount amount1 = (nActualCredit / 4 + GetRand(nActualCredit / 2)) / TX_DP_AMOUNT * TX_DP_AMOUNT;
+                CAmount amount2 = nActualCredit - amount1;
+                if(nQuantProtection != 0) {
+                    ReserveDestination reservedest(pwallet);
+                    CTxDestination dest;
+                    if (!reservedest.GetReservedDestination(OutputType::BECH32, dest, true))
+                        return error("CreateCoinStake : failed to get BECH32 address");
+                    txNew.vout.push_back(CTxOut(amount1, GetScriptForDestination(dest)));
+                    reservedest.KeepDestination();
+                    if (!reservedest.GetReservedDestination(OutputType::BECH32, dest, true))
+                        return error("CreateCoinStake : failed to get BECH32 address");
+                    txNew.vout.push_back(CTxOut(amount2, GetScriptForDestination(dest)));
+                    reservedest.KeepDestination();
+                } else {
+                    // Old style, split to same p2pk
+                    txNew.vout.push_back(CTxOut(amount1, scriptPubKeyOut));
+                    txNew.vout.push_back(CTxOut(amount2, scriptPubKeyOut));
+                }
+            }
+        } // if(nActualCredit > 0)
+
+        // apply tail to the UTXO with lowest amount
+        int best_found_ndx = 1; // Index 0 has no value
+        for(unsigned i = 2; i < txNew.vout.size(); i++)
+            if(txNew.vout[i].nValue < txNew.vout[best_found_ndx].nValue)
+                best_found_ndx = i;
+        txNew.vout[best_found_ndx].nValue += nActualCreditTail;
 
         // Sign
         int nIn = 0;
-        for (const CTransactionRef& tx : vtxPrev)
-        {
+        for (const CTransactionRef& tx : vtxPrev) {
             if (!SignSignature(*pwallet, *tx, txNew, nIn++, SIGHASH_ALL))
                 return error("CreateCoinStake : failed to sign coinstake");
         }
@@ -860,8 +927,8 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
         if (nMinFee < txNew.GetMinFee() - MIN_TX_FEE)
         {
             nMinFee = txNew.GetMinFee() - MIN_TX_FEE;
-        if(nMinFee > nCredit)
-              return error("CreateCoinStake : Unable to create: nMinFee > nCredit");
+            if(nMinFee > nCredit)
+                return error("CreateCoinStake : Unable to create: nMinFee > nCredit");
             continue; // try signing again
         }
         else
@@ -870,7 +937,7 @@ bool CreateCoinStake(const CWallet* pwallet, unsigned int nBits, int64_t nSearch
                 LogPrintf("CreateCoinStake : fee for coinstake %s\n", FormatMoney(nMinFee));
             break;
         }
-    }
+    } // while(true)
 
     // Successfully generated coinstake
     // Remove block reference from the cache

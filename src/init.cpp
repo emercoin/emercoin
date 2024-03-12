@@ -602,6 +602,7 @@ void SetupServerArgs()
     gArgs.AddArg("-printcoinstake", "Print to debug log coinstake kernel processing", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nametxoutamount", "Amount for attach to NameUTXO. By default, MIN_TX_AMOUNT=0.0001EMC", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-stuntimio", "Initial timeout for discover external IP by STUN, secs. -1=disabled; 0=request once at start; by default, 900s (15m)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-quantprotection", "Maximal random amount for P2PK UTXO in coinstake/coinbase TX; neg=fixed value", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // emcdns stuff
     gArgs.AddArg("-emcdns", "Enable emcdns (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
