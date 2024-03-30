@@ -87,7 +87,7 @@ class EmcDns {
     static void StatRun(void *p);
     int  HandlePacket();
     uint16_t HandleQuery();
-    int  Search(uint8_t *key);
+    int  Search(uint8_t *key, bool check_domain_sig);
     int  LocalSearch(const uint8_t *key, uint8_t pos, uint8_t step);
     int  Tokenize(const char *key, const char *sep2, char **tokens, char *buf);
     void Answer_ALL(uint16_t qtype, char *buf);

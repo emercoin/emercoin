@@ -66,6 +66,8 @@
 #define BUF_SIZE (2 * MAX_OUT)
 #define MAX_TOK  64	// Maximal TokenQty in the vsl_list, like A=IP1,..,IPn
 #define MAX_DOM  20	// Maximal domain level; min 10 is needed for NAPTR E164
+#define MAX_ENUM 40	// Maximal ENUM domain levels; min 10 is needed for NAPTR E164
+#define MAX_DOMTOKENS 40 // MAx of (MAX_DOM, MAX_ENUM)
 
 #define VAL_SIZE (MAX_VALUE_LENGTH + 16)
 #define DNS_PREFIX "dns"
@@ -303,7 +305,6 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
                  m_gw_suffix, m_gw_suf_len, m_gw_suffix_replace, m_gw_suf_dots);
     }
 
-
     // Create array of allowed TLD-suffixes
     if(allowed_len) {
       m_allowed_base = strcpy(varbufs + gw_suf_len + 1, allowed_suff);
@@ -314,34 +315,48 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 	  *p = pos = step = 0;
 	  continue;
 	}
-	if(c == '.' || c == '$' || c == '~') {
-	  *p = 64;
+        // Separator for allowed TLD definitions like:
+        // emcdnsallowed=40$enum|.coin|~freenum|!rus
+	if(c == '.' || c == '$' || c == '~' || c == '!') {
 	  if(p[1] > 040) { // if allowed domain is not empty - save it into ht
 	    step |= 1;
 	    do
 	      pos += step;
             while(m_ht_offset[pos] != 0);
 	    m_ht_offset[pos] = p + 1 - m_allowed_base;
-	    const char *dnstype = "DNS";
-	    if(c == '$' || c == '~') {
-	      m_ht_offset[pos] |= ENUM_FLAG;
-	      char *pp = p; // ref to $
-	      while(--pp >= m_allowed_base && *pp >= '0' && *pp <= '9');
-	      if(++pp < p)
-	        *p = atoi(pp);
-	      dnstype = "ENUM";
-              if(c == '~') {
-                  *p |= 0200; // Set flag signature-no-check (sigOK)
-                  dnstype = "~ENUM";
-              }
-	    }
-	    m_allowed_qty++;
+           const char *dnstype = NULL;
+            switch(c) {
+              case '.':
+                dnstype = "DNS-no-sig";
+                *p = 0200 | MAX_DOM; // Set flag signature-no-check (sigOK)
+                break;
+              case '!':
+                dnstype = "DNS-sig";
+                *p = MAX_DOM;
+                break;
+              case '~':
+                dnstype = "ENUM-no-sig";
+                *p = 0200 | MAX_ENUM; // Set flag signature-no-check (sigOK)
+                m_ht_offset[pos] |= ENUM_FLAG;
+                break;
+              case '$':
+                dnstype = "ENUM-sig";
+                *p = MAX_ENUM;
+                m_ht_offset[pos] |= ENUM_FLAG;
+                break;
+            } // switch
+            // Compute actual subdomain chain lenght
+            char *pp = p; // ref to $/./!/~
+            while(--pp >= m_allowed_base && *pp >= '0' && *pp <= '9');
+            if(++pp < p)
+              *p = (*p & 0200) | atoi(pp);
+            m_allowed_qty++;
 	    if(m_verbose > 1)
-	      LogPrintf("\tEmcDns::EmcDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p & 0177);
+	      LogPrintf("EmcDns::EmcDns: Insert %s TLD=%s:%u\n", dnstype, p + 1, *p & 0177);
 	  }
 	  pos = step = 0;
 	  continue;
-	}
+	} // domain char [.!$~]
         pos  = ((pos >> 7) | (pos << 1)) + c;
 	step = ((step << 5) - step) ^ c; // (step * 31) ^ c
       } // for
@@ -600,19 +615,19 @@ uint16_t EmcDns::HandleQuery() {
   // Decode qname
   uint8_t key[BUF_SIZE];				// Key, transformed to dot-separated LC
   uint8_t *key_end = key;
-  uint8_t *domain_ndx[MAX_DOM];				// indexes to domains
+  uint8_t *domain_ndx[MAX_DOMTOKENS];			// indexes to domains
   uint8_t **domain_ndx_p = domain_ndx;			// Ptr to the end
 
   // m_rcv is pointer to QNAME
   // Set reference to domain label
   m_label_ref = (m_rcv - m_buf) | 0xc000;
 
-  // Convert DNS request (QNAME) to dot-separated printed domaon name in LC
+  // Convert DNS request (QNAME) to dot-separated printed domain name in LC
   // Fill domain_ndx - indexes for domain entries
   uint8_t dom_len;
   while((dom_len = *m_rcv++) != 0) {
-    // wrong domain length | key too long, over BUF_SIZE | too many domains, max is MAX_DOM
-    if((dom_len & 0xc0) || key_end >= key + BUF_SIZE || domain_ndx_p >= domain_ndx + MAX_DOM)
+    // wrong domain length | key too long, over BUF_SIZE | too many domains, max is MAX_DOMTOKENS
+    if((dom_len & 0xc0) || key_end >= key + BUF_SIZE || domain_ndx_p >= domain_ndx + MAX_DOMTOKENS)
       return 1; // Invalid request
     *domain_ndx_p++ = key_end;
     do {
@@ -696,6 +711,7 @@ uint16_t EmcDns::HandleQuery() {
   if(p_tld != NULL && LocalSearch(key, pos0, step0) > 0)
     p_tld = NULL; // local search is OK, do not perform nameindex search
 
+  char maxlen_domchain = MAX_DOM | 0200; // default len=20, no SIG check
   // If local search is unsuccessful, try to search in the nameindex DB.
   if(p_tld) {
     if(step == 0) { // pure dotless name, like "coin"
@@ -709,7 +725,8 @@ uint16_t EmcDns::HandleQuery() {
           LogPrintf("EmcDns::HandleQuery: TLD-suffix=[.%s] is not specified in given key=%s; return NXDOMAIN\n", p_tld, key);
 	return 3; // TLD-suffix is not specified, so NXDOMAIN
       }
-      p_tld++; // Set PTR after dot, to the suffix
+      p_tld++; // Set PTR after dot, to the suffix lile .[coin]
+      const char *allowed_tld;
       do {
         pos += step;
         if(m_ht_offset[pos] == 0) {
@@ -717,24 +734,35 @@ uint16_t EmcDns::HandleQuery() {
   	    LogPrintf("EmcDns::HandleQuery: TLD-suffix=[.%s] in given key=%s is not allowed; return REFUSED\n", p_tld, key);
 	  return 5; // Reached EndOfList, so REFUSED
         }
-      } while(m_ht_offset[pos] < 0 || strcmp((const char *)p_tld, m_allowed_base + (m_ht_offset[pos] & ~ENUM_FLAG)) != 0);
+        allowed_tld = m_allowed_base + (m_ht_offset[pos] & ~ENUM_FLAG);
+      } while(m_ht_offset[pos] < 0 || strcmp((const char *)p_tld, allowed_tld) != 0);
 
-      // ENUM SPFUN works only if TLD-filter is active and if request NAPTR. Otherwise - NXDOMAIN
+      maxlen_domchain = allowed_tld[-1];
+      // ENUM SPFUN works only if TLD-filter is active and if requested NAPTR. Otherwise - NXDOMAIN
       if(m_ht_offset[pos] & ENUM_FLAG)
-        return qtype == 0x23? SpfunENUM(m_allowed_base[(m_ht_offset[pos] & ~ENUM_FLAG) - 1], domain_ndx, domain_ndx_p) : 3;
+        return qtype == 0x23? SpfunENUM(maxlen_domchain, domain_ndx, domain_ndx_p) : 3;
 
     } // if(m_allowed_qty)
+
+    bool check_domain_sig = !(maxlen_domchain & 0200);
+    maxlen_domchain &= ~0200; // Drop flag SigOK
+
+    // Is not needed, already checked when domain_ndx_p increased
+    if(domain_ndx_p - domain_ndx > maxlen_domchain) {
+      if(m_verbose > 0)
+        LogPrintf("EmcDns::HandleQuery: Requested domain [%s] has too long chain=%d, disallowed for TLD-suffix=[.%s] maxlen=%d; return REFUSED\n",
+                key, domain_ndx_p - domain_ndx, p_tld, maxlen_domchain);
+      return 5; // Too long subdomains chain, so REFUSED
+    }
 
     uint8_t **cur_ndx_p, **prev_ndx_p = domain_ndx_p - 2;
     if(prev_ndx_p < domain_ndx)
       prev_ndx_p = domain_ndx;
-
     // Search in the nameindex db. Possible to search filtered indexes, or even pure names, like "dns:www"
-
     bool step_next;
     do { // Search from up domain to down; start from 2-lvl, like www.[flibusta.lib]
       cur_ndx_p = prev_ndx_p;
-      if(Search(*cur_ndx_p) <= 0) { // Result saved into m_value
+      if(Search(*cur_ndx_p, check_domain_sig) <= 0) { // Result saved into m_value
 	CheckDAP(key, key - key_end, 240); // allowed 4 false searches for non-exists domain
 	return 3; // empty answer, not found, return NXDOMAIN
       }
@@ -753,10 +781,11 @@ uint16_t EmcDns::HandleQuery() {
       // if no way down - maybe, we can create REF-answer from NS-records
       if(step_next == false && TryMakeref(m_label_ref + (*cur_ndx_p - key)))
 	return 0;
-      // if cannot create REF - just ANSWER for parent domain (ignore prefix/subdomain)
+      // if cannot create REF - just ANSWER for 3rd+ subsomain domain (ignore prefix/subdomain)
+      check_domain_sig = false; // Do not check signatures for child subdomains
     } while(step_next);
 
-  } // if(p) - ends of DB search
+  } // if(p_tld) - ends of DB search
 
   char val2[VAL_SIZE];
   // There is generate ANSWER section
@@ -1175,9 +1204,9 @@ void EmcDns::Fill_RD_CAA(char *txt) {
 
 /*---------------------------------------------------*/
 
-int EmcDns::Search(uint8_t *key) {
+int EmcDns::Search(uint8_t *key, bool check_domain_sig) {
   if(m_verbose > 4)
-    LogPrintf("EmcDns::Search(%s)\n", key);
+    LogPrintf("EmcDns::Search(%s, check_domain_sig=%d)\n", key, check_domain_sig);
 
   string value;
   if (!hooks->getNameValue(string("dns:") + (const char *)key, value))
