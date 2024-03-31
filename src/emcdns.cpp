@@ -1234,7 +1234,7 @@ int EmcDns::Search(uint8_t *key, bool check_domain_sig) {
         // Extract signature to m_value
         memcpy(m_value, value.c_str() + sig_begin, sig_end - sig_begin);
         m_value[sig_end - sig_begin] = 0; // EOLN for signature in the buffer
-      } while(!CheckEnumSig(search_key, m_value, '!'));
+      } while(!CheckEnumSigList(search_key, m_value, '!'));
   } else {
       // No sigcheck search
       snprintf(search_key, sizeof(search_key), DNS_PREFIX ":%s", (const char *)key);
@@ -1435,7 +1435,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
 
 	case ENC3('s', 'i', 'g'):
 	  if(!sigOK)
-	    sigOK = CheckEnumSig(q_str, strchr(tok + 3, '='), '|');
+	    sigOK = CheckEnumSigList(q_str, strchr(tok + 3, '='), '|');
 	  continue;
 
 	default:
@@ -1504,11 +1504,27 @@ void EmcDns::HandleE2U(char *e2u) {
 } //  EmcDns::HandleE2U
 
 /*---------------------------------------------------*/
+bool EmcDns::CheckEnumSigList(const char *q_str, char *siglist_str, char sig_separ) {
+    char *comma_ptr;
+    do {
+      comma_ptr = strchr(siglist_str, ',');
+      if(comma_ptr)
+        *comma_ptr = 0; // Deploy EOLN over the comma (sigs separator)
+      if(CheckEnumSig(q_str, siglist_str, sig_separ))
+        return true;
+    } while((siglist_str = comma_ptr) != 0);
+    return false;
+} // EmcDns::CheckEnumSigList
+
+/*---------------------------------------------------*/
+// q_str is DNS name, like "enum:17771234567:0" or "dns:signed.sig:0"
+// sig_str is &signature[-1], i.e. 1st char will be skipped
+// sig_separ is '|' for ENUM and '!' for DNS
 bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     if(sig_str == NULL)
       return false;
 
-    // skip SP/TABs in signature
+    // skip 1st char (including EOLN) and SP/TABs in signature
     while(*++sig_str <= ' ');
 
     char *signature = strchr(sig_str, sig_separ);
@@ -1625,7 +1641,7 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     char valbuf[VAL_SIZE];
 
     // Compute a simple hash from q_str like enum:17771234567:0
-    // This hasu must be used by verifiyers for build buckets
+    // This hash must be used by verifiyers for build buckets
     unsigned h = 0x5555;
     for(const char *p = q_str; *p; p++)
 	h += (h << 5) + *p;
