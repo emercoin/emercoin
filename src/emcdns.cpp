@@ -1208,9 +1208,39 @@ int EmcDns::Search(uint8_t *key, bool check_domain_sig) {
   if(m_verbose > 4)
     LogPrintf("EmcDns::Search(%s, check_domain_sig=%d)\n", key, check_domain_sig);
 
+  char search_key[BUF_SIZE];
   string value;
-  if (!hooks->getNameValue(string("dns:") + (const char *)key, value))
-    return 0;
+  if(check_domain_sig) {
+      // Search iteration with sigcheck
+      if(m_verifiers.empty())
+          return 0; // Cannot check any signature without verifiers list
+      // Iterate over query numbers, start from 0, up to 32K
+      int16_t qno = -1;
+      do {
+        if(++qno < 0)
+          return 0; // Exhaust 32K attempts, stop search, return nothing
+        snprintf(search_key, sizeof(search_key), DNS_PREFIX ":%s:%d", (const char *)key, qno);
+        if(m_verbose > 4)
+            LogPrintf("EmcDns::SIG-Search(%s)\n", search_key);
+        if(!hooks->getNameValue(string(search_key), value))
+            return 0; // Record not found, stop search, NXDOMAIN
+        size_t sig_begin = value.find("SIG=");
+        if(sig_begin == std::string::npos)
+            continue; // No signature in this DNS record
+        sig_begin += 3; // step over "SIG", set ptr to "=" after SIG
+        size_t sig_end = value.find((value[0] == '~')? value[1] : '|', sig_begin);
+        if(sig_end == std::string::npos)
+            sig_end = value.length();
+        // Extract signature to m_value
+        memcpy(m_value, value.c_str() + sig_begin, sig_end - sig_begin);
+        m_value[sig_end - sig_begin] = 0; // EOLN for signature in the buffer
+      } while(!CheckEnumSig(search_key, m_value, '!'));
+  } else {
+      // No sigcheck search
+      snprintf(search_key, sizeof(search_key), DNS_PREFIX ":%s", (const char *)key);
+      if (!hooks->getNameValue(string(search_key), value))
+          return 0; // Record not found, stop search, NXDOMAIN
+  }
 
   strcpy(m_value, value.c_str());
   return 1;
@@ -1405,7 +1435,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
 
 	case ENC3('s', 'i', 'g'):
 	  if(!sigOK)
-	    sigOK = CheckEnumSig(q_str, strchr(tok + 3, '='));
+	    sigOK = CheckEnumSig(q_str, strchr(tok + 3, '='), '|');
 	  continue;
 
 	default:
@@ -1474,14 +1504,14 @@ void EmcDns::HandleE2U(char *e2u) {
 } //  EmcDns::HandleE2U
 
 /*---------------------------------------------------*/
-bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str) {
+bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     if(sig_str == NULL)
       return false;
 
     // skip SP/TABs in signature
     while(*++sig_str <= ' ');
 
-    char *signature = strchr(sig_str, '|');
+    char *signature = strchr(sig_str, sig_separ);
     if(signature == NULL)
       return false;
 

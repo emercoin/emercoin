@@ -102,7 +102,7 @@ class EmcDns {
     // Generate answewr for found EMUM NVS record
     void Answer_ENUM(const char *q_str, bool sigOK);
     void HandleE2U(char *e2u);
-    bool CheckEnumSig(const char *q_str, char *sig_str);
+    bool CheckEnumSig(const char *q_str, char *sig_str, char sig_separ);
     void AddTF(char *tf_tok);
     bool CheckDAP(void *key, int len, uint16_t inctemp);
 
