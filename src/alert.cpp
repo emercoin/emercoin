@@ -119,7 +119,7 @@ bool CAlert::AppliesTo(int nVersion, const std::string& strSubVerIn) const
 
 bool CAlert::AppliesToMe() const
 {
-    return AppliesTo(PROTOCOL_VERSION, FormatSubVersion(CLIENT_NAME, EMERCOIN_VERSION, std::vector<std::string>()));
+    return AppliesTo(EMERCOIN_VERSION, FormatSubVersion(CLIENT_NAME, EMERCOIN_VERSION, std::vector<std::string>()));
 }
 
 bool CAlert::RelayTo(CNode* pnode) const
@@ -132,10 +132,7 @@ bool CAlert::RelayTo(CNode* pnode) const
     // returns true if wasn't already contained in the set
     if (pnode->setKnown.insert(GetHash()).second)
     {
-        if (AppliesTo(pnode->nVersion, pnode->cleanSubVer) ||
-            AppliesToMe() ||
-            GetAdjustedTime() < nRelayUntil)
-        {
+        if (GetAdjustedTime() < nRelayUntil) {
             if (g_connman)
                 g_connman->PushMessage(pnode, CNetMsgMaker(pnode->GetSendVersion()).Make(NetMsgType::ALERT, *this));
             return true;
@@ -230,15 +227,16 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
             }
         }
 
-        // Add to mapAlerts
-        mapAlerts.insert(make_pair(GetHash(), *this));
-        // Notify UI and -alertnotify if it applies to me
-        if(AppliesToMe())
-        {
-            uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
-            AlertNotify(strStatusBar, false);
+        if(nCancel < nID) {
+            // Add to mapAlerts
+            mapAlerts.insert(make_pair(GetHash(), *this));
+            // Notify UI and -alertnotify if it applies to me
+            if(AppliesToMe()) {
+                uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
+                AlertNotify(strStatusBar, false);
+            }
         }
-    }
+    } // Lock
 
     LogPrint(BCLog::ALERT, "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
     return true;

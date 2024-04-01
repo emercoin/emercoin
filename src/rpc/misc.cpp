@@ -592,6 +592,7 @@ UniValue sendalert(const JSONRPCRequest& request)
         {"privatekey", RPCArg::Type::STR, RPCArg::Optional::NO, "Hex string of alert master private key"},
         {"minver", RPCArg::Type::NUM, RPCArg::Optional::NO, "Minimum applicable internal client version"},
         {"maxver", RPCArg::Type::NUM, RPCArg::Optional::NO, "Maximum applicable internal client version"},
+        {"priority", RPCArg::Type::NUM, RPCArg::Optional::NO, "Alert peiority; Safe mode > 1000"},
         {"id", RPCArg::Type::NUM, RPCArg::Optional::NO, "Alert id"},
         {"cancelupto", RPCArg::Type::NUM, /* default */ "0", "Cancels all alert id's up to this number"},
     },
