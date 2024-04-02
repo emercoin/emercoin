@@ -219,7 +219,7 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
                 mi++;
         }
 
-        // Check if this alert has been cancelled
+        // Check if this alert has been cancelled (alert comes too late)
         for (const auto& item : mapAlerts)
         {
             const CAlert& alert = item.second;
@@ -230,9 +230,9 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
             }
         }
         applied_to_me = AppliesToMe();
+        if(nCancel < nID)
+            mapAlerts.insert(make_pair(GetHash(), *this)); // Add to mapAlerts
         if(applied_to_me) {
-            if(nCancel < nID)
-                mapAlerts.insert(make_pair(GetHash(), *this)); // Add to mapAlerts
             // Notify UI and -alertnotify if it applies to me
             uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
             AlertNotify(strStatusBar, false);
