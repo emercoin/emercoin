@@ -113,13 +113,15 @@ bool CAlert::AppliesTo(int nVersion, const std::string& strSubVerIn) const
 {
     // TODO: rework for client-version-embedded-in-strSubVer ?
     return (IsInEffect() &&
-            nMinVer <= nVersion && nVersion <= nMaxVer &&
-            (setSubVer.empty() || setSubVer.count(strSubVerIn)));
+            nMinVer <= nVersion && nVersion <= nMaxVer);
+    // oleg - ignored - &&  (setSubVer.empty() || setSubVer.count(strSubVerIn)));
 }
 
 bool CAlert::AppliesToMe() const
 {
-    return AppliesTo(EMERCOIN_VERSION, FormatSubVersion(CLIENT_NAME, EMERCOIN_VERSION, std::vector<std::string>()));
+    return AppliesTo(EMERCOIN_VERSION, "");
+    // oleg - commented unused
+    // return AppliesTo(EMERCOIN_VERSION, FormatSubVersion(CLIENT_NAME, EMERCOIN_VERSION, std::vector<std::string>()));
 }
 
 bool CAlert::RelayTo(CNode* pnode) const
@@ -194,6 +196,7 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
             return false;
     }
 
+    bool applied_to_me = false;
     {
         LOCK(cs_mapAlerts);
         // Cancel previous alerts
@@ -226,18 +229,16 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
                 return false;
             }
         }
-
-        if(nCancel < nID) {
-            // Add to mapAlerts
-            mapAlerts.insert(make_pair(GetHash(), *this));
+        applied_to_me = AppliesToMe();
+        if(applied_to_me) {
+            if(nCancel < nID)
+                mapAlerts.insert(make_pair(GetHash(), *this)); // Add to mapAlerts
             // Notify UI and -alertnotify if it applies to me
-            if(AppliesToMe()) {
-                uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
-                AlertNotify(strStatusBar, false);
-            }
+            uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
+            AlertNotify(strStatusBar, false);
         }
     } // Lock
 
-    LogPrint(BCLog::ALERT, "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
+    LogPrint(BCLog::ALERT, "accepted alert %d, AppliesToMe()=%d\n", nID, applied_to_me);
     return true;
 }

@@ -1218,10 +1218,30 @@ BlockMap& BlockIndex()
     return g_blockman.m_block_index;
 }
 
+static void HighestAlertToWarnings() {
+    int nPriority = 0;
+    CAlert highestPriorityAlert;
+    {
+        LOCK(cs_mapAlerts);
+        for (const auto& item : mapAlerts) {
+            const CAlert& alert = item.second;
+            if (alert.AppliesToMe() && alert.nPriority > nPriority) {
+                nPriority = alert.nPriority;
+                highestPriorityAlert = alert;
+            }
+        }
+    }
+    if (!highestPriorityAlert.IsNull())
+        SetAlertWarning(std::make_pair(highestPriorityAlert.strStatusBar, highestPriorityAlert.nPriority));
+    else
+        SetAlertWarning(std::make_pair("", 0));
+}
+
 void AlertNotify(const std::string& strMessage, bool fUpdateUI)
 {
     if (fUpdateUI)
         uiInterface.NotifyAlertChanged(uint256(), CT_UPDATED); // emercoin: we are using arguments that will have no effects in updateAlert()
+    HighestAlertToWarnings();
 #if HAVE_SYSTEM
     std::string strCmd = gArgs.GetArg("-alertnotify", "");
     if (strCmd.empty()) return;
@@ -1289,21 +1309,7 @@ static void CheckForkWarningConditions() EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         SetfhashInvalidCheckpoint(true);
     else
         SetfhashInvalidCheckpoint(false);
-
-    int nPriority = 0;
-    CAlert highestPriorityAlert;
-    {
-        LOCK(cs_mapAlerts);
-        for (const auto& item : mapAlerts) {
-            const CAlert& alert = item.second;
-            if (alert.AppliesToMe() && alert.nPriority > nPriority) {
-                nPriority = alert.nPriority;
-                highestPriorityAlert = alert;
-            }
-        }
-    }
-    if (highestPriorityAlert.strStatusBar != "")
-        SetAlertWarning(std::make_pair(highestPriorityAlert.strStatusBar, highestPriorityAlert.nPriority));
+    HighestAlertToWarnings();
 }
 
 static void CheckForkWarningConditionsOnNewFork(CBlockIndex* pindexNewForkTip) EXCLUSIVE_LOCKS_REQUIRED(cs_main)

@@ -621,11 +621,12 @@ UniValue sendalert(const JSONRPCRequest& request)
     alert.nMaxVer = request.params[3].get_int();
     alert.nPriority = request.params[4].get_int();
     alert.nID = request.params[5].get_int();
-    if (request.params.size() > 6)
-        alert.nCancel = request.params[6].get_int();
+    // By default, cleanup alerts up to current
+    if(alert.nID == 0)
+        alert.nID = 1; // 0 is not allowed
+    alert.nCancel = (request.params.size() > 6)? request.params[6].get_int() : alert.nID - 1;
     alert.nVersion = PROTOCOL_VERSION;
-    alert.nRelayUntil = GetAdjustedTime() + 365*24*60*60;
-    alert.nExpiration = GetAdjustedTime() + 365*24*60*60;
+    alert.nRelayUntil = alert.nExpiration = GetAdjustedTime() + 365*24*60*60;
 
     CDataStream sMsg(SER_NETWORK, PROTOCOL_VERSION);
     sMsg << (CUnsignedAlert)alert;
