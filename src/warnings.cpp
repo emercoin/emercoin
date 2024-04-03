@@ -54,7 +54,7 @@ std::string GetWarnings(const std::string& strFor)
     // ppcoin: should not enter safe mode for longer invalid chain
     //         if sync-checkpoint is too old do not enter safe mode
     if (fCheckpointIsTooOld) {
-        nPriority = 100;
+        nPriority = 500;
         strStatusBar = "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers of the issue.";
         strGUI = (strGUI.empty() ? "" : uiAlertSeperator) + "WARNING: Checkpoint is too old. Wait for block chain to download, or notify developers of the issue.";
     }
@@ -62,7 +62,7 @@ std::string GetWarnings(const std::string& strFor)
     // Misc warnings like out of disk space and clock is wrong
     if (strMiscWarning != "")
     {
-        nPriority = 1000;
+        nPriority = 900;
         strStatusBar = strMiscWarning;
         strGUI += (strGUI.empty() ? "" : uiAlertSeperator) + strMiscWarning;
     }
@@ -89,9 +89,10 @@ std::string GetWarnings(const std::string& strFor)
     if (alertWarning.first != "" && alertWarning.second > nPriority) {
         nPriority = alertWarning.second;
         strStatusBar = strGUI = alertWarning.first;
-        if (nPriority > 1000)
-            strRPC = strStatusBar;  // ppcoin: safe mode for high alert
     }
+
+    if (nPriority > 1000)
+        strRPC = strStatusBar;  // ppcoin: safe mode for high alert
 
     if (strFor == "gui")
         return strGUI;
