@@ -194,6 +194,10 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
                 strStatusBar == "URGENT: Alert key compromised, upgrade required"
                 ))
             return false;
+    } else
+    if(nPriority > maxInt - 100) {
+        LogPrint(BCLog::ALERT, "malformed alert %d, priority too high %d\n", nID, nPriority);
+        return false;
     }
 
     bool applied_to_me = false;
@@ -228,10 +232,29 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
                 LogPrint(BCLog::ALERT, "alert already cancelled by %d\n", alert.nID);
                 return false;
             }
-        }
+        } // for
         applied_to_me = AppliesToMe();
-        if(nCancel < nID)
-            mapAlerts.insert(make_pair(GetHash(), *this)); // Add to mapAlerts
+        if(nCancel < nID) {
+            // MAX size is 64M
+            if(mapAlerts.size() < 1000 || nID == maxInt)
+                mapAlerts.insert(make_pair(GetHash(), *this)); // Add to mapAlerts
+            else {
+                // Alert map too load, reached 1000 entries!
+                // Seems like alert key is compromised, and evil try to exhaust memory on peers
+                // by generating lot of differrent alert messages.
+                // In this case, we create synthetic alert for LOCAL USING ONLY.
+                // We will add it into mapAlerts, but do not broadcast to a peers.
+                // With such high priority, the wallet go to save mode.
+                CAlert over1K;
+                // There we using "maxInt - 1" to allow special forever alert "Key compromised"
+                over1K.nID = over1K.nPriority = over1K.nExpiration = maxInt - 1;
+                over1K.strStatusBar = "URGENT: Alert map overflow, upgrade required";
+                mapAlerts.insert(make_pair(over1K.GetHash(), over1K)); // Add to mapAlerts
+                uiInterface.NotifyAlertChanged(over1K.GetHash(), CT_NEW);
+                AlertNotify(over1K.strStatusBar, false);
+                return false;
+            }
+        }
         if(applied_to_me) {
             // Notify UI and -alertnotify if it applies to me
             uiInterface.NotifyAlertChanged(GetHash(), CT_NEW);
