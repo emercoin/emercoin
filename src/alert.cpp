@@ -249,6 +249,7 @@ bool CAlert::ProcessAlert(const std::vector<unsigned char>& alertKey)
                 // There we using "maxInt - 1" to allow special forever alert "Key compromised"
                 over1K.nID = over1K.nPriority = over1K.nExpiration = maxInt - 1;
                 over1K.strStatusBar = "URGENT: Alert map overflow, upgrade required";
+                mapAlerts.clear();
                 mapAlerts.insert(make_pair(over1K.GetHash(), over1K)); // Add to mapAlerts
                 uiInterface.NotifyAlertChanged(over1K.GetHash(), CT_NEW);
                 AlertNotify(over1K.strStatusBar, false);
