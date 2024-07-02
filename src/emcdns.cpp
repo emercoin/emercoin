@@ -1618,6 +1618,10 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     while(*signature <= 040 && *signature)
       signature++;
 
+    char *sig_end = strchr(signature, 0);
+    while(*--sig_end <= 040)
+        *sig_end = 0; // Cut SP\n\r at signature end
+
     bool fInvalid = false;
     vector<unsigned char> vchSig(DecodeBase64(signature, &fInvalid));
 
