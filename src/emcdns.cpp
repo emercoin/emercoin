@@ -1412,6 +1412,10 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
 /*---------------------------------------------------*/
 // Generate answewr for found EMUM NVS record
 void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
+  // DIG checks NAPTR answer for regex, and prints error, if undef variable applied:
+  // BAD: strcpy(m_value, "SIG=ver:enum|H+P0LucJJVRbPhKWotFS2Zr5o40501M4U1SmZ6ClDXUnBY6oQg1k9Kk+J+iLFcZ/FbUTk/rbt/169GtPt7vdTDY=\nE2U+sip=100|11|!^.*$!sip:\\1@postmet.com!");
+  // GOOD strcpy(m_value, "SIG=ver:enum|H+P0LucJJVRbPhKWotFS2Zr5o40501M4U1SmZ6ClDXUnBY6oQg1k9Kk+J+iLFcZ/FbUTk/rbt/169GtPt7vdTDY=\nE2U+sip=100|11|!^(.)*$!sip:\\1@postmet.com!");
+  // GOOD strcpy(m_value, "SIG=ver:enum|H+P0LucJJVRbPhKWotFS2Zr5o40501M4U1SmZ6ClDXUnBY6oQg1k9Kk+J+iLFcZ/FbUTk/rbt/169GtPt7vdTDY=\nE2U+sip=100|11|!^.*$!sip:\\\\1@postmet.com!");
   char *str_val = m_value;
   const char *pttl;
   char *e2u[VAL_SIZE / 4]; // 20kb max input, and min 4 bytes per token
