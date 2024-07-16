@@ -322,7 +322,8 @@ void MintingTableModel::updateTransaction(const QString &hash, int status)
     updated.SetHex(hash.toStdString());
 
     priv->updateWallet(updated, status);
-    mintingProxyModel->invalidate(); // Force deletion of empty rows
+    if(mintingProxyModel != NULL)
+        mintingProxyModel->invalidate(); // Force deletion of empty rows
 }
 
 void MintingTableModel::updateAge()

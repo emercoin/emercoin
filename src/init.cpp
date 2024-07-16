@@ -1969,7 +1969,7 @@ bool AppInitMain(InitInterfaces& interfaces)
     }, DUMP_BANS_INTERVAL * 1000);
 
     // Generate coins in the background
-    if (GetWallets()[0] && gArgs.GetBoolArg("-stakegen", true))
+    if (HasWallets() && gArgs.GetBoolArg("-stakegen", true))
         threadGroup.create_thread(std::bind(&ThreadStakeMinter, GetWallets()[0]));
 #if POW_MINING
     GenerateEmercoins(gArgs.GetBoolArg("-gen", DEFAULT_GENERATE),gArgs.GetArg("-genproclimit", DEFAULT_GENERATE_THREADS), chainparams);
