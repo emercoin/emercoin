@@ -19,6 +19,9 @@
 #include <qt/transactionview.h>
 #include <qt/walletmodel.h>
 
+
+#include <wallet/wallet.h> // For GetWallets
+
 #include <qt/managenamespage.h>
 #include <qt/mintingview.h>
 
@@ -130,6 +133,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 
         // emercoin:
         connect(gui->labelWalletEncryptionIcon, SIGNAL(clicked(QPoint)), this, SLOT(on_labelWalletEncryptionIcon_clicked()));
+        walletFrame = gui->GetWalletFrame();
     }
 }
 
@@ -371,12 +375,19 @@ void WalletView::on_labelWalletEncryptionIcon_clicked()
 {
     if (!walletModel)
         return;
+    assert(walletFrame != NULL);
+    // Lock/Unlock only current wallet
+    if(walletFrame->currentWalletView() != this)
+        return;
 
     if (walletModel->getEncryptionStatus() == WalletModel::Unlocked)
     {
-        strMintWarning = "Info: Minting suspended due to locked wallet.";
         walletModel->setWalletLocked(true);
-        Q_EMIT clientModel->alertsChanged(clientModel->getStatusBarWarnings());
+        if(walletModel->wallet().getWallet() == GetWallets()[0]) {
+            // Generate info for default wallet only
+            strMintWarning = "Info: Minting suspended due to locked wallet.";
+            Q_EMIT clientModel->alertsChanged(clientModel->getStatusBarWarnings());
+        }
     }
     else
     {

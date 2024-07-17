@@ -5,6 +5,7 @@
 #pragma once
 
 #include <amount.h>
+#include <qt/walletframe.h>
 
 #include <QStackedWidget>
 
