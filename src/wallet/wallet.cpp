@@ -159,6 +159,18 @@ void UnloadWallet(std::shared_ptr<CWallet>&& wallet)
 
 std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocation& location, std::string& error, std::string& warning)
 {
+    // Setup change address
+    const std::string changeaddr(gArgs.GetArg("-changeaddress", ""));
+    if(!changeaddr.empty()) {
+        s_changeAddr = DecodeDestination(changeaddr);
+        if(!IsValidDestination(s_changeAddr)) {
+            error = "Invalid change address";
+            return nullptr;
+        }
+    }
+  // Adopted wallet-dup fix from:
+  // https://github.com/bitcoin/bitcoin/commit/ee9e88ba2734b81d0ffe23fd45c4f69a970c6494
+  try {
     if (!CWallet::Verify(chain, location, false, error, warning)) {
         error = "Wallet file verification failed: " + error;
         return nullptr;
@@ -171,16 +183,11 @@ std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const WalletLocati
     }
     AddWallet(wallet);
     wallet->postInitProcess();
-    // Setup change address
-    const std::string changeaddr(gArgs.GetArg("-changeaddress", ""));
-    if(!changeaddr.empty()) {
-        s_changeAddr = DecodeDestination(changeaddr);
-        if(!IsValidDestination(s_changeAddr)) {
-            error = "Invalid change address";
-            return nullptr;
-        }
-    }
     return wallet;
+  } catch (const std::runtime_error& e) {
+    error = std::string("Wallet ignored due to duplicate fileid: ") + e.what();
+    return nullptr;
+  }
 }
 
 std::shared_ptr<CWallet> LoadWallet(interfaces::Chain& chain, const std::string& name, std::string& error, std::string& warning)

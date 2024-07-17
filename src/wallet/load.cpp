@@ -65,6 +65,9 @@ bool VerifyWallets(interfaces::Chain& chain, const std::vector<std::string>& wal
 
 bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& wallet_files)
 {
+  // Adopted wallet-dup fix from:
+  // https://github.com/bitcoin/bitcoin/commit/ee9e88ba2734b81d0ffe23fd45c4f69a970c6494
+  try {
     for (const std::string& walletFile : wallet_files) {
         std::shared_ptr<CWallet> pwallet = CWallet::CreateWalletFromFile(chain, WalletLocation(walletFile));
         if (!pwallet) {
@@ -72,8 +75,10 @@ bool LoadWallets(interfaces::Chain& chain, const std::vector<std::string>& walle
         }
         AddWallet(pwallet);
     }
-
     return true;
+  } catch (const std::runtime_error& e) {
+    return false;
+  }
 }
 
 void StartWallets(CScheduler& scheduler)
