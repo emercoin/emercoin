@@ -1249,7 +1249,7 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
     std::vector<CScript> vNameScript;
 
     // This TX will be convertee to TxRef, and passed to CreateTransaction.
-    // Vinst of this TX will ve used for add to nameTX vins for spend name coins
+    // Vins of this TX will be used for add to nameTX vins for spend name coins
     CMutableTransaction tmpTx;
     tmpTx.nVersion = NAMECOIN_TX_VERSION;
 
