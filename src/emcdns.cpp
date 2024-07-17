@@ -106,10 +106,11 @@ int inet_pton(int af, const char *src, void *dst)
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
   if(size > 16) size = 16;
   uint8_t *p = (uint8_t *)src;
+  const char *rc = dst;
   while(size--)
     dst += sprintf(dst, "%02x:", *p++);
   dst[-1] = 0;
-  return dst;
+  return rc;
 }
 
 char *strsep(char **s, const char *ct)
