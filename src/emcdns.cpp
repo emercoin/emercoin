@@ -109,6 +109,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
   while(size--)
     dst += sprintf(dst, "%02x:", *p++);
   dst[-1] = 0;
+  return dst;
 }
 
 char *strsep(char **s, const char *ct)
