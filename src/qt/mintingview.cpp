@@ -20,7 +20,8 @@
 #include <QVBoxLayout>
 
 MintingView::MintingView(QWidget *parent) :
-    QWidget(parent), model(0), mintingView(0)
+    QWidget(parent), model(0), mintingView(0),
+    mintingProxyModel(NULL)
 {
     QHBoxLayout *hlayout = new QHBoxLayout();
     hlayout->setContentsMargins(0,0,0,0);

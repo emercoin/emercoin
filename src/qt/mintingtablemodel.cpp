@@ -289,6 +289,7 @@ MintingTableModel::MintingTableModel(WalletModel *parent) :
         walletModel(parent),
         mintingInterval(60*24),
         priv(new MintingTablePriv(walletModel, this)),
+        mintingProxyModel(NULL),
         cachedNumBlocks(0)
 {
 	for(int i = 0; i<ColCount; ++i)
