@@ -637,6 +637,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
 
     std::string strMintMessage = "Info: Minting suspended due to locked wallet.";
 
+    std::shared_ptr<CWallet> pwallet_prev = pwallet;
     try {
         while (true) {
             bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
@@ -648,6 +649,12 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                 stun_next_request = now + stun_timio_us;
             }
             rc4ok_addentropy(bswap_16(now)); // For value other than in the Logger
+            pwallet = GetWallets()[0];
+            if(pwallet != pwallet_prev) {
+                if(pwallet_prev->m_nCommitCnt == pwallet->m_nCommitCnt)
+                    pwallet->m_nCommitCnt++; // Force to drop PoS cache
+                pwallet_prev = pwallet;
+            }
             if(pwallet->IsLocked()) {
                 if (strMintWarning != strMintMessage) {
                     strMintWarning = strMintMessage;

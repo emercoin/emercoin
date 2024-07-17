@@ -373,9 +373,8 @@ extern std::string strMintWarning;
 
 void WalletView::on_labelWalletEncryptionIcon_clicked()
 {
-    if (!walletModel)
+    if (!walletModel || !walletFrame)
         return;
-    assert(walletFrame != NULL);
     // Lock/Unlock only current wallet
     if(walletFrame->currentWalletView() != this)
         return;
