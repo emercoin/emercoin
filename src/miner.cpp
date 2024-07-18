@@ -734,13 +734,13 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
     } // try
     catch (boost::thread_interrupted)
     {
-        LogPrintf("EmercoinMiner terminated\n");
+        LogPrintf("Emercoin PoSMiner terminated\n");
         return;
         // throw;
     }
     catch (const std::runtime_error &e)
     {
-        LogPrintf("EmercoinMiner runtime error: %s\n", e.what());
+        LogPrintf("Emercoin PoSMiner runtime error: %s\n", e.what());
         return;
     }
 }
@@ -748,9 +748,11 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
 // ppcoin: stake minter thread
 void ThreadStakeMinter(std::shared_ptr<CWallet> pwallet)
 {
-    LogPrintf("ThreadStakeMinter started\n");
     try
     {
+        // Decrease PoS minter priority for this thread only
+        ScheduleBatchPriority();
+        LogPrintf("ThreadStakeMinter started\n");
         PoSMiner(pwallet);
     }
     catch (std::exception& e) {
