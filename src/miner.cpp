@@ -620,6 +620,8 @@ CWallet *g_LastWalletView = NULL;
 
 static std::shared_ptr<CWallet> getCurrentWallet() {
     std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
+    if(wallets.empty())
+        return NULL;
     if(g_LastWalletView != 0)
         for(auto w : wallets)
             if(w.get() == g_LastWalletView)
@@ -635,23 +637,16 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
     unsigned int nExtraNonce = 0;
 
     CScript no_dest_script; // Dummy script for COINBASE TX in minted block
-    // Compute timeout for pos as sqrt(numUTXO)
-    unsigned int pos_timio;
-    {
-        std::vector<COutput> vCoins;
-        CCoinControl coincontrol;
-        LOCK2(cs_main, pwallet->cs_wallet);  //emercoin: cs_main is used to avoid potential deadlock issue
-        pwallet->AvailableCoins(*pwallet->chain().lock(), vCoins, false, &coincontrol);
-        pos_timio = gArgs.GetArg("-staketimio", 500) + 30 * sqrt(vCoins.size());
-        LogPrintf("Set proof-of-stake timeout: %ums for %u UTXOs\n", pos_timio, vCoins.size());
-    }
-
+    // Do not compute timeout for pos as sqrt(numUTXO) anymore,
+    // since several wallets, and contain changes
+    unsigned int pos_timio = gArgs.GetArg("-staketimio", 1000);
     int64_t stun_timio_us = gArgs.GetArg("-stuntimio", 900) * 1000000;
     int64_t stun_next_request = stun_timio_us > 0? GetTimeMicros() + stun_timio_us : INT64_MAX;
 
     std::string strMintMessage = "Info: Minting suspended due to locked wallet.";
 
-    std::shared_ptr<CWallet> pwallet_prev = pwallet;
+    const CWallet *pwallet_prev = pwallet.get();
+    uint32_t    prev_nCommitCnt = pwallet_prev->m_nCommitCnt;
     try {
         while (true) {
             bool fInitialDownload = ::ChainstateActive().IsInitialBlockDownload();
@@ -664,10 +659,15 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             }
             rc4ok_addentropy(bswap_16(now)); // For value other than in the Logger
             pwallet = getCurrentWallet();
-            if(pwallet != pwallet_prev) {
-                if(pwallet_prev->m_nCommitCnt == pwallet->m_nCommitCnt)
+            if(pwallet == NULL) {
+                MilliSleep(300);
+                continue;
+            }
+            if(pwallet.get() != pwallet_prev) {
+                if(prev_nCommitCnt == pwallet->m_nCommitCnt)
                     pwallet->m_nCommitCnt++; // Force to drop PoS cache
-                pwallet_prev = pwallet;
+                pwallet_prev = pwallet.get();
+                prev_nCommitCnt = pwallet->m_nCommitCnt;
             }
             if(pwallet->IsLocked()) {
                 if (strMintWarning != strMintMessage) {
@@ -685,7 +685,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
             // Busy-wait for the network to come online so we don't waste time mining
             // on an obsolete chain. In regtest mode we expect to fly solo.
             if(g_connman == nullptr || g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 || fInitialDownload) {
-                MilliSleep(1 * 60 * 1000); // wait for 1 min
+                MilliSleep(5 * 1000); // wait for 5s (was 1 min)
                 continue;
             }
 
