@@ -14,6 +14,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+#include <logging.h>
+
 WalletFrame::WalletFrame(const PlatformStyle *_platformStyle, BitcoinGUI *_gui) :
     QFrame(_gui),
     gui(_gui),
@@ -212,9 +214,21 @@ void WalletFrame::usedReceivingAddresses()
         walletView->usedReceivingAddresses();
 }
 
+// Defined in miner.cpp
+// Used from miner, to access current wallet
+extern CWallet *g_LastWalletView;
+
 WalletView* WalletFrame::currentWalletView() const
 {
-    return qobject_cast<WalletView*>(walletStack->currentWidget());
+    WalletView *rc = qobject_cast<WalletView*>(walletStack->currentWidget());
+    WalletModel *model;
+    if(rc && (model = rc->getWalletModel())) {
+        CWallet *cur_wallet = model->wallet().getWallet().get();
+        if(cur_wallet != g_LastWalletView)
+            LogPrintf("WalletFrame::currentWalletView=[%s]\n", model->wallet().getWalletName().c_str());
+        g_LastWalletView = cur_wallet;
+    }
+    return rc;
 }
 
 WalletModel* WalletFrame::currentWalletModel() const

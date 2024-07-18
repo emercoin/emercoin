@@ -20,8 +20,6 @@
 #include <qt/walletmodel.h>
 
 
-#include <wallet/wallet.h> // For GetWallets
-
 #include <qt/managenamespage.h>
 #include <qt/mintingview.h>
 
@@ -382,11 +380,8 @@ void WalletView::on_labelWalletEncryptionIcon_clicked()
     if (walletModel->getEncryptionStatus() == WalletModel::Unlocked)
     {
         walletModel->setWalletLocked(true);
-        if(walletModel->wallet().getWallet() == GetWallets()[0]) {
-            // Generate info for default wallet only
-            strMintWarning = "Info: Minting suspended due to locked wallet.";
-            Q_EMIT clientModel->alertsChanged(clientModel->getStatusBarWarnings());
-        }
+        strMintWarning = "Info: Minting suspended due to locked wallet.";
+        Q_EMIT clientModel->alertsChanged(clientModel->getStatusBarWarnings());
     }
     else
     {

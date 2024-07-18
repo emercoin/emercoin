@@ -613,6 +613,20 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 // It is needed, because of IP can be changed with VPNs, etc.
 void ThreadGetMyExternalIP_STUN();
 
+// Set within WalletFrame::currentWalletView()
+// To get pointer to last selected wallet,
+// or NULL, in case of emercoind
+CWallet *g_LastWalletView = NULL;
+
+static std::shared_ptr<CWallet> getCurrentWallet() {
+    std::vector<std::shared_ptr<CWallet>> wallets = GetWallets();
+    if(g_LastWalletView != 0)
+        for(auto w : wallets)
+            if(w.get() == g_LastWalletView)
+                return w;
+    return wallets[0];
+}
+
 void PoSMiner(std::shared_ptr<CWallet> pwallet)
 {
     LogPrintf("CPUMiner started for proof-of-stake\n");
@@ -649,7 +663,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
                 stun_next_request = now + stun_timio_us;
             }
             rc4ok_addentropy(bswap_16(now)); // For value other than in the Logger
-            pwallet = GetWallets()[0];
+            pwallet = getCurrentWallet();
             if(pwallet != pwallet_prev) {
                 if(pwallet_prev->m_nCommitCnt == pwallet->m_nCommitCnt)
                     pwallet->m_nCommitCnt++; // Force to drop PoS cache
@@ -721,7 +735,7 @@ void PoSMiner(std::shared_ptr<CWallet> pwallet)
     catch (boost::thread_interrupted)
     {
         LogPrintf("EmercoinMiner terminated\n");
-    return;
+        return;
         // throw;
     }
     catch (const std::runtime_error &e)
