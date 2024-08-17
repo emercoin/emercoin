@@ -2919,7 +2919,7 @@ bool CWallet::FundTransaction(CMutableTransaction& tx, CAmount& nFeeRet, int& nC
 
     return true;
 }
-
+#if 0
 static bool IsCurrentForAntiFeeSniping(interfaces::Chain& chain, interfaces::Chain::Lock& locked_chain)
 {
     if (chain.isInitialBlockDownload()) {
@@ -2979,6 +2979,7 @@ static uint32_t GetLocktimeForNewTransaction(interfaces::Chain& chain, interface
     assert(locktime < LOCKTIME_THRESHOLD);
     return locktime;
 }
+#endif
 
 OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vector<CRecipient>& vecSend)
 {
@@ -3055,7 +3056,9 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
         }
     } // for vecSend
 
-    txNew.nLockTime = GetLocktimeForNewTransaction(chain(), locked_chain);
+    // emercoin:
+    // We ignore "Discourage fee sniping", since TX fee is not delivered to miner/minter
+    txNew.nLockTime = 0; // GetLocktimeForNewTransaction(chain(), locked_chain);
 
     FeeCalculation feeCalc;
     CAmount nFeeNeeded;
@@ -3332,7 +3335,10 @@ bool CWallet::CreateTransaction(const CAmount& nFeeInput, bool fMultiName,
 
         // Note how the sequence number is set to non-maxint so that
         // the nLockTime set above actually works.
-        const uint32_t nSequence = CTxIn::SEQUENCE_FINAL - 1;
+        // const uint32_t nSequence = CTxIn::SEQUENCE_FINAL - 1;
+        // emercoin:
+        // Priority queue is evil, we disable RBF or so
+        const uint32_t nSequence = CTxIn::SEQUENCE_FINAL;
         for (const auto& coin : selected_coins) {
             txNew.vin.push_back(CTxIn(coin.outpoint, CScript(), nSequence));
         }
