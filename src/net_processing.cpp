@@ -41,6 +41,9 @@
 # error "Bitcoin cannot be compiled without assertions."
 #endif
 
+// From validation.cpp
+extern int GetLastHardCheckpointHeight();
+
 /** Expiration time for orphan transactions in seconds */
 static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
 /** Minimum time between orphan transactions expire time checks in seconds */
@@ -4228,13 +4231,22 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
         if (!pto->fClient && ((fFetch && !pto->m_limited_node) || !::ChainstateActive().IsInitialBlockDownload()) && state.nBlocksInFlight < room_allowed) {
             std::vector<const CBlockIndex*> vToDownload;
             NodeId staller = -1;
-            FindNextBlocksToDownload(pto->GetId(), room_allowed - state.nBlocksInFlight, vToDownload, staller, consensusParams);
+            uint32_t nFetchFlags = GetFetchFlags(pto);
+            NodeId pto_id = pto->GetId();
+          //   int LastHardCheckpointHeight = GetLastHardCheckpointHeight();
+            FindNextBlocksToDownload(pto_id, room_allowed - state.nBlocksInFlight, vToDownload, staller, consensusParams);
             for (const CBlockIndex *pindex : vToDownload) {
-                uint32_t nFetchFlags = GetFetchFlags(pto);
-                vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(pto->GetId(), pindex->GetBlockHash(), pindex);
+                uint32_t curFetchFlags = nFetchFlags;
+           // emercoin: frozen development dropWitness
+           // This development frozed because of dif stake modifier in stripped blocks
+           // Do not request witness if block below last Hard checkpoint
+           // Anyway, checking is skipped
+           //     if(0 && pindex->nHeight < LastHardCheckpointHeight)
+           //         curFetchFlags &= ~MSG_WITNESS_FLAG;
+                vGetData.push_back(CInv(MSG_BLOCK | curFetchFlags, pindex->GetBlockHash()));
+                MarkBlockAsInFlight(pto_id, pindex->GetBlockHash(), pindex);
                 LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n", pindex->GetBlockHash().ToString(),
-                    pindex->nHeight, pto->GetId());
+                    pindex->nHeight, pto_id);
             }
             if (state.nBlocksInFlight == 0 && staller != -1) {
                 if (State(staller)->nStallingSince == 0) {

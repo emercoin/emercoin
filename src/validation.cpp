@@ -1146,8 +1146,8 @@ void CChainState::InitCoinsCache()
     m_coins_views->InitCache();
 }
 
-
-static int GetLastHardCheckpointHeight() {
+// Used also in net_processing.cpp
+int GetLastHardCheckpointHeight() {
     static int nLastHardCheckpointHeight = 0;
     if (nLastHardCheckpointHeight == 0)
         nLastHardCheckpointHeight = Params().Checkpoints().mapCheckpoints.rbegin()->first;
@@ -1863,6 +1863,14 @@ static int64_t nBlocksTotal = 0;
 // these checks can only be done when all previous block have been added.
 bool ppcoinContextualBlockChecks(const CBlock& block, CValidationState& state, CBlockIndex* pindex, bool fJustCheck)
 {
+#if 0
+    // emercoin: frozen development dropWitness
+    // Trying to deliver blocks under last hard checkpoints without wttness.
+    // See problems with stake modifier, stopped debugging
+    if(pindex->nHeight == 317097) {
+        LogPrintf("DBG\n");
+    }
+#endif
     uint256 hashProofOfStake = uint256();
     if (block.IsProofOfStake()) {
         // ppcoin: verify hash target and signature of coinstake tx
@@ -3603,21 +3611,25 @@ static bool ContextualCheckBlock(const CBlock& block, CValidationState& state, c
     if (nHeight >= consensusParams.SegwitHeight) {
         int commitpos = GetWitnessCommitmentIndex(block);
         if (commitpos != -1) {
-            bool malleated = false;
-            uint256 hashWitness = BlockWitnessMerkleRoot(block, &malleated);
-            // The malleation check is ignored; as the transaction tree itself
-            // already does not permit it, it is impossible to trigger in the
-            // witness tree.
-            if (block.vtx[0]->vin[0].scriptWitness.stack.size() != 1 || block.vtx[0]->vin[0].scriptWitness.stack[0].size() != 32) {
-                return state.Invalid(ValidationInvalidReason::BLOCK_MUTATED, false, REJECT_INVALID, "bad-witness-nonce-size", strprintf("%s : invalid witness reserved value size", __func__));
-            }
-            CHash256().Write(hashWitness.begin(), 32).Write(&block.vtx[0]->vin[0].scriptWitness.stack[0][0], 32).Finalize(hashWitness.begin());
-            if (memcmp(hashWitness.begin(), &block.vtx[0]->vout[commitpos].scriptPubKey[6], 32)) {
-                return state.Invalid(ValidationInvalidReason::BLOCK_MUTATED, false, REJECT_INVALID, "bad-witness-merkle-match", strprintf("%s : witness merkle commitment mismatch", __func__));
+            // emercoin: frozen development dropWitness
+            if(1 || nHeight >= GetLastHardCheckpointHeight()) {
+                // Perform SegWith check only at or after last Hard checkpoint
+                bool malleated = false;
+                uint256 hashWitness = BlockWitnessMerkleRoot(block, &malleated);
+                // The malleation check is ignored; as the transaction tree itself
+                // already does not permit it, it is impossible to trigger in the
+                // witness tree.
+                if (block.vtx[0]->vin[0].scriptWitness.stack.size() != 1 || block.vtx[0]->vin[0].scriptWitness.stack[0].size() != 32) {
+                    return state.Invalid(ValidationInvalidReason::BLOCK_MUTATED, false, REJECT_INVALID, "bad-witness-nonce-size", strprintf("%s : invalid witness reserved value size", __func__));
+                }
+                CHash256().Write(hashWitness.begin(), 32).Write(&block.vtx[0]->vin[0].scriptWitness.stack[0][0], 32).Finalize(hashWitness.begin());
+                if (memcmp(hashWitness.begin(), &block.vtx[0]->vout[commitpos].scriptPubKey[6], 32)) {
+                    return state.Invalid(ValidationInvalidReason::BLOCK_MUTATED, false, REJECT_INVALID, "bad-witness-merkle-match", strprintf("%s : witness merkle commitment mismatch", __func__));
+                }
             }
             fHaveWitness = true;
-        }
-    }
+        } // if (commitpos != -1)
+    } // if (nHeight >= consensusParams.SegwitHeight)
 
     // ppcoin: coinbase output should be empty if proof-of-stake block
     //         unless it is segwit block with valid WC output - in this case we allow one additional output
