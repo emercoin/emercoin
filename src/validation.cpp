@@ -596,6 +596,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     // A transaction with 1 segwit input and 1 P2WPHK output has non-witness size of 82 bytes.
     // Transactions smaller than this are not relayed to mitigate CVE-2017-12842 by not relaying
     // 64-byte transactions.
+    // https://bitslog.com/2018/06/09/leaf-node-weakness-in-bitcoin-merkle-tree-design/
     // emercoin:
     // For SpamBat, we can use 66-bytes transaction (OP_DATA only), so compare to 82 is incorrect.
     unsigned serSize = ::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS);

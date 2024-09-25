@@ -764,8 +764,12 @@ uint16_t EmcDns::HandleQuery() {
     bool step_next;
     do { // Search from up domain to down; start from 2-lvl, like www.[flibusta.lib]
       cur_ndx_p = prev_ndx_p;
-      if(Search(*cur_ndx_p, check_domain_sig) <= 0) { // Result saved into m_value
-	CheckDAP(key, key - key_end, 240); // allowed 4 false searches for non-exists domain
+      int search_rc = Search(*cur_ndx_p, check_domain_sig); // Result saved into m_value
+      if(search_rc <= 0) {
+        // 1 = success
+        // 0 = unsuccessful
+        // Neg value - how many unsuccessfull attempts in privileged domain sigcheck iterations
+	CheckDAP(key, key - key_end, 240 - search_rc); // allowed 4/2 false searches for non-exists domain
 	return 3; // empty answer, not found, return NXDOMAIN
       }
       if(cur_ndx_p == domain_ndx)
@@ -1219,13 +1223,13 @@ int EmcDns::Search(uint8_t *key, bool check_domain_sig) {
       // Iterate over query numbers, start from 0, up to 32K
       int16_t qno = -1;
       do {
-        if(++qno < 0)
-          return 0; // Exhaust 32K attempts, stop search, return nothing
+        if(++qno > 100)
+          return -250; // Exhaust 100 attempts, stop search, increase temp to 2 searches only
         snprintf(search_key, sizeof(search_key), DNS_PREFIX ":%s:%d", (const char *)key, qno);
         if(m_verbose > 4)
             LogPrintf("EmcDns::SIG-Search(%s)\n", search_key);
         if(!hooks->getNameValue(string(search_key), value))
-            return 0; // Record not found, stop search, NXDOMAIN
+            return -qno * 2; // Record not found, stop search, NXDOMAIN and increase DAP
         size_t sig_begin = value.find("SIG=");
         if(sig_begin == std::string::npos)
             continue; // No signature in this DNS record
