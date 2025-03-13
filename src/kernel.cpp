@@ -546,7 +546,8 @@ CAmount GetQuantProtection() {
     CAmount nQuantProtection;
     bool neg_quantprotection = false;
     // We will process sign '-' here, for disable possible side effects, where is ParseMoney called somewhere else
-    const char *quantprotection_str = gArgs.GetArg("-quantprotection", "0").c_str();
+    string quantprotection(gArgs.GetArg("-quantprotection", "0"));
+    const char *quantprotection_str = quantprotection.c_str();
     while(*quantprotection_str && *quantprotection_str <= ' ')
         quantprotection_str++;
     if(*quantprotection_str == '-') {
