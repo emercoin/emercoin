@@ -6,13 +6,17 @@ https://emercoin.com/
 What is Emercoin?
 ----------------
 
-Emercoin is an experimental digital currency that enables instant payments to
-anyone, anywhere in the world and enables of storing information as key/value pairs
-in blockchain. Emercoin uses peer-to-peer technology to operate
-with no central authority: managing transactions and issuing money are carried
-out collectively by the network. For minting Emercoin uses Proof-of-Stake,
-Proof-of-Work and Auxiliary-Proof-of-Work mechanisms. Emercoin Core is the name of
-open source software which enables the use of this currency.
+Emercoin is an open, highly reliable blockchain platform designed for industrial applications. Within this platform,
+a number of services operate, creating a fault-tolerant infrastructure with no single point of failure (SPOF):
+ - emerDNS – A robust network infrastructure built on blockchain technology.
+ - emerSSL – A passwordless authentication system that eliminates password leaks and hacking risks.
+ - emerSSH – Decentralized access control lists for secure authentication.
+ - ENUMER  – A decentralized IP telephony network with high speed, reliability, and zero cost.
+ - emerDPO – Digital certificates for asset ownership verification.
+ - FV – Proof of authenticity for files obtained from untrusted sources.
+
+The platform utilizes a transferable licensing unit (TLU), Emercoin,
+to regulate uncontrolled data uploads to the public distributed ledger.
 
 For more information, as well as an immediately useable, binary version of
 the Emercoin Core software, see [here](http://emercoin.com/).
