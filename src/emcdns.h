@@ -144,6 +144,7 @@ class EmcDns {
     boost::thread m_thread;
     map<string, Verifier> m_verifiers;
     vector<TollFree>      m_tollfree;
+    string   m_self_ns;
 }; // class EmcDns
 
 #endif // EMCDNS_H

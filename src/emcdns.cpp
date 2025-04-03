@@ -49,6 +49,12 @@
 #include <util/validation.h>
 #include <wallet/wallet.h>
 
+#ifdef _MSC_VER
+    #include <malloc.h>  // For Microsoft Visual C++
+#else
+    #include <alloca.h>  // For GCC, Clang & MinGW
+#endif
+
 /*---------------------------------------------------*/
 /*
  * m_verbose legend:
@@ -280,7 +286,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
       while(char *p_tok = strsep(&str, "|,"))
         if(*p_tok) {
 	  if(m_verbose > 1)
-	  LogPrintf("\tEmcDns::EmcDns: enumtrust=%s\n", p_tok);
+	  LogPrintf("    EmcDns::EmcDns: enumtrust=%s\n", p_tok);
           m_verifiers[string(p_tok)] = empty_ver;
 	}
     } // ENUMs completed
@@ -380,7 +386,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         } // while
 	step |= 1;
 	if(m_verbose > 1)
-	  LogPrintf("\tEmcDns::EmcDns: Insert Local:[%s]->[%s] pos=%u step=%u\n", p, p_eq, pos, step);
+	  LogPrintf("    EmcDns::EmcDns: Insert Local:[%s]->[%s] pos=%u step=%u\n", p, p_eq, pos, step);
 	do
 	  pos += step;
         while(m_ht_offset[pos] != 0);
@@ -398,10 +404,16 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 
     if(tollfree && *tollfree) {
       if(m_verbose > 1)
-	LogPrintf("\tEmcDns::EmcDns: Setup deferred toll-free=%s\n", tollfree);
+	LogPrintf("    EmcDns::EmcDns: Setup deferred toll-free=%s\n", tollfree);
       strcpy(m_value, tollfree);
     } else
       m_value[0] = 0;
+
+    m_self_ns = gArgs.GetArg("-selfns", "localhost");
+    if(m_self_ns.size() > 512) {
+	LogPrintf("    EmcDns::EmcDns: too long selfns=%s; ignored\n", m_self_ns.c_str());
+        m_self_ns.clear();
+    }
 
     m_status = 1; // Active, and maybe download
 } // EmcDns::EmcDns
@@ -427,7 +439,7 @@ void EmcDns::AddTF(char *tf_tok) {
         m_tollfree.back().e2u.push_back(string(tf_tok));
 
   if(m_verbose > 1)
-    LogPrintf("\tEmcDns::AddTF: Added token [%s] tf/e2u=%u:%u\n", tf_tok, m_tollfree.size(), m_tollfree.back().e2u.size());
+    LogPrintf("    EmcDns::AddTF: Added token [%s] tf/e2u=%u:%u\n", tf_tok, m_tollfree.size(), m_tollfree.back().e2u.size());
 } // EmcDns::AddTF
 
 /*---------------------------------------------------*/
@@ -501,7 +513,7 @@ void EmcDns::Run() {
 /*---------------------------------------------------*/
 
 int EmcDns::HandlePacket() {
-  if(m_verbose > 3) LogPrintf("*\tEmcDns::HandlePacket: Handle packet_len=%d\n", m_rcvlen);
+  if(m_verbose > 3) LogPrintf("*    EmcDns::HandlePacket: Handle packet_len=%d\n", m_rcvlen);
 
   m_hdr = (DNSHeader *)m_buf;
   // Decode input header from network format
@@ -512,12 +524,12 @@ int EmcDns::HandlePacket() {
   m_obufend = m_snd + MAX_OUT; // ptr to output bufend - 512b from m_rcvend
 
   if(m_verbose > 4) {
-    LogPrintf("\tEmcDns::HandlePacket: msgID  : %d\n", m_hdr->msgID);
-    LogPrintf("\tEmcDns::HandlePacket: Bits   : %04x\n", m_hdr->Bits);
-    LogPrintf("\tEmcDns::HandlePacket: QDCount: %d\n", m_hdr->QDCount);
-    LogPrintf("\tEmcDns::HandlePacket: ANCount: %d\n", m_hdr->ANCount);
-    LogPrintf("\tEmcDns::HandlePacket: NSCount: %d\n", m_hdr->NSCount);
-    LogPrintf("\tEmcDns::HandlePacket: ARCount: %d\n", m_hdr->ARCount);
+    LogPrintf("    EmcDns::HandlePacket: msgID  : %d\n", m_hdr->msgID);
+    LogPrintf("    EmcDns::HandlePacket: Bits   : %04x\n", m_hdr->Bits);
+    LogPrintf("    EmcDns::HandlePacket: QDCount: %d\n", m_hdr->QDCount);
+    LogPrintf("    EmcDns::HandlePacket: ANCount: %d\n", m_hdr->ANCount);
+    LogPrintf("    EmcDns::HandlePacket: NSCount: %d\n", m_hdr->NSCount);
+    LogPrintf("    EmcDns::HandlePacket: ARCount: %d\n", m_hdr->ARCount);
   }
   // Assert following 3 counters and bits are zero
   uint16_t zCount = m_hdr->ANCount | m_hdr->NSCount | (m_hdr->Bits & (m_hdr->QR_MASK | m_hdr->TC_MASK));
@@ -552,7 +564,7 @@ int EmcDns::HandlePacket() {
         // Iterate the list of Toll-Free fnames; can be fnames and NVS records
         while(char *tf_fname = strsep(&tf_str, "|")) {
           if(m_verbose > 1)
-	    LogPrintf("\tEmcDns::HandlePacket: handle deferred toll-free=%s\n", tf_fname);
+	    LogPrintf("    EmcDns::HandlePacket: handle deferred toll-free=%s\n", tf_fname);
           if(tf_fname[0] == '@') { // this is NVS record
             string value;
             if(hooks->getNameValue(string(tf_fname + 1), value)) {
@@ -575,7 +587,7 @@ int EmcDns::HandlePacket() {
     // Handle questions here
     for(uint16_t qno = 0; qno < m_hdr->QDCount && m_snd < m_obufend; qno++) {
       if(m_verbose > 5)
-        LogPrintf("\tEmcDns::HandlePacket: qno=%u m_hdr->QDCount=%u\n", qno, m_hdr->QDCount);
+        LogPrintf("    EmcDns::HandlePacket: qno=%u m_hdr->QDCount=%u\n", qno, m_hdr->QDCount);
       rc = HandleQuery();
       if(rc) {
 	if(rc == 0xDead)
@@ -673,7 +685,7 @@ uint16_t EmcDns::HandleQuery() {
 
   if(!CheckDAP(key, key - key_end, 0)) {
     if(m_verbose > 3)
-      LogPrintf("\tEmcDns::HandleQuery: Aborted domain %s by DAP mintemp=%u\n", key, m_mintemp);
+      LogPrintf("    EmcDns::HandleQuery: Aborted domain %s by DAP mintemp=%u\n", key, m_mintemp);
     return 0xDead; // Botnet detected, abort query processing
   }
 
@@ -933,7 +945,7 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
 
   for(int tok_no = 0; tok_no < tokQty; tok_no++) {
       if(m_verbose > 4)
-	LogPrintf("\tEmcDns::Answer_ALL: Token:%u=[%s]\n", tok_no, tokens[tok_no]);
+	LogPrintf("    EmcDns::Answer_ALL: Token:%u=[%s]\n", tok_no, tokens[tok_no]);
       Out2(m_label_ref);
       Out2(qtype); // A record, or maybe something else
       Out2(1); //  INET
@@ -1003,6 +1015,11 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
   char c;
 
   int label_ref = (tok_sz - m_buf - (m_rcvend - m_rcv)) | 0xc000;
+
+  // Special handling for NS, CNAME, and PTR records:
+  // If the value is "@", replace it with the locally configured self-NS name.
+  if((mxsz | txtcor) == 0 && txt[0] == '@')
+      txt = (char *)memcpy(alloca(m_self_ns.length() + 1), m_self_ns.c_str(), m_self_ns.length() + 1);
 
   int tok_len = 0;
   if(txtcor) {
@@ -1339,7 +1356,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
   len &= 0177; // Cut flag no-check-sig
 
   if(m_verbose > 3)
-    LogPrintf("\tEmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u sigOK=%u\n",
+    LogPrintf("    EmcDns::SpfunENUM: Domain=[%s] N=%u TLD=[%s] Len=%u sigOK=%u\n",
 	    (const char*)*domain_start, dom_length, tld, len, sigOK);
 
   do {
@@ -1366,7 +1383,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
       break; // Empty phone number - NXDOMAIN
 
     if(m_verbose > 4)
-      LogPrintf("\tEmcDns::SpfunENUM: ITU-T num=[%s]\n", itut_num);
+      LogPrintf("    EmcDns::SpfunENUM: ITU-T num=[%s]\n", itut_num);
 
     // Iterate all available ENUM-records, and build joined answer from them
     if(sigOK || !m_verifiers.empty()) {
@@ -1374,7 +1391,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
         char q_str[160];
         sprintf(q_str, "%s:%s:%u", tld, itut_num, qno);
         if(m_verbose > 4)
-          LogPrintf("\tEmcDns::SpfunENUM Search(%s)\n", q_str);
+          LogPrintf("    EmcDns::SpfunENUM Search(%s)\n", q_str);
 
         string value;
         if(!hooks->getNameValue(string(q_str), value))
@@ -1394,7 +1411,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
       bool matched = regex_match(string(itut_num), nameparts, tf->regex);
       // bool matched = regex_search(string(itut_num), nameparts, tf->regex);
       if(m_verbose > 4)
-          LogPrintf("\tEmcDns::SpfunENUM TF-match N=[%s] RE=[%s] -> %u\n", itut_num, tf->regex_str.c_str(), matched);
+          LogPrintf("    EmcDns::SpfunENUM TF-match N=[%s] RE=[%s] -> %u\n", itut_num, tf->regex_str.c_str(), matched);
       if(matched)
         for(vector<string>::const_iterator e2u = tf->e2u.begin(); e2u != tf->e2u.end(); e2u++)
           HandleE2U(strcpy(m_value, e2u->c_str()));
@@ -1489,7 +1506,7 @@ void EmcDns::HandleE2U(char *e2u) {
     return;
 
   if(m_verbose > 5)
-    LogPrintf("\tEmcDns::HandleE2U: Parsed: %u %u %s %s\n", ord, pref, e2u, re);
+    LogPrintf("    EmcDns::HandleE2U: Parsed: %u %u %s %s\n", ord, pref, e2u, re);
 
   if(m_snd + strlen(re) + strlen(e2u) + 24 >= m_obufend)
     return;

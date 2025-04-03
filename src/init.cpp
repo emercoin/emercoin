@@ -616,6 +616,7 @@ void SetupServerArgs()
     gArgs.AddArg("-enumtollfree", "emcdns enum toll free (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-dapsize", "emcdns dap size (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-daptreshold", strprintf("emcdns dap treshold (default: %u)", EMCDNS_DAPTRESHOLD), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-selfns", "emcdns replaces NS=@ with this self reference (default: localhost)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // Add the hidden options
     gArgs.AddHiddenArgs(hidden_args);
