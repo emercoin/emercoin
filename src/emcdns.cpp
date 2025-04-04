@@ -503,6 +503,7 @@ void EmcDns::Run() {
       } else
           add_temp += 50;
       CheckDAP(&sin6.sin6_addr, sin6len, add_temp); // More heat!
+      rc4ok_addentropy(m_rcvlen);
     } // dap check
   } // for
 
@@ -928,9 +929,26 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
   if(key[0] == '-')
       return; // Do not handle special or undef keys
 
-  //uint16_t addl_refs[MAX_TOK];
-  char *tokens[MAX_TOK];
+  char *tokens[MAX_TOK+32];
   int tokQty = Tokenize(key, ",", tokens, buf);
+
+  if(qtype == 2 || qtype == 5 || qtype == 12) {
+      // Special handling for NS, CNAME, and PTR records:
+      // If the value is "@", replace it with the locally configured self-NS names.
+      char *self_list = (char *)0x1; // Cannot use NULL, because of strsep sets it to NULL at the end
+      int orig_tokQty = tokQty;
+      for(int tok_no = 0; tok_no < orig_tokQty; tok_no++)
+          if(tokens[tok_no][0] == '@') {
+              if(self_list == (char *)0x1) {
+                  // Expand '@' just once
+                  self_list = (char *)memcpy(alloca(m_self_ns.length() + 1), m_self_ns.c_str(), m_self_ns.length() + 1);
+                  while(char *tok = strsep(&self_list, ",|;"))
+                      if(tokQty < MAX_TOK + 32)
+                          tokens[tokQty++] = tok;
+              }
+              tokens[tok_no][0] = 0; // Mark as deleted
+          } // for + if(@)
+  } // if NS, CNAME, PTR
 
   if(m_verbose > 4) LogPrintf("EmcDns::Answer_ALL(QT=%d, key=%s); TokenQty=%d\n", qtype, key, tokQty);
 
@@ -943,7 +961,12 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
     tokens[i] = tmp;
   }
 
+  int actual_tokQty = tokQty;
   for(int tok_no = 0; tok_no < tokQty; tok_no++) {
+      if(tokens[tok_no][0] == 0) {
+          actual_tokQty--;
+          continue;
+      }
       if(m_verbose > 4)
 	LogPrintf("    EmcDns::Answer_ALL: Token:%u=[%s]\n", tok_no, tokens[tok_no]);
       Out2(m_label_ref);
@@ -955,7 +978,6 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
 	case 28: Fill_RD_IP(tokens[tok_no], AF_INET6); break;
 	case 2 :
 	case 5 :
-    //case 12: addl_refs[tok_no] = Fill_RD_DName(tokens[tok_no], 0, 0); break; // NS,CNAME,PTR
         case 12: Fill_RD_DName(tokens[tok_no], 0, 0); break; // NS,CNAME,PTR
 	case 15: Fill_RD_DName(tokens[tok_no], 2, 0); break; // MX
 	case 16: Fill_RD_DName(tokens[tok_no], 0, 1); break; // TXT
@@ -967,9 +989,9 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
   } // for
 
   if(needed_addl) // Fill ADDL section (NS in NSCount)
-    m_hdr->NSCount += tokQty;
+    m_hdr->NSCount += actual_tokQty;
   else
-    m_hdr->ANCount += tokQty;
+    m_hdr->ANCount += actual_tokQty;
 } // EmcDns::Answer_ALL
 
 /*---------------------------------------------------*/
@@ -1015,11 +1037,6 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
   char c;
 
   int label_ref = (tok_sz - m_buf - (m_rcvend - m_rcv)) | 0xc000;
-
-  // Special handling for NS, CNAME, and PTR records:
-  // If the value is "@", replace it with the locally configured self-NS name.
-  if((mxsz | txtcor) == 0 && txt[0] == '@')
-      txt = (char *)memcpy(alloca(m_self_ns.length() + 1), m_self_ns.c_str(), m_self_ns.length() + 1);
 
   int tok_len = 0;
   if(txtcor) {
