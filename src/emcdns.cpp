@@ -503,7 +503,6 @@ void EmcDns::Run() {
       } else
           add_temp += 50;
       CheckDAP(&sin6.sin6_addr, sin6len, add_temp); // More heat!
-      rc4ok_addentropy(m_rcvlen);
     } // dap check
   } // for
 
@@ -935,7 +934,8 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
   if(qtype == 2 || qtype == 5 || qtype == 12) {
       // Special handling for NS, CNAME, and PTR records:
       // If the value is "@", replace it with the locally configured self-NS names.
-      char *self_list = (char *)0x1; // Cannot use NULL, because of strsep sets it to NULL at the end
+      // Use 0x1 as sentinel value (not NULL) to detect first use, since strsep sets pointer to NULL at end
+      char *self_list = (char *)0x1;
       int orig_tokQty = tokQty;
       for(int tok_no = 0; tok_no < orig_tokQty; tok_no++)
           if(tokens[tok_no][0] == '@') {
@@ -946,20 +946,26 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
                       if(tokQty < MAX_TOK + 32)
                           tokens[tokQty++] = tok;
               }
-              tokens[tok_no][0] = 0; // Mark as deleted
+              // Mark original '@' token as deleted (empty string)
+              tokens[tok_no][0] = 0;
           } // for + if(@)
   } // if NS, CNAME, PTR
 
   if(m_verbose > 4) LogPrintf("EmcDns::Answer_ALL(QT=%d, key=%s); TokenQty=%d\n", qtype, key, tokQty);
 
   // Shuffle tokens for randomization output order
+  uint16_t *rands = (uint16_t *)alloca((tokQty + 1) * sizeof(uint16_t));
+  GetRandBytes((unsigned char*)rands,  (tokQty + 1) * sizeof(uint16_t));
   for(int i = tokQty; i > 1; ) {
-    int randndx = GetRandInt(i);
+    int randndx = rands[i] % i;
     char *tmp = tokens[randndx];
     --i;
     tokens[randndx] = tokens[i];
     tokens[i] = tmp;
   }
+
+  // Apply entropy - random 16-bit value from bytes [0..512] of I/O buffer (1K)
+  rc4ok_addentropy(((uint16_t*)m_buf)[(uint8_t)rands[0]]);
 
   int actual_tokQty = tokQty;
   for(int tok_no = 0; tok_no < tokQty; tok_no++) {
