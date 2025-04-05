@@ -920,7 +920,6 @@ int EmcDns::Tokenize(const char *key, const char *sep2, char **tokens, char *buf
 } // EmcDns::Tokenize
 
 /*---------------------------------------------------*/
-
 void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
   uint16_t needed_addl = qtype & QTYPE_ADDL;
   qtype ^= needed_addl;
@@ -930,6 +929,12 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
 
   char *tokens[MAX_TOK+32];
   int tokQty = Tokenize(key, ",", tokens, buf);
+
+  if(m_verbose > 4)
+      LogPrintf("EmcDns::Answer_ALL(QT=%d, key=%s); TokenQty=%d\n", qtype, key, tokQty);
+
+  if(tokQty == 0)
+      return; // Nothing to do
 
   if(qtype == 2 || qtype == 5 || qtype == 12) {
       // Special handling for NS, CNAME, and PTR records:
@@ -951,21 +956,20 @@ void EmcDns::Answer_ALL(uint16_t qtype, char *buf) {
           } // for + if(@)
   } // if NS, CNAME, PTR
 
-  if(m_verbose > 4) LogPrintf("EmcDns::Answer_ALL(QT=%d, key=%s); TokenQty=%d\n", qtype, key, tokQty);
-
-  // Shuffle tokens for randomization output order
-  uint16_t *rands = (uint16_t *)alloca((tokQty + 1) * sizeof(uint16_t));
-  GetRandBytes((unsigned char*)rands,  (tokQty + 1) * sizeof(uint16_t));
-  for(int i = tokQty; i > 1; ) {
-    int randndx = rands[i] % i;
-    char *tmp = tokens[randndx];
-    --i;
-    tokens[randndx] = tokens[i];
-    tokens[i] = tmp;
+  if(tokQty > 1) {
+      // Shuffle tokens for randomization output order
+      uint16_t *rands = (uint16_t *)alloca(tokQty * sizeof(uint16_t));
+      GetRandBytes((unsigned char*)rands,  tokQty * sizeof(uint16_t));
+      for(int i = tokQty; i > 1; ) {
+        int j = i--;
+        int randndx = rands[i] % j;
+        char *tmp = tokens[randndx];
+        tokens[randndx] = tokens[i];
+        tokens[i] = tmp;
+      }
+      // Apply entropy - random 16-bit value from bytes [0..512] of I/O buffer (1K)
+      rc4ok_addentropy(((uint16_t*)m_buf)[(uint8_t)rands[0]]);
   }
-
-  // Apply entropy - random 16-bit value from bytes [0..512] of I/O buffer (1K)
-  rc4ok_addentropy(((uint16_t*)m_buf)[(uint8_t)rands[0]]);
 
   int actual_tokQty = tokQty;
   for(int tok_no = 0; tok_no < tokQty; tok_no++) {
