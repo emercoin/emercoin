@@ -294,11 +294,14 @@ void ManageNamesPage::on_submitNameButton_clicked()
 	}
 
     CNameVal value;  // byte-by-byte value, as is
-	QString displayValue; // for displaying value as unicode string
+    QString displayValue; // for displaying value as unicode string
 
     if (ui->registerValue->isEnabled())
     {
         displayValue = ui->registerValue->toPlainText();
+        // Normalize multi-string value - convert to UNIX format
+        displayValue.replace("\r\n", "\n");
+        displayValue.replace("\r", "\n");
         string strValue = displayValue.toStdString();
         value.assign(strValue.begin(), strValue.end());
     }
