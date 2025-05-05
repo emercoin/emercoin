@@ -1476,7 +1476,7 @@ void EmcDns::Answer_ENUM(const char *q_str, bool sigOK) {
   // Tokenize lines in the NVS-value.
   // There can be prefixes SIG=, TTL=, E2U
   while(char *tok = strsep(&str_val, "\n\r"))
-    switch((*(uint32_t*)tok & 0xffffff) | 0x202020) {
+    switch(ENC3(tok[0], tok[1], tok[2]) | 0x202020) {
 	case ENC3('e', '2', 'u'):
 	  e2u[e2uN++] = tok;
 	  continue;
@@ -1637,7 +1637,7 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
 	// SRL=5|srl:hello-%02x
 	ver.mask = VERMASK_NOSRL;
         while(char *tok = strsep(&str_val, "\n\r"))
-	  if(((*(uint32_t*)tok & 0xffffff) | 0x202020) == ENC3('s', 'r', 'l') && (tok = strchr(tok + 3, '='))) {
+	  if((ENC3(tok[0], tok[1], tok[2]) | 0x202020) == ENC3('s', 'r', 'l') && (tok = strchr(tok + 3, '='))) {
 	    unsigned nbits = atoi(++tok);
             if(nbits > 30) nbits = 30;
 	    tok = strchr(tok, '|');
