@@ -50,10 +50,11 @@
 #include <wallet/wallet.h>
 
 #ifdef _MSC_VER
-    #include <malloc.h>  // For Microsoft Visual C++
-#else
-    #include <alloca.h>  // For GCC, Clang & MinGW
+    #include <malloc.h>  // for alloca on MSVC
+#elif !defined(__FreeBSD__) && !defined(__APPLE__)
+    #include <alloca.h>  // Linux, GNU systems
 #endif
+
 
 /*---------------------------------------------------*/
 /*

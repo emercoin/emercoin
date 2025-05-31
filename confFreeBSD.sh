@@ -12,10 +12,18 @@
 #       gmake
 #
 # With pkg, use the command:
-#   pkg install autoconf automake libtool pkgconf gmake libevent boost-libs db48 openssl
+#   pkg install autoconf automake libtool pkgconf gmake libevent boost-libs openssl
+#
+# Build Berkeley DB 4.8 with local script:
+# ./build_bdb_48_freeBSD.sh
+# Or use configure option "non-compatible wallet"
 
-CPPFLAGS='-I/usr/local/include/db48/ -I/usr/local/include'
-LDFLAGS='-L/usr/local/lib/db48/ -L/usr/local/lib'
+# Generate configure file once, before run this script:
+# ./autogen.sh
+
+BDB_PREFIX=$(pwd)/db4
+CPPFLAGS="-I${BDB_PREFIX}/include -I/usr/local/include"
+LDFLAGS="-L${BDB_PREFIX}/lib -L/usr/local/lib"
 CFLAGS=$CPPFLAGS
 CXXFLAGS=$CPPFLAGS
 
