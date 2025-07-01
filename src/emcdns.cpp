@@ -69,12 +69,14 @@
  */
 /*---------------------------------------------------*/
 
-#define MAX_OUT  512	// Old DNS restricts UDP to 512 bytes; keep compatible
+#define MAX_OUT  512	    // Old DNS restricts UDP to 512 bytes; keep compatible
 #define BUF_SIZE (2 * MAX_OUT)
-#define MAX_TOK  64	// Maximal TokenQty in the vsl_list, like A=IP1,..,IPn
-#define MAX_DOM  20	// Maximal domain level; min 10 is needed for NAPTR E164
-#define MAX_ENUM 40	// Maximal ENUM domain levels; min 10 is needed for NAPTR E164
-#define MAX_DOMTOKENS 40 // MAx of (MAX_DOM, MAX_ENUM)
+#define MAX_TOK  64         // Maximal TokenQty in the vsl_list, like A=IP1,..,IPn
+#define MAX_DOM  20         // Maximal domain level; min 10 is needed for NAPTR E164
+#define MAX_ENUM 40         // Maximal ENUM domain levels; min 10 is needed for NAPTR E164
+#define MAX_DOMTOKENS 40    // Max of (MAX_DOM, MAX_ENUM)
+#define MAX_LABEL_LENGTH 64 // Max label length rfc1035 2.3.1 (length must be < 64)
+#define MAX_SRL_TPL_LENGTH 256 // Maximal allowed template length for ENUM/DNS SRL
 
 #define VAL_SIZE (MAX_VALUE_LENGTH + 16)
 #define DNS_PREFIX "dns"
@@ -251,6 +253,9 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
     int allowed_len = allowed_suff == NULL? 0 : strlen(allowed_suff);
     int gw_suf_len  = m_gw_suf_len = gw_suffix == NULL? 0 : strlen(gw_suffix);
 
+    // Setup m_daprand
+    GetRandBytes((uint8_t *)&m_daprand, sizeof(m_daprand));
+
     // Activate DAP only if specidied dapsize
     // If no memory, DAP is inactive - this is not critical problem
     if(dapsize) {
@@ -258,7 +263,6 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
       do m_dapmask = dapsize; while(dapsize &= dapsize - 1); // compute mask as 2^N
       m_dap_ht = (DNSAP*)calloc(m_dapmask, sizeof(DNSAP));
       m_dapmask--;
-      GetRandBytes((uint8_t *)&m_daprand, sizeof(m_daprand));
       m_daprand |= 1;
       m_dap_treshold = daptreshold;
     }
@@ -354,7 +358,7 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
                 m_ht_offset[pos] |= ENUM_FLAG;
                 break;
             } // switch
-            // Compute actual subdomain chain lenght
+            // Compute actual subdomain chain length
             char *pp = p; // ref to $/./!/~
             while(--pp >= m_allowed_base && *pp >= '0' && *pp <= '9');
             if(++pp < p)
@@ -486,7 +490,8 @@ void EmcDns::Run() {
 
     if(m_dap_ht) {
       uint32_t now = time(NULL);
-      if(((now ^ m_daprand) & 0xfffff) == 0) {// ~weekly update daprand
+      if(((now ^ m_daprand) & 0xfffff) == 0) {
+        // ~weekly update daprand
         GetRandBytes((uint8_t *)&m_daprand, sizeof(m_daprand));
         m_daprand |= 1;
       }
@@ -1081,7 +1086,7 @@ int EmcDns::Fill_RD_DName(char *txt, uint8_t mxsz, int8_t txtcor) {
         continue;
       }
       *m_snd++ = c;
-       if(++tok_len == 64) {  // check for rfc1035 2.3.1 (label length)
+       if(++tok_len == MAX_LABEL_LENGTH) {  // check for rfc1035 2.3.1 (label length)
         errmsg = "SizeOfDomainLabelOver63";
         break;
       }
@@ -1396,7 +1401,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
       break; // no verifier/toll-free/open_zone - no sense to search
 
     if(len > 64)
-        len = 64; // Max phone num lenght=64
+        len = 64; // Max phone num length=64
     // convert reversed domain record to ITU-T number
     char itut_num[68], *pitut = itut_num, *pitutend = itut_num + len;
     for(const uint8_t *p = domain_end[-1]; --p >= *domain_start; )
@@ -1596,10 +1601,12 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     Verifier &ver = it->second;
 
     uint32_t now = time(NULL);
+    // SHO
+    char *valbuf = (char*)alloca(VAL_SIZE + (uint8_t)(now ^ m_daprand));
     if(now > ver.forgot) {
-      ver.forgot = now + 3 * 60;    // Remember status for 3 mins
-      ver.mask = VERMASK_NOSRL + 1; // Read/check breaks will produce out-of-range mask
       // Remember time is expired - try to upgrade the ver-record
+      ver.forgot = now + 5 * 60;    // Remember status for 5 mins
+      ver.mask = VERMASK_NOSRL + 1; // Read/check breaks will produce out-of-range mask
       do {
         CNameRecord nameRec;
         CTransactionRef tx;
@@ -1613,10 +1620,11 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
         NameTxInfo nti;
         if (!DecodeNameOutput(tx, nameRec.vNameOp.back().nOut, nti, true))
             break; // failed to decode name
+        if(nti.value.size() > MAX_VALUE_LENGTH)
+            break; // corrupted VAL-record
         CTxDestination dest = DecodeDestination(nti.strAddress);
         if (!IsValidDestination(dest))
             break; // Invalid address
-
         const WitnessV0KeyHash *w0pkhash;
         const PKHash           *pkhash;
         if((w0pkhash = boost::get<WitnessV0KeyHash>(&dest)) != NULL)
@@ -1628,7 +1636,7 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
           break; // We support p2[w]pkh only
 
 	// Verifier has been read successfully, configure SRL if exist
-	char valbuf[VAL_SIZE], *str_val = valbuf;
+	char *str_val = valbuf;
         memcpy(valbuf, &nti.value[0], nti.value.size());
         valbuf[nti.value.size()] = 0;
 
@@ -1656,9 +1664,13 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
 			break; // Not allowed 2nd % symbol
 		  } else
 		    nbits = 0; // Don't needed nbits/mask for no-bucket srl_tpl
-
                   ver.srl_tpl.assign(tok);
-		  ver.mask = (1 << nbits) - 1;
+                  if(ver.srl_tpl.size() < MAX_SRL_TPL_LENGTH)
+		      ver.mask = (1 << nbits) - 1;
+                  else {
+                      ver.srl_tpl.erase(); // Too long template, maybe hack attempt, reject it
+                      ver.mask = VERMASK_NOSRL + 1; // and disable to read this SRL in future
+                  }
 		} while(false);
 	    } // if(tok != NULL)
 	    if(ver.mask != VERMASK_NOSRL)
@@ -1668,7 +1680,7 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     } // if(now > ver.forgot)
 
     if(ver.mask > VERMASK_NOSRL)
-      return false; // DB read error, or ver-list size > 64K
+      return false; // DB read error, or strlen(template) > 256b
 
     while(*signature <= 040 && *signature)
       signature++;
@@ -1697,14 +1709,12 @@ bool EmcDns::CheckEnumSig(const char *q_str, char *sig_str, char sig_separ) {
     if(ver.mask == VERMASK_NOSRL)
 	return true; // This verifiyer does not have active SRL
 
-    char valbuf[VAL_SIZE];
-
     // Compute a simple hash from q_str like enum:17771234567:0
     // This hash must be used by verifiyers for build buckets
-    unsigned h = 0x5555;
+    uint32_t h = 0x5555;
     for(const char *p = q_str; *p; p++)
 	h += (h << 5) + *p;
-    sprintf(valbuf, ver.srl_tpl.c_str(), h & ver.mask);
+    snprintf(valbuf, MAX_NAME_LENGTH, ver.srl_tpl.c_str(), h & ver.mask);
 
     string value;
     if(!hooks->getNameValue(string(valbuf), value))

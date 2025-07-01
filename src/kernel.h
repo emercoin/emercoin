@@ -4,6 +4,7 @@
 #ifndef PPCOIN_KERNEL_H
 #define PPCOIN_KERNEL_H
 
+#include <stdint.h>
 #include <memory>
 
 class CBlockHeader;
