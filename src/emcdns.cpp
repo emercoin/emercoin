@@ -1422,7 +1422,7 @@ int EmcDns::SpfunENUM(uint8_t len, uint8_t **domain_start, uint8_t **domain_end)
     if(sigOK || !m_verifiers.empty()) {
       for(int16_t qno = 0; qno >= 0; qno++) {
         char q_str[160];
-        sprintf(q_str, "%s:%s:%u", tld, itut_num, qno);
+        snprintf(q_str, sizeof(q_str), "%s:%s:%u", tld, itut_num, qno);
         if(m_verbose > 4)
           LogPrintf("    EmcDns::SpfunENUM Search(%s)\n", q_str);
 
