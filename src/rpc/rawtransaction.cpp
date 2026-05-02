@@ -1868,7 +1868,7 @@ UniValue randpay_mktx(const JSONRPCRequest& request)
     },
     RPCResult{"\"transaction\"      (string) Hex string of the transaction, need send to payee"},
     RPCExamples{
-        HelpExampleCli("randpay_mktx", "3.141:500:abcd...ecec 1000 60") /* + HelpExampleRpc("randpay_mktx", ""), */
+        HelpExampleCli("randpay_mktx", "3.141:500:abcd...ecec 60") /* + HelpExampleRpc("randpay_mktx", ""), */
     }}.Check(request);
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
