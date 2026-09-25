@@ -585,6 +585,7 @@ void SetupServerArgs()
     gArgs.AddArg("-maxdp", "Maximal table size for DP TX optimizer (default: 128 * 1024 * 1024 i.e. max DP-selected amount is 13,421 EMC)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printselectcoin", "Debug print (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-disablesafemode", strprintf("Disable safemode, override a real safe mode event (default: %u)", DEFAULT_DISABLE_SAFEMODE), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-namefileio", "Allow name RPC operation read/write files (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // peercoin stuff
     gArgs.AddArg("-stakegen", "Enable proof of stake minting (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);

@@ -33,6 +33,10 @@ public:
     virtual bool DumpToTextFile();
 };
 
+static bool IsNameFileInfo() {
+    return gArgs.GetArg("-namefileio", 0) != 0;
+}
+
 CNameVal nameValFromValue(const UniValue& value) {
     string strName = value.get_str();
     unsigned char *strbeg = (unsigned char*)strName.c_str();
@@ -518,7 +522,7 @@ UniValue name_show(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. name      (string, required).\n"
             "2. valuetype (string, optional) If \"hex\" or \"base64\" is specified then it will print value in corresponding format instead of string.\n"
-            "3. filepath  (string, optional) save name value in binary format in specified file (file will be overwritten!).\n"
+            "3. filepath  (string, optional) If valuetype is \"file\" then save name value in binary format into specified file (file will be overwritten!).\n"
             );
 
     if (::ChainstateActive().IsInitialBlockDownload())
@@ -560,8 +564,10 @@ UniValue name_show(const JSONRPCRequest& request)
                 oName.pushKV("expired", true);
     }
 
-    if (request.params.size() > 2)
+    if (request.params.size() > 2 && outputType == "file")
     {
+        if (!IsNameFileInfo())
+            throw JSONRPCError(RPC_PARSE_ERROR, "File operations disabled, set config parameter namefileio=1");
         string filepath = request.params[2].get_str();
         ofstream file;
         file.open(filepath.c_str(), ios::out | ios::binary | ios::trunc);
@@ -1322,7 +1328,11 @@ NameTxReturn name_operation(UniValue names, CWallet* pwallet) {
                         ret.err_msg = "failed to decode value as base64";
                         return ret;
                     }
-                } else { // decode as filepath
+                } else { // consider strValueType as filepath
+                    if (!IsNameFileInfo()) {
+                        ret.err_msg = "File operations disabled, set config parameter namefileio=1";
+                        return ret;
+                    }
                     std::ifstream ifs;
                     ifs.open(strValue.c_str(), std::ios::binary | std::ios::ate);
                     if (!ifs) {
