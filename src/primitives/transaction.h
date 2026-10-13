@@ -443,4 +443,8 @@ typedef std::shared_ptr<const CTransaction> CTransactionRef;
 static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }
 template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txIn) { return std::make_shared<const CTransaction>(std::forward<Tx>(txIn)); }
 
+// emercoin: fixed fee by size. Used by consensus (coinbase/coinstake reward checks),
+// so it lives in the consensus library, not in policy/feerate.
+CAmount GetMinFee(size_t nBytes);
+
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H
