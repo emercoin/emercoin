@@ -1,0 +1,70 @@
+# Build and test on every push and pull request to develop and master.
+# The steps are ci/build.sh stages run in the ci/Dockerfile image (see ci/README.md),
+# so a failure can be reproduced locally with the same commands.
+name: CI
+
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
+    branches: [develop, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-x86_64:
+    name: Linux x86_64 - build, unit and functional tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      HOST: x86_64-linux-gnu
+      IMAGE: emercoin-ci:bionic
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # tags for the version string (git describe)
+          persist-credentials: false
+
+      - name: Build the CI image
+        run: docker build -t "$IMAGE" ci
+
+      - name: Restore depends
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            depends/built
+            depends/sources
+            depends/${{ env.HOST }}
+          key: depends-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
+
+      - name: Depends
+        run: ci/docker.sh depends
+
+      - name: Build
+        run: ci/docker.sh build
+
+      - name: Unit tests
+        run: ci/docker.sh check
+
+      - name: Functional tests
+        env:
+          TMPDIR_PREFIX: /src/ci-artifacts/functional
+        run: ci/docker.sh functional
+
+      - name: Keep test logs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: test-logs-linux-x86_64
+          path: |
+            ci-artifacts/
+            src/test-suite.log
+            src/test/*.log
+          retention-days: 14
+          if-no-files-found: ignore

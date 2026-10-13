@@ -1,31 +1,16 @@
-## ci scripts
+## Continuous integration
 
-This directory contains scripts for each build step in each build stage.
+`.github/workflows/ci.yml` builds and tests every push and pull request to `develop` and
+`master` on GitHub Actions. Each step is a stage of `ci/build.sh`, run in the image built from
+`ci/Dockerfile` (Ubuntu 18.04 + gcc 8, the toolchain of the release builds), so a CI run can be
+repeated locally with Docker:
 
-Currently three stages `lint`, `extended_lint` and `test` are defined. Each stage has its own lifecycle, similar to the
-[Travis CI lifecycle](https://docs.travis-ci.com/user/job-lifecycle#the-job-lifecycle). Every script in here is named
-and numbered according to which stage and lifecycle step it belongs to.
+    docker build -t emercoin-ci:bionic ci
+    ci/docker.sh depends      # depends/ without Qt; slow the first time
+    ci/docker.sh build        # emercoind, emercoin-cli, emercoin-tx, emercoin-wallet, unit tests
+    ci/docker.sh check        # unit tests
+    ci/docker.sh functional   # functional tests, without network access
 
-### Running a stage locally
-
-To allow for a wide range of tested environments, but also ensure reproducibility to some extent, the test stage
-requires `docker` to be installed. To install all requirements on Ubuntu, run
-
-```
-sudo apt install docker.io ccache bash git
-```
-
-To run the default test stage,
-
-```
-./ci/test_run_all.sh
-```
-
-To run the test stage with a specific configuration,
-
-```
-FILE_ENV="./ci/test/00_setup_env_arm.sh" ./ci/test_run_all.sh
-```
-
-Be aware that the tests will be build and run in-place, so please run at your own risk.
-If the repository is not a fresh git clone, you might have to clean files from previous builds or test runs first.
+The build happens in the source tree. Functional tests listed in `test/functional/test_runner.py`
+as not applicable or todo, and unit test suites in `EMERCOIN_TODO_TESTS`
+(`src/Makefile.test.include`), are not part of the run.
