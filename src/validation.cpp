@@ -1169,7 +1169,9 @@ bool CChainState::IsInitialBlockDownload() const
     const int     nBlocksPerSec = 600000 / (5 * 60); // Optimistic assume, 5min for 600K chain
     const int64_t nUsecInSec    = 1000000LL;
     int64_t now = GetTimeMicros();
-    if(now < nextChecktime)
+    // regtest: no back-off; a fresh chain starts at a years-old genesis, which would keep the
+    // node in IBD (ignoring getheaders) for minutes after it has mined recent blocks
+    if(now < nextChecktime && Params().NetworkIDString() != "regtest")
         return true; // timio is not elapsed from previous full check
     nextChecktime = now;
     do {
