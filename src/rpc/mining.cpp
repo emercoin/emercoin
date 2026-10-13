@@ -103,7 +103,9 @@ static UniValue getnetworkhashps(const JSONRPCRequest& request)
     return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-static UniValue generateBlocks(const CScript& coinbase_script, CWallet* const pwallet, int nGenerate, uint64_t nMaxTries)
+// Blocks are signed by the key of a P2PK coinbase output: by `signing_key` when it is valid (a dust P2PK
+// output to it is added to the coinbase), otherwise by the wallet key of coinbase_script, which must be P2PK.
+static UniValue generateBlocks(const CScript& coinbase_script, CWallet* const pwallet, const CKey& signing_key, int nGenerate, uint64_t nMaxTries)
 {
     int nHeightEnd = 0;
     int nHeight = 0;
@@ -121,6 +123,14 @@ static UniValue generateBlocks(const CScript& coinbase_script, CWallet* const pw
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
         CBlock *pblock = &pblocktemplate->block;
+        if (signing_key.IsValid()) {
+            CMutableTransaction coinbase(*pblock->vtx[0]);
+            if (coinbase.vout[0].nValue < 2 * MIN_TXOUT_AMOUNT)
+                throw JSONRPCError(RPC_INTERNAL_ERROR, "Coinbase reward too small for a signing output");
+            coinbase.vout[0].nValue -= MIN_TXOUT_AMOUNT;
+            coinbase.vout.emplace_back(MIN_TXOUT_AMOUNT, GetScriptForRawPubKey(signing_key.GetPubKey()));
+            pblock->vtx[0] = MakeTransactionRef(std::move(coinbase)); // IncrementExtraNonce recomputes the merkle root
+        }
         {
             LOCK(cs_main);
             IncrementExtraNonce(pblock, ::ChainActive().Tip(), nExtraNonce);
@@ -136,8 +146,11 @@ static UniValue generateBlocks(const CScript& coinbase_script, CWallet* const pw
         if (pblock->nNonce == std::numeric_limits<uint32_t>::max()) {
             continue;
         }
-        {
-            // Every block except genesis must be signed by the coinbase key (ppcoin)
+        // Every block except genesis must be signed by the coinbase key (ppcoin)
+        if (signing_key.IsValid()) {
+            if (!signing_key.Sign(pblock->GetHash(), pblock->vchBlockSig, 0))
+                throw JSONRPCError(RPC_INTERNAL_ERROR, "Unable to sign block");
+        } else {
             LOCK2(cs_main, pwallet->cs_wallet);
             if (!SignBlock(*pblock, *pwallet))
                 throw JSONRPCError(RPC_WALLET_ERROR, "Unable to sign block, wallet locked?");
@@ -182,7 +195,10 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
                 "\nMine blocks immediately to a specified address (before the RPC call returns)\n",
                 {
                     {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},
-                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The address to send the newly generated bitcoin to."},
+                    {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The address to send the newly generated coins to.\n"
+                     "If the wallet has the key of this p2pkh/p2wpkh address, the reward is paid to that key as p2pk, and the key signs the block.\n"
+                     "Otherwise (any address, no wallet needed) the reward is paid to the address, and the block is signed by a one-off key\n"
+                     "through an extra coinbase output of the minimum amount, which can never be spent."},
                     {"maxtries", RPCArg::Type::NUM, /* default */ "1000000", "How many iterations to try."},
                 },
                 RPCResult{
@@ -203,11 +219,38 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     }
 
     CTxDestination destination = DecodeDestination(request.params[1].get_str());
-    // oleg: we cannot use for minign just ordinary p2pkh/p2wpkh script, since will be unable to sign blocks
-    // CScript coinbase_script = GetScriptForDestination(destination);
-    // return generateBlocks(coinbase_script, nGenerate, nMaxTries);
+    if (!IsValidDestination(destination))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid address");
+
+    // The block is signed by the key of a P2PK coinbase output. If the wallet has the address's key, the reward
+    // goes to that key as P2PK (as before). Otherwise, as in Bitcoin, the reward goes to the address itself and a
+    // one-off key signs the block: since V7 the signature may come from any P2PK coinbase output, so the coinbase
+    // gets a dust (MIN_TXOUT_AMOUNT) P2PK output to that key, unspendable once the key is dropped.
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
-    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), wallet.get(), nGenerate, nMaxTries);
+    CKeyID keyID;
+    if (const PKHash* pkhash = boost::get<PKHash>(&destination))
+        keyID = CKeyID(*pkhash);
+    else if (const WitnessV0KeyHash* w0pkhash = boost::get<WitnessV0KeyHash>(&destination))
+        keyID = CKeyID(*w0pkhash);
+    if (wallet && !keyID.IsNull()) {
+        CKey key;
+        bool have_key;
+        {
+            LOCK(wallet->cs_wallet);
+            have_key = wallet->GetKey(keyID, key);
+        }
+        if (have_key)
+            return generateBlocks(GetScriptForRawPubKey(key.GetPubKey()), wallet.get(), CKey(), nGenerate, nMaxTries);
+    }
+
+    {
+        LOCK(cs_main);
+        if (!IsWitnessEnabled(::ChainActive().Tip(), Params().GetConsensus()))
+            throw JSONRPCError(RPC_MISC_ERROR, "Before V7 the block is signed by the first coinbase output: mine to an address whose key is in the wallet");
+    }
+    CKey signing_key;
+    signing_key.MakeNewKey(true);
+    return generateBlocks(GetScriptForDestination(destination), nullptr, signing_key, nGenerate, nMaxTries);
 } // generatetoaddress
 
 // Keep in RAM until 1st submitblock. We assume, miner do not use strabge combination of generate+generatetoaddress.
@@ -249,7 +292,7 @@ UniValue generate(const JSONRPCRequest& request)
             throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
         s_reservedest_generate = tmp_reservedest;
     }
-    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), wallet.get(), nGenerate, nMaxTries);
+    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), wallet.get(), CKey(), nGenerate, nMaxTries);
 } // generate
 
 /*--------------------------------------------------------------------------------*/
