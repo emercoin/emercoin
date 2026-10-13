@@ -44,7 +44,8 @@ JSON_TEST_FILES = \
   test/data/script_tests.json \
   test/data/sighash.json \
   test/data/tx_invalid.json \
-  test/data/tx_valid.json
+  test/data/tx_valid.json \
+  test/data/emc_mainnet_headers.json
 
 RAW_TEST_FILES =
 
@@ -103,6 +104,7 @@ BITCOIN_TESTS =\
   test/cuckoocache_tests.cpp \
   test/denialofservice_tests.cpp \
   test/descriptor_tests.cpp \
+  test/emercoin_pow_tests.cpp \
   test/flatfile_tests.cpp \
   test/fs_tests.cpp \
   test/getarg_tests.cpp \
