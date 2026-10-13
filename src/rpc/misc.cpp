@@ -377,7 +377,7 @@ static UniValue setmocktime(const JSONRPCRequest& request)
                 RPCExamples{""},
             }.Check(request);
 
-    if (Params().NetworkIDString() == "regtest")
+    if (Params().NetworkIDString() != "regtest")
         throw std::runtime_error("setmocktime for regression testing (-regtest mode) only");
 
     // For now, don't change mocktime if we're in the middle of validation, as
