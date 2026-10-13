@@ -759,8 +759,11 @@ static UniValue submitblock(const JSONRPCRequest& request)
         if (!CheckBlock(block, state, Params().GetConsensus(), true,  true))
             throw JSONRPCError(-100, "Block failed CheckBlock() function.");
 
+        // emercoin: a block that already carries a valid signature (e.g. mined by another
+        // node) is submitted as is; otherwise sign it with this node's wallet.
         LOCK2(cs_main, pwallet->cs_wallet);
-        if (!SignBlock(block, *pwallet))
+        bool fV7Enabled = IsWitnessEnabled(::ChainActive().Tip(), Params().GetConsensus());
+        if (!CheckBlockSignature(block, fV7Enabled) && !SignBlock(block, *pwallet))
             throw JSONRPCError(-100, "Unable to sign block, wallet locked?");
     }
     if(s_reservedest_generate != NULL) {
