@@ -10,6 +10,8 @@
 - Malformed UDP packets (truncated, bad label lengths, compression loops, oversized names,
   random bytes) do not crash or wedge the server: it still answers afterwards.
 - -emcdnsbindip=127.0.0.1 listens on loopback only.
+- Large records stored on chain (a value holds up to 20 KiB) are served within the reply
+  buffer, and the server keeps answering.
 """
 
 import os
@@ -122,6 +124,29 @@ class EmcDnsTest(BitcoinTestFramework):
         rcode, answers = self.resolve("example.coin", QTYPE_A)
         assert_equal((rcode, answers), (0, [(QTYPE_A, bytes([1, 2, 3, 4]))]))
 
+        self.log.info("Large on-chain records")
+        large_records = {
+            "dns:bigtxt.coin": "TXT=" + "x" * 5000,
+            "dns:manytxt.coin": "|".join(["TXT=" + "y" * 200] * 60),
+            "dns:manya.coin": "|".join(["A=10.0.%d.%d" % (i // 250, i % 250) for i in range(800)]),
+            "dns:manyaaaa.coin": "|".join(["AAAA=2001:db8::%x" % i for i in range(600)]),
+            "dns:longmx.coin": "|".join(["MX=" + "m" * 250 + ".coin:%d" % i for i in range(60)]),
+            "dns:longns.coin": "|".join(["NS=" + ".".join(["n" * 63] * 4) for _ in range(40)]),
+            "dns:longcname.coin": "CNAME=" + ".".join(["c" * 63] * 30),
+            "dns:garbage.coin": "A=999.1.2.3|AAAA=zz::1|MX=|TXT|=|||A=|NS=..|CNAME=.",
+        }
+        for name, value in large_records.items():
+            node.name_new(name, value[:20 * 1024], 1)
+        node.generate(1)
+        for name in large_records:
+            for qtype in (QTYPE_A, 28, 15, 2, 5, QTYPE_TXT, 255):  # A AAAA MX NS CNAME TXT ANY
+                reply = self.query(make_query(name[len("dns:"):], qtype), expect_reply=False)
+                if reply is not None:
+                    assert len(reply) <= 4096
+        assert_equal(node.getblockcount(), 202)
+        rcode, answers = self.resolve("example.coin", QTYPE_A)
+        assert_equal((rcode, answers), (0, [(QTYPE_A, bytes([1, 2, 3, 4]))]))
+
         self.log.info("Malformed packets do not break the server")
         valid = make_query("example.coin", QTYPE_A)
         header = valid[:12]
@@ -147,7 +172,7 @@ class EmcDnsTest(BitcoinTestFramework):
         malformed += [header + bytes(rng.getrandbits(8) for _ in range(rng.randrange(1, 300))) for _ in range(300)]
         for packet in malformed:
             self.query(packet, expect_reply=False)
-        assert_equal(node.getblockcount(), 201)  # the node is alive
+        assert_equal(node.getblockcount(), 202)  # the node is alive
         rcode, answers = self.resolve("example.coin", QTYPE_A)
         assert_equal((rcode, answers), (0, [(QTYPE_A, bytes([1, 2, 3, 4]))]))
 
