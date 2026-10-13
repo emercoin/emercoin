@@ -95,6 +95,9 @@ class TestNode():
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
             "-uacomment=testnode%d" % i,
+            # emercoin: the default legacy JSON mode mis-decodes \uXXXX escapes (Python's json
+            # escapes non-ASCII), e.g. the unicode test directory names; tests use standard JSON
+            "-legacyrpc=0",
         ]
 
         self.cli = TestNodeCLI(bitcoin_cli, self.datadir)
