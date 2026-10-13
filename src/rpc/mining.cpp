@@ -160,6 +160,8 @@ CScript BuildCoinbaseScript(const CTxDestination& dest, CWallet* const pwallet) 
     else
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key, must be p2[w]pkh");
     CKey key;
+    // The coinbase pays to a wallet key that signs the block, so mining needs a wallet
+    EnsureWalletIsAvailable(pwallet, false);
     LOCK(pwallet->cs_wallet);
     if (!pwallet->GetKey(keyID, key))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
@@ -230,6 +232,7 @@ UniValue generate(const JSONRPCRequest& request)
     }
 
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    EnsureWalletIsAvailable(wallet.get(), false);
     static CTxDestination destination; // mining dst-address LEGACY
     if(!IsValidDestination(destination)) {
         assert(s_reservedest_generate == NULL);
