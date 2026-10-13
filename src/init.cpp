@@ -382,7 +382,7 @@ void SetupServerArgs()
     gArgs.AddArg("-alertnotify=<cmd>", "Execute command when a relevant alert is received or we see a really long fork (%s in cmd is replaced by message)", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-alertpubkey=<hex>", "Set alert public key. 0 - disable, 1 - default key, hex string - custom key", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #endif
-    gArgs.AddArg("-assumevalid=<hex>", strprintf("If this block is in the chain assume that it and its ancestors are valid and potentially skip their script verification (0 to verify all, default: %s, testnet: %s)", defaultChainParams->GetConsensus().defaultAssumeValid.GetHex(), testnetChainParams->GetConsensus().defaultAssumeValid.GetHex()), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-assumevalid=<hex>", "Scripts of blocks below the last hard checkpoint are not verified (the checkpoints pin that history). 0 verifies all scripts; a block hash has no effect", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-checkpointpubkey=<hex>", "Set checkpoint public key. 0 - disable, 1 - default key, hex string - custom key", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-blocksdir=<dir>", "Specify directory to hold blocks subdirectory for *.dat files (default: <datadir>)", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #if HAVE_SYSTEM
@@ -1112,10 +1112,13 @@ bool AppInitParameterInteraction()
     fCheckpointsEnabled = gArgs.GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
 
     hashAssumeValid = uint256S(gArgs.GetArg("-assumevalid", chainparams.GetConsensus().defaultAssumeValid.GetHex()));
-    if (!hashAssumeValid.IsNull())
-        LogPrintf("Assuming ancestors of block %s have valid signatures.\n", hashAssumeValid.GetHex());
-    else
+    // emercoin: ConnectBlock skips script checks below the last hard checkpoint rather than below
+    // hashAssumeValid; only an explicit -assumevalid=0 changes that (Bitcoin's "0 to verify all").
+    fVerifyAllScripts = gArgs.IsArgSet("-assumevalid") && hashAssumeValid.IsNull();
+    if (fVerifyAllScripts || !fCheckpointsEnabled)
         LogPrintf("Validating signatures for all blocks.\n");
+    else
+        LogPrintf("Not validating signatures below the last hard checkpoint (-assumevalid=0 validates all).\n");
 
     if (gArgs.IsArgSet("-minimumchainwork")) {
         const std::string minChainTrustStr = gArgs.GetArg("-minimumchainwork", "");

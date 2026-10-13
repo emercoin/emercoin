@@ -133,6 +133,7 @@ uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 
 uint256 hashAssumeValid;
+bool fVerifyAllScripts = false;
 arith_uint256 nMinimumChainTrust;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
@@ -1994,7 +1995,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // hard checkpoint. If current block will be invalid, then entire descendant chain for
     // this block will have other hashes, and download for this branch will be blocked by
     // a next hard checkpoint.
-    bool fScriptChecks = pindex->nHeight >= GetLastHardCheckpointHeight();
+    // That only holds while checkpoints are enforced, and -assumevalid=0 asks to verify everything.
+    bool fScriptChecks = fVerifyAllScripts || !fCheckpointsEnabled || pindex->nHeight >= GetLastHardCheckpointHeight();
 
 #if 0
     // Ugly and slow Bitcoin code - just commented out

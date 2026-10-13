@@ -229,6 +229,7 @@ NON_SCRIPTS = [
 # emercoin: tests of Bitcoin behaviour that Emercoin does not have. They are not run; the runner
 # lists them with the reason.
 EMERCOIN_NOT_APPLICABLE = {
+    'feature_assumevalid.py': 'scripts are skipped below the last hard checkpoint, not below an assumevalid block (regtest has none but genesis)',
     'feature_rbf.py': 'no BIP125 replacement in the mempool',
     'wallet_bumpfee.py': 'no bumpfee / RBF (-walletrbf removed)',
     'wallet_bumpfee_totalfee_deprecation.py': 'no bumpfee / RBF (-walletrbf removed)',
@@ -243,7 +244,6 @@ EMERCOIN_NOT_APPLICABLE = {
 # emercoin: applicable tests not adapted yet. They run, but a failure is reported as "Todo" and
 # does not fail the run; a pass is reported as "Fixed" -- then remove the entry.
 EMERCOIN_TODO = {
-    'feature_assumevalid.py': 'assumevalid did not skip script checks for the buried block (PoW chain trust is 1 per block): investigate',
     'feature_bip68_sequence.py': 'fees below the Emercoin minimum',
     'feature_block.py': 'Bitcoin consensus expectations (subsidy, versions, sigops); needs a rewrite',
     'feature_cltv.py': 'activation test; BIP65 is active from genesis on regtest',
