@@ -23,6 +23,9 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     if (pindexLast == NULL)
         return UintToArith256(params.powLimit).GetCompact(); // genesis block
 
+    if (params.fPowNoRetargeting)
+        return UintToArith256(params.bnInitialHashTarget).GetCompact();
+
     const CBlockIndex* pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
     if (pindexPrev->pprev == NULL)
         return UintToArith256(params.bnInitialHashTarget).GetCompact(); // first block

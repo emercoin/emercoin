@@ -45,6 +45,8 @@ struct Params {
     /** Proof of work parameters */
     uint256 powLimit;
     bool fPowAllowMinDifficultyBlocks;
+    /** emercoin: regtest keeps every block at bnInitialHashTarget, so tests can build blocks with fixed nBits */
+    bool fPowNoRetargeting{false};
     int64_t nTargetSpacing;
     int64_t nTargetTimespan;
     uint256 nMinimumChainTrust;

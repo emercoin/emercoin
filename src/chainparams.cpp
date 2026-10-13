@@ -373,6 +373,7 @@ public:
         consensus.nCoinbaseMaturityOld = 32;
 
         consensus.fPowAllowMinDifficultyBlocks = true;
+        consensus.fPowNoRetargeting = true;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainTrust = uint256S("0x00");
