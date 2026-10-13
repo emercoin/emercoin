@@ -365,7 +365,6 @@ EMERCOIN_TODO_TESTS += test/random_tests.cpp              # GetRandBytes is RC4O
 EMERCOIN_TODO_TESTS += test/rpc_tests.cpp                 # Bitcoin tx hex and addresses
 EMERCOIN_TODO_TESTS += test/script_tests.cpp              # script_tests.json built from Bitcoin txs: regenerate
 EMERCOIN_TODO_TESTS += test/sighash_tests.cpp             # sighash.json: Bitcoin tx format: regenerate
-EMERCOIN_TODO_TESTS += test/timedata_tests.cpp            # Emercoin keeps updating the time median after 199 samples
 EMERCOIN_TODO_TESTS += test/transaction_tests.cpp         # tx_valid/tx_invalid.json: Bitcoin tx format
 EMERCOIN_TODO_TESTS += test/txvalidationcache_tests.cpp   # needs DERSIG inactive; Emercoin regtest enforces it from genesis
 if ENABLE_WALLET

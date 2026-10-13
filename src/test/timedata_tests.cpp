@@ -87,11 +87,13 @@ BOOST_AUTO_TEST_CASE(addtimedata)
 
     BOOST_CHECK_EQUAL(GetTimeOffset(), 0);
 
-    // After the number of offsets has reached MAX_SAMPLES -1 (=199), nTimeOffset will never change
-    // because it is only updated when the number of elements in the filter becomes odd. It was decided
-    // not to fix this because it prevents possible attacks. See the comment in AddTimeData() or issue #4521
-    // for a more detailed explanation.
-    MultiAddTimeData(2, 100); // filter median is 100 now, but nTimeOffset will not change
+    // emercoin: unlike Bitcoin (#4521), even filter sizes update nTimeOffset too, with the mean of
+    // the two middle values; samples stop at MAX_SAMPLES peers.
+    MultiAddTimeData(1, 100); // filter size MAX_SAMPLES: [-100 x99, 0, 100 x96, big x4]
+    BOOST_CHECK_EQUAL(GetTimeOffset(), 50);
+    MultiAddTimeData(1, -100); // the initial 0 drops out: [-100 x100, 100 x96, big x4]
+    BOOST_CHECK_EQUAL(GetTimeOffset(), 0);
+    MultiAddTimeData(5, 100); // MAX_SAMPLES peers seen: ignored
     BOOST_CHECK_EQUAL(GetTimeOffset(), 0);
 
     // We want this test to end with nTimeOffset==0, otherwise subsequent tests of the suite will fail.

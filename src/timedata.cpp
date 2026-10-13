@@ -15,11 +15,13 @@
 #include <util/translation.h>
 #include <warnings.h>
 
+#include <atomic>
 
 static CCriticalSection cs_nTimeOffset;
 
-static volatile int64_t nTimeOffset =  0;
-static volatile int     nUpdCount   = ~0;
+// emercoin: read without cs_nTimeOffset (GetAdjustedTime runs on every minting attempt).
+// Was a hand-made seqlock on volatile ints: a data race (UB), unsafe on ARM / 32-bit.
+static std::atomic<int64_t> nTimeOffset{0};
 
 /**
  * "Never go to sea with two chronometers; take one or three."
@@ -30,13 +32,7 @@ static volatile int     nUpdCount   = ~0;
  */
 int64_t GetTimeOffset()
 {
-    int64_t offset;
-    int     cnt1;
-    do {
-      cnt1    = nUpdCount;
-      offset  = nTimeOffset;
-    } while(cnt1 != nUpdCount || cnt1 > 0);
-    return offset;
+    return nTimeOffset;
 }
 
 int64_t GetAdjustedTime()
@@ -83,6 +79,9 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
     // So we should hold off on fixing this and clean it up as part of
     // a timing cleanup that strengthens it in a number of other ways.
     //
+    // emercoin: there is no odd-size condition: the offset follows every sample from the 5th
+    // (even sizes: the mean of the two middle values) until setKnown is full (200 peers).
+    //
     size_t vlen = vTimeOffsets.size();
     if (vTimeOffsets.size() >= 5) {
         std::vector<int64_t> vSorted = vTimeOffsets.sorted();
@@ -113,10 +112,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
             }
         }
 
-        // Lock-free update nTimeOffset
-        nUpdCount = -nUpdCount;
         nTimeOffset = nMedian;
-        nUpdCount = ~nUpdCount | 0xe0000000;
 
         if (LogAcceptCategory(BCLog::NET)) {
             for (const int64_t n : vSorted) {
@@ -124,7 +120,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
             }
             LogPrint(BCLog::NET, "|  "); /* Continued */
 
-            LogPrint(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset/1, nTimeOffset/60);
+            LogPrint(BCLog::NET, "nTimeOffset = %+d  (%+d minutes)\n", nMedian, nMedian/60);
         }
     }
 }
