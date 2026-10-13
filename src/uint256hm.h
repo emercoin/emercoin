@@ -80,7 +80,9 @@ public:
 
   Data *Next(Data *cur) const {
      do {
-       if((cur->next) == m_mask + 1)
+       // emercoin: a deleted cell keeps its link with the 0x80000000 mark, so the end of the list
+       // can be END | mark
+       if((cur->next & 0x7fffffff) == m_mask + 1)
          return NULL; // EOL
        cur = m_data + (cur->next & 0x7fffffff);
      } while(((int32_t)cur->next) < 0);
@@ -92,7 +94,8 @@ public:
      if((cur->next & 0x80000000) == 0) {
        cur->next |= 0x80000000;
        m_deleted++;
-       while(m_data[m_head].next & 0x80000000)
+       // emercoin: stop at END, which is reached once every cell from the head on is deleted
+       while(m_head <= m_mask && (m_data[m_head].next & 0x80000000))
          m_head = m_data[m_head].next ^ 0x80000000;
        if(m_head > m_mask)
          m_tail = m_head;
