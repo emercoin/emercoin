@@ -39,9 +39,9 @@ class PoSMintingTest(BitcoinTestFramework):
         for node in self.nodes:
             node.setmocktime(t)
 
-    def pos_blocks(self, node):
+    def pos_blocks(self, node, from_height=0):
         tip = node.getblockcount()
-        return [h for h in range(1, tip + 1)
+        return [h for h in range(from_height + 1, tip + 1)
                 if node.getblock(node.getblockhash(h))["flags"].startswith("proof-of-stake")]
 
     def run_test(self):
@@ -75,15 +75,15 @@ class PoSMintingTest(BitcoinTestFramework):
         self.set_time(t)
         node1.generate(1)
         self.sync_all()
-        tip_height = node0.getblockcount()
-        # the minter searches again only when the (mock) clock has moved on
+        # The minter searches again only when the (mock) clock has moved on. It may already have
+        # minted right after the clock jump (when its first attempts came late enough that the
+        # coins were never dropped from its cache), and it rests for minutes after a block.
         for _ in range(240):
+            if self.pos_blocks(node0, tip_height):
+                break
             t += 1
             self.set_time(t)
             time.sleep(0.25)
-            if node0.getblockcount() > tip_height:
-                break
-        assert_greater_than(node0.getblockcount(), tip_height)
         self.sync_all()
 
         pos = self.pos_blocks(node0)
