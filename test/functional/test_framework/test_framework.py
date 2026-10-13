@@ -496,7 +496,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                     cache_node_dir,
                     chain=self.chain,
                     extra_conf=["bind=127.0.0.1"],
-                    extra_args=['-disablewallet'],
+                    # emercoin: blocks are signed by the coinbase key, so the cache node
+                    # needs a wallet holding the keys it mines to
+                    extra_args=[],
                     rpchost=None,
                     timewait=self.rpc_timeout,
                     bitcoind=self.options.bitcoind,
@@ -515,6 +517,8 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             # block in the cache does not age too much (have an old tip age).
             # This is needed so that we are out of IBD when the test starts,
             # see the tip age check in IsInitialBlockDownload().
+            for key in TestNode.PRIV_KEYS[:4]:
+                self.nodes[CACHE_NODE_ID].importprivkey(privkey=key.key, rescan=False)
             for i in range(8):
                 self.nodes[CACHE_NODE_ID].generatetoaddress(
                     nblocks=25 if i != 7 else 24,
@@ -530,9 +534,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             def cache_path(*paths):
                 return os.path.join(cache_node_dir, self.chain, *paths)
 
-            os.rmdir(cache_path('wallets'))  # Remove empty wallets dir
+            shutil.rmtree(cache_path('wallets'))  # The cache node's wallet is not part of the cache
             for entry in os.listdir(cache_path()):
-                if entry not in ['chainstate', 'blocks']:  # Only keep chainstate and blocks folder
+                # emercoin: indexes/ holds txindex and the name index (nameindexV3), which
+                # must stay consistent with chainstate
+                if entry not in ['chainstate', 'blocks', 'indexes']:  # Only keep chain state folders
                     os.remove(cache_path(entry))
 
         for i in range(self.num_nodes):
