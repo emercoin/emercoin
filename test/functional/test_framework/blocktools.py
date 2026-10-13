@@ -10,6 +10,7 @@ from .address import (
     script_to_p2sh_p2wsh,
     script_to_p2wsh,
 )
+from .key import ECKey
 from .messages import (
     CBlock,
     COIN,
@@ -22,6 +23,7 @@ from .messages import (
     ToHex,
     hash256,
     hex_str_to_bytes,
+    register_block_signing_key,
     ser_uint256,
     sha256,
     uint256_from_str,
@@ -49,8 +51,22 @@ TIME_GENESIS_BLOCK = 1296688602
 # From BIP141
 WITNESS_COMMITMENT_HEADER = b"\xaa\x21\xa9\xed"
 
+# emercoin: block version 9 with the emercoin chain ID, as the node mines it. Regtest rejects
+# versions below 7 (segwit is active from genesis).
+AUXPOW_CHAIN_ID = 666
+BLOCK_VERSION = 9 | (AUXPOW_CHAIN_ID << 16)
 
-def create_block(hashprev, coinbase, ntime=None, *, version=1):
+# emercoin: min amount of a non-empty output (MIN_TXOUT_AMOUNT), also enforced on coinbase
+MIN_TXOUT_AMOUNT = 100
+
+# emercoin: blocks must be signed by a coinbase P2PK key; coinbases built here pay a dust
+# output to this deterministic key so CBlock.solve() can sign the block.
+BLOCK_SIGNING_KEY = ECKey()
+BLOCK_SIGNING_KEY.set(bytes([1] * 32), True)
+register_block_signing_key(BLOCK_SIGNING_KEY)
+
+
+def create_block(hashprev, coinbase, ntime=None, *, version=BLOCK_VERSION):
     """Create a block (with regtest difficulty)."""
     block = CBlock()
     block.nVersion = version
@@ -61,6 +77,9 @@ def create_block(hashprev, coinbase, ntime=None, *, version=1):
         block.nTime = ntime
     block.hashPrevBlock = hashprev
     block.nBits = 0x207fffff  # difficulty retargeting is disabled in REGTEST chainparams
+    # emercoin: the coinbase timestamp must not be later than the block, nor much earlier
+    coinbase.nTime = block.nTime
+    coinbase.rehash()
     block.vtx.append(coinbase)
     block.hashMerkleRoot = block.calc_merkle_root()
     block.calc_sha256()
@@ -102,19 +121,20 @@ def script_BIP34_coinbase_height(height):
 def create_coinbase(height, pubkey=None):
     """Create a coinbase transaction, assuming no miner fees.
 
-    If pubkey is passed in, the coinbase output will be a P2PK output;
-    otherwise an anyone-can-spend output."""
+    If pubkey is passed in, the coinbase output will be a P2PK output (register its key with
+    register_block_signing_key() so the block gets signed); otherwise an anyone-can-spend
+    output plus a dust P2PK output to BLOCK_SIGNING_KEY, which signs the block."""
     coinbase = CTransaction()
     coinbase.vin.append(CTxIn(COutPoint(0, 0xffffffff), script_BIP34_coinbase_height(height), 0xffffffff))
     coinbaseoutput = CTxOut()
-    coinbaseoutput.nValue = 50 * COIN
-    halvings = int(height / 150)  # regtest
-    coinbaseoutput.nValue >>= halvings
+    coinbaseoutput.nValue = 50 * COIN  # emercoin: no halving; the PoW reward depends on nBits
     if (pubkey is not None):
         coinbaseoutput.scriptPubKey = CScript([pubkey, OP_CHECKSIG])
+        coinbase.vout = [coinbaseoutput]
     else:
         coinbaseoutput.scriptPubKey = CScript([OP_TRUE])
-    coinbase.vout = [coinbaseoutput]
+        signing_output = CTxOut(MIN_TXOUT_AMOUNT, CScript([BLOCK_SIGNING_KEY.get_pubkey().get_bytes(), OP_CHECKSIG]))
+        coinbase.vout = [coinbaseoutput, signing_output]
     coinbase.calc_sha256()
     return coinbase
 
