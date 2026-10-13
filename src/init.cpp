@@ -611,7 +611,7 @@ void SetupServerArgs()
     gArgs.AddArg("-emcdnsport", strprintf("emcdns port (default: %u)", EMCDNS_PORT), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnsverbose", "emcdns verbose debug log (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnssuffix", "emcdns suffix (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-emcdnsbindip", "emcdns bindip (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-emcdnsbindip", "emcdns: IPv4 or IPv6 address to listen on; a leading dot (.1.2.3.4) forces an IPv4-only socket (default: all interfaces)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnsallowed", "emcdns allowed (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnslocalcf", "emcdns localcf (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-enumtrust", "emcdns enum trust (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);

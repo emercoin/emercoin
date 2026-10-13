@@ -208,9 +208,12 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
 #endif
             throw runtime_error("EmcDns::EmcDns: Cannot SO_REUSEADDR|SO_REUSEPORT for IPv4 socket to IPV4 socket");
 
-        if(*bind_ip == 0 || inet_pton(AF_INET, bind_ip, &sin.sin_addr) != 1) {
+        if(*bind_ip == 0) {
             sin.sin_addr.s_addr = INADDR_ANY;
             bind_ip = NULL;
+        } else if(inet_pton(AF_INET, bind_ip, &sin.sin_addr) != 1) {
+            // emercoin: an address that does not parse is an error
+            throw runtime_error(std::string("EmcDns::EmcDns: invalid IPv4 address -emcdnsbindip=") + bind_ip);
         }
 
         char buf[INET6_ADDRSTRLEN];
@@ -229,9 +232,19 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         sin6.sin6_port = htons(port_no);
         sin6.sin6_family = AF_INET6;
 
-        if(*bind_ip == 0 || inet_pton(AF_INET6, bind_ip, &sin6.sin6_addr) != 1) {
+        if(*bind_ip == 0) {
             sin6.sin6_addr = in6addr_any;
             bind_ip = NULL;
+        } else if(inet_pton(AF_INET6, bind_ip, &sin6.sin6_addr) != 1) {
+            // emercoin: on this dual-stack socket an IPv4 address (e.g. -emcdnsbindip=127.0.0.1)
+            // is bound as the IPv4-mapped address ::ffff:a.b.c.d
+            struct in_addr addr4;
+            if(inet_pton(AF_INET, bind_ip, &addr4) != 1)
+                throw runtime_error(std::string("EmcDns::EmcDns: invalid address -emcdnsbindip=") + bind_ip);
+            memset(&sin6.sin6_addr, 0, sizeof(sin6.sin6_addr));
+            sin6.sin6_addr.s6_addr[10] = 0xff;
+            sin6.sin6_addr.s6_addr[11] = 0xff;
+            memcpy(&sin6.sin6_addr.s6_addr[12], &addr4, sizeof(addr4));
         }
         int no  = 0;
         int yes = 1;
@@ -483,6 +496,7 @@ void EmcDns::AddTF(char *tf_tok) {
 
 EmcDns::~EmcDns() {
     // reset current object to initial state
+    m_exiting = true; // Run() stops on the next empty read
 #ifndef WIN32
     shutdown(m_sockfd, SHUT_RDWR);
 #endif
@@ -517,8 +531,14 @@ void EmcDns::Run() {
      m_rcvlen = recvfrom(m_sockfd, (char *)m_buf, BUF_SIZE, 0,
              (struct sockaddr *)&ss, &sslen);
 
-     if(m_rcvlen <= 0)
-         break;
+     if(m_rcvlen <= 0) {
+         // emercoin: recvfrom() returns 0 for an empty datagram too: skip it, stop only on shutdown
+         if(m_exiting)
+             break;
+         if(m_rcvlen < 0)
+             MilliSleep(10); // socket error: retry, without spinning
+         continue;
+     }
 
     if(m_dap_ht) {
       uint32_t now = time(NULL);
