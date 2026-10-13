@@ -4059,11 +4059,6 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                 if (fSendTrickle && pto->m_tx_relay->fSendMempool) {
                     auto vtxinfo = mempool.infoAll();
                     pto->m_tx_relay->fSendMempool = false;
-                    CAmount filterrate = 0;
-                    {
-                        LOCK(pto->m_tx_relay->cs_feeFilter);
-                        filterrate = pto->m_tx_relay->minFeeFilter;
-                    }
 
                     LOCK(pto->m_tx_relay->cs_filter);
 
@@ -4071,10 +4066,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                         const uint256& hash = txinfo.tx->GetHash();
                         CInv inv(MSG_TX, hash);
                         pto->m_tx_relay->setInventoryTxToSend.erase(hash);
-                        if (filterrate) {
-                            if (txinfo.feeRate.GetFeePerK() < filterrate)
-                                continue;
-                        }
+                        // emercoin: no feefilter check, see the trickle loop below
                         if (pto->m_tx_relay->pfilter) {
                             if (!pto->m_tx_relay->pfilter->IsRelevantAndUpdate(*txinfo.tx)) continue;
                         }
@@ -4095,11 +4087,6 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                     vInvTx.reserve(pto->m_tx_relay->setInventoryTxToSend.size());
                     for (std::set<uint256>::iterator it = pto->m_tx_relay->setInventoryTxToSend.begin(); it != pto->m_tx_relay->setInventoryTxToSend.end(); it++) {
                         vInvTx.push_back(it);
-                    }
-                    CAmount filterrate = 0;
-                    {
-                        LOCK(pto->m_tx_relay->cs_feeFilter);
-                        filterrate = pto->m_tx_relay->minFeeFilter;
                     }
                     // Topologically and fee-rate sort the inventory we send for privacy and priority reasons.
                     // A heap is used so that not all items need sorting if only a few are being sent.
@@ -4126,9 +4113,9 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                         if (!txinfo.tx) {
                             continue;
                         }
-                        if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {
-                            continue;
-                        }
+                        // emercoin: no feefilter check. With flat fees CFeeRate::GetFeePerK() is the
+                        // same for every transaction, so comparing it with a peer's filter (which old
+                        // nodes randomly round above that value) only ever blocks all relay to the peer.
                         if (pto->m_tx_relay->pfilter && !pto->m_tx_relay->pfilter->IsRelevantAndUpdate(*txinfo.tx)) continue;
                         // Send
                         vInv.push_back(CInv(MSG_TX, hash));
@@ -4328,9 +4315,10 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
             CAmount currentFilter = mempool.GetMinFee(gArgs.GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000).GetFeePerK();
             int64_t timeNow = GetTimeMicros();
             if (timeNow > pto->m_tx_relay->nextSendTimeFeeFilter) {
-                static CFeeRate default_feerate(DEFAULT_MIN_RELAY_TX_FEE);
-                static FeeFilterRounder filterRounder(default_feerate);
-                CAmount filterToSend = filterRounder.round(currentFilter);
+                // emercoin: no randomized rounding. Under flat fees CFeeRate::GetFeePerK() is the
+                // same for every transaction, so a filter rounded above it made (older) peers
+                // relay no transactions to us at all.
+                CAmount filterToSend = currentFilter;
                 // We always have a fee filter of at least minRelayTxFee
                 filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
                 if (filterToSend != pto->m_tx_relay->lastSentFeeFilter) {
