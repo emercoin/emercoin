@@ -103,7 +103,7 @@ static UniValue getnetworkhashps(const JSONRPCRequest& request)
     return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, uint64_t nMaxTries)
+static UniValue generateBlocks(const CScript& coinbase_script, CWallet* const pwallet, int nGenerate, uint64_t nMaxTries)
 {
     int nHeightEnd = 0;
     int nHeight = 0;
@@ -127,6 +127,7 @@ static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, ui
         }
         while (nMaxTries > 0 && pblock->nNonce < std::numeric_limits<uint32_t>::max() && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()) && !ShutdownRequested()) {
             ++pblock->nNonce;
+            pblock->hashMyself.SetNull(); // emercoin: header changed, drop the cached hash
             --nMaxTries;
         }
         if (nMaxTries == 0 || ShutdownRequested()) {
@@ -134,6 +135,12 @@ static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, ui
         }
         if (pblock->nNonce == std::numeric_limits<uint32_t>::max()) {
             continue;
+        }
+        {
+            // Every block except genesis must be signed by the coinbase key (ppcoin)
+            LOCK2(cs_main, pwallet->cs_wallet);
+            if (!SignBlock(*pblock, *pwallet))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Unable to sign block, wallet locked?");
         }
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
@@ -199,7 +206,8 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
     // oleg: we cannot use for minign just ordinary p2pkh/p2wpkh script, since will be unable to sign blocks
     // CScript coinbase_script = GetScriptForDestination(destination);
     // return generateBlocks(coinbase_script, nGenerate, nMaxTries);
-    return generateBlocks(BuildCoinbaseScript(destination, GetWalletForJSONRPCRequest(request).get()), nGenerate, nMaxTries);
+    std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
+    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), wallet.get(), nGenerate, nMaxTries);
 } // generatetoaddress
 
 // Keep in RAM until 1st submitblock. We assume, miner do not use strabge combination of generate+generatetoaddress.
@@ -241,7 +249,7 @@ UniValue generate(const JSONRPCRequest& request)
             throw std::runtime_error("Error: Keypool ran out, please call keypoolrefill first");
         s_reservedest_generate = tmp_reservedest;
     }
-    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), nGenerate, nMaxTries);
+    return generateBlocks(BuildCoinbaseScript(destination, wallet.get()), wallet.get(), nGenerate, nMaxTries);
 } // generate
 
 /*--------------------------------------------------------------------------------*/
