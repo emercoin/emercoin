@@ -16,5 +16,5 @@ IMAGE="${IMAGE:-emercoin-ci:bionic}"
 net=()
 [ "${1:-}" = functional ] && net=(--network none)
 exec docker run --rm "${net[@]}" --user "$(id -u):$(id -g)" -e HOME=/tmp -e USER=ci \
-    -e HOST -e JOBS -e FUNC_JOBS -e TEST_TIMEOUT -e TMPDIR_PREFIX \
+    -e HOST -e JOBS -e FUNC_JOBS -e TEST_TIMEOUT -e TMPDIR_PREFIX -e DISTNAME \
     -v "$PWD:/src" -w /src "$IMAGE" ci/build.sh "$@"

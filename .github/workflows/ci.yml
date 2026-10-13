@@ -1,4 +1,6 @@
-# Build and test on every push and pull request to develop and master.
+# Build and test on every push and pull request to develop and master, and package the
+# headless binaries for Linux x86_64, Linux aarch64 and Windows x86_64. After a push to
+# develop whose tests pass, the packages replace the "nightly" pre-release.
 # The steps are ci/build.sh stages run in the ci/Dockerfile image (see ci/README.md),
 # so a failure can be reproduced locally with the same commands.
 name: CI
@@ -68,3 +70,98 @@ jobs:
             src/test/*.log
           retention-days: 14
           if-no-files-found: ignore
+
+  package:
+    name: Package ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x86_64
+            host: x86_64-linux-gnu
+          - name: Linux aarch64
+            host: aarch64-linux-gnu
+          - name: Windows x86_64
+            host: x86_64-w64-mingw32
+    env:
+      HOST: ${{ matrix.host }}
+      IMAGE: emercoin-ci:bionic
+      DISTNAME: emercoin-nightly
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # tags for the version string (git describe)
+          persist-credentials: false
+
+      - name: Build the CI image
+        run: docker build -t "$IMAGE" ci
+
+      - name: Restore depends
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            depends/built
+            depends/sources
+            depends/${{ env.HOST }}
+          key: depends-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
+
+      - name: Depends
+        run: ci/docker.sh depends
+
+      - name: Release build
+        run: ci/docker.sh package
+
+      - name: Keep the package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package-${{ matrix.host }}
+          path: dist/*
+          retention-days: 7
+          if-no-files-found: error
+
+  nightly:
+    name: Publish the nightly pre-release
+    needs: [linux-x86_64, package]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.repository == 'emercoin/emercoin'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write     # the nightly release and its tag
+      id-token: write     # build provenance attestations
+      attestations: write
+    steps:
+      - name: Get the packages
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: package-*
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+
+      - name: Replace the nightly pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          cat > notes.md <<EOF
+          Development build of \`develop\` at ${GITHUB_SHA::10}, $(date -u +%Y-%m-%d), from [this CI run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). The unit and functional tests passed for this commit.
+
+          **Not a release.** For testing, preferably on testnet. Headless binaries: emercoind, emercoin-cli, emercoin-tx, emercoin-wallet.
+
+          Check a download with \`sha256sum -c SHA256SUMS --ignore-missing\`, and that it was built here from this commit with \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`.
+          EOF
+          gh release delete nightly --cleanup-tag --yes || true
+          gh release create nightly dist/* --prerelease --latest=false --target "$GITHUB_SHA" \
+              --title "Nightly build (develop)" --notes-file notes.md
