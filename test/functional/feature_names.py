@@ -9,10 +9,16 @@
 - An active name cannot be registered again; a deleted or expired one can.
 - A name lives 175 blocks per rental day; name_update adds its days to the current expiry.
 - Name and value length limits.
+- Name operations that a block would ignore (not spending the name's last output, name_new on
+  an active name) are refused by the mempool; a block that contains one is still valid and
+  leaves the name unchanged.
 - Non-ASCII text sent as \\uXXXX escapes to a -legacyrpc node is stored as UTF-8, except
   \\u0000-\\u00FF, which stay single bytes.
 """
 
+from test_framework.blocktools import create_block, create_coinbase
+from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut, FromHex, ToHex
+from test_framework.script import CScript, OP_2DROP, OP_DROP
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
@@ -21,6 +27,15 @@ from test_framework.util import (
 )
 
 BLOCKS_PER_DAY = 175
+NAMECOIN_TX_VERSION = 0x0666
+OP_NAME_NEW, OP_NAME_UPDATE, OP_NAME_DELETE = 1, 2, 3
+
+
+def name_script(op, name, value, dest_script, days=1):
+    """Name output script (createNameScript in namecoin.cpp), value of one chunk."""
+    if op == OP_NAME_DELETE:
+        return CScript([op, OP_DROP, name, OP_DROP]) + dest_script
+    return CScript([op, OP_DROP, name, bytes([days]), OP_2DROP, value, OP_DROP]) + dest_script
 MAX_NAME_LENGTH = 512
 MAX_VALUE_LENGTH = 20 * 1024
 
@@ -124,6 +139,31 @@ class NamesTest(BitcoinTestFramework):
         assert_raises_rpc_error(None, None, node0.name_new, "test:big", "v" * (MAX_VALUE_LENGTH + 1), 1)
         assert_raises_rpc_error(None, "value must not be empty", node0.name_new, "test:empty", "", 1)
 
+        self.log.info("Name operations a block would ignore are refused by the mempool")
+        node0.name_new("test:mempool", "owner", 1)
+        self.mine(node0)
+        for op, value in [(OP_NAME_UPDATE, b"other"), (OP_NAME_DELETE, b""), (OP_NAME_NEW, b"other")]:
+            tx = self.raw_name_tx(node1, op, b"test:mempool", value)
+            assert_raises_rpc_error(-26, "bad-name-op", node1.sendrawtransaction, tx)
+        assert_equal(node1.getrawmempool(), [])
+        node0.name_update("test:mempool", "owner 2", 1)
+        self.mine(node0)
+        self.assert_name("test:mempool", value="owner 2")
+
+        self.log.info("A block containing such an operation is valid; the name does not change")
+        tx = FromHex(CTransaction(), self.raw_name_tx(node1, OP_NAME_UPDATE, b"test:mempool", b"other"))
+        tip = node0.getblock(node0.getbestblockhash())
+        block_time = max(tip["time"] + 1, tx.nTime)  # no tx may be younger than its block
+        block = create_block(int(tip["hash"], 16), create_coinbase(tip["height"] + 1), block_time)
+        block.vtx.append(tx)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        assert_equal(node0.submitblock(ToHex(block)), None)
+        self.sync_all()
+        assert_equal(node1.getbestblockhash(), block.hash)
+        show = self.assert_name("test:mempool", value="owner 2")
+        assert node0.getaddressinfo(show["address"])["ismine"]
+
         self.log.info("Non-ASCII text sent as \\uXXXX escapes to a -legacyrpc node is stored as UTF-8")
         name, value = "test:имя", "значение 😀 €"
         # AuthServiceProxy sends json.dumps(ensure_ascii=True): every non-ASCII character as \\uXXXX
@@ -138,6 +178,20 @@ class NamesTest(BitcoinTestFramework):
         node2.name_new("test:latin", "\u00e9", 1)
         self.mine(node0)
         assert_equal(node0.name_show("test:latin", "hex")["value"], "e9")
+
+
+    def raw_name_tx(self, node, op, name, value):
+        """A name tx funded and signed by `node` that does not spend the name's output."""
+        utxo = next(u for u in node.listunspent() if u["amount"] >= 1)
+        dest = CScript(bytes.fromhex(node.getaddressinfo(node.getnewaddress("", "legacy"))["scriptPubKey"]))
+        tx = CTransaction()
+        tx.nVersion = NAMECOIN_TX_VERSION
+        tx.vin = [CTxIn(COutPoint(int(utxo["txid"], 16), utxo["vout"]))]
+        amount = int(round(utxo["amount"] * COIN))
+        tx.vout = [CTxOut(COIN // 100, name_script(op, name, value, dest)), CTxOut(amount - 2 * (COIN // 100), dest)]
+        signed = node.signrawtransactionwithwallet(ToHex(tx))
+        assert signed["complete"]
+        return signed["hex"]
 
 
 if __name__ == '__main__':

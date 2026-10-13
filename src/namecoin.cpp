@@ -28,6 +28,7 @@ public:
     virtual bool ConnectBlock(CBlockIndex* pindex, const vector<nameCheckResult>& vName);
     virtual bool ExtractAddress(const CScript& script, string& address);
     virtual bool CheckPendingNames(const CTransactionRef& tx);
+    virtual bool CheckNameTxForMempool(const CTransactionRef& tx);
     virtual void AddToPendingNames(const CTransactionRef& tx);
     virtual bool getNameValue(const string& sName, string& sValue);
     virtual bool DumpToTextFile();
@@ -1758,6 +1759,26 @@ bool CheckNameTx(const CTransactionRef& tx, const CBlockIndex* pindexBlock, vect
 
     return true;
 } // CheckNameTx
+
+// emercoin: mempool policy, not consensus. A block ignores name operations that CheckName()
+// refuses (the tx stays valid, the name does not change); refuse in the mempool what the next
+// block would ignore.
+bool CNamecoinHooks::CheckNameTxForMempool(const CTransactionRef& tx)
+{
+    std::vector<NameTxInfo> vnti = DecodeNameTx(IsV8Enabled(::ChainActive().Tip(), Params().GetConsensus()), tx, true);
+    if (vnti.empty())
+        return false;
+    const int nHeight = ::ChainActive().Height() + 1;
+    std::set<CNameVal> dup_names;
+    for (const auto& nti : vnti) {
+        if (!dup_names.insert(nti.name).second)
+            return false;
+        nameCheckResult nameResult;
+        if (!CheckName(nti, tx, nHeight, nameResult, CDiskTxPos()))
+            return false;
+    }
+    return true;
+}
 
 
 bool DisconnectNameTx(const CTransactionRef& tx, bool fMultiName)

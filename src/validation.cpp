@@ -587,6 +587,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     bool isNameTx = tx.nVersion == NAMECOIN_TX_VERSION;
     if (isNameTx && !hooks->CheckPendingNames(ptx))
         return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false, REJECT_NONSTANDARD, "name-op-on-pending-name");
+    // emercoin: refuse name operations that the next block would ignore
+    if (isNameTx && !hooks->CheckNameTxForMempool(ptx))
+        return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_NONSTANDARD, "bad-name-op");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
