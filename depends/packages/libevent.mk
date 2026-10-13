@@ -14,6 +14,9 @@ define $(package)_set_vars
   $(package)_config_opts=--disable-shared --disable-libevent-regress --disable-samples
   $(package)_config_opts_release=--disable-debug-mode
   $(package)_config_opts_linux=--with-pic
+  # getrandom() needs glibc 2.25, above what contrib/devtools/symbol-check.py allows (2.17);
+  # without it libevent seeds its RNG from /dev/urandom, as in the 0.8.5 release binaries
+  $(package)_config_opts_linux+=ac_cv_func_getrandom=no
 endef
 
 define $(package)_config_cmds
