@@ -158,6 +158,7 @@ BASE_SCRIPTS = [
     'example_test.py',
     'p2p_emercoin_format.py',
     'feature_names.py',
+    'feature_pos_minting.py',
     'wallet_txn_doublespend.py',
     'wallet_txn_clone.py --mineblock',
     'feature_notifications.py',

@@ -95,9 +95,12 @@ class TestNode():
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
             "-uacomment=testnode%d" % i,
-            # emercoin: the default legacy JSON mode mis-decodes \uXXXX escapes (Python's json
-            # escapes non-ASCII), e.g. the unicode test directory names; tests use standard JSON
+            # emercoin: the default legacy JSON mode decodes \u0080-\u00FF escapes (Python's json
+            # escapes non-ASCII) to single bytes, not UTF-8; tests use standard JSON
             "-legacyrpc=0",
+            # emercoin: the PoS minter (on by default) would mint blocks on its own once coins are a day
+            # old in mock time; tests that want minting pass -stakegen=1
+            "-stakegen=0",
         ]
 
         self.cli = TestNodeCLI(bitcoin_cli, self.datadir)

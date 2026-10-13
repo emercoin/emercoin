@@ -9,7 +9,8 @@
 - An active name cannot be registered again; a deleted or expired one can.
 - A name lives 175 blocks per rental day; name_update adds its days to the current expiry.
 - Name and value length limits.
-- Non-ASCII text sent as \\uXXXX escapes to a -legacyrpc node is stored as UTF-8.
+- Non-ASCII text sent as \\uXXXX escapes to a -legacyrpc node is stored as UTF-8, except
+  \\u0000-\\u00FF, which stay single bytes.
 """
 
 from test_framework.test_framework import BitcoinTestFramework
@@ -132,6 +133,11 @@ class NamesTest(BitcoinTestFramework):
         assert_equal(bytes.fromhex(show["value"]), value.encode())
         assert_equal(node1.name_show(name)["value"], value)
         assert_equal(node0.name_show(name)["name"], name)
+        # \u0000-\u00FF stay single bytes in legacy mode (the json_spirit convention for binary
+        # values), so Latin-1 text sent escaped is not UTF-8: this also proves node 2 is legacy
+        node2.name_new("test:latin", "\u00e9", 1)
+        self.mine(node0)
+        assert_equal(node0.name_show("test:latin", "hex")["value"], "e9")
 
 
 if __name__ == '__main__':
