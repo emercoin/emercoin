@@ -393,6 +393,57 @@ BOOST_AUTO_TEST_CASE(univalue_readwrite)
     BOOST_CHECK(!v.read("{} 42"));
 }
 
+// emercoin: mode 2 (-legacyrpc) reads JSON-RPC requests the way json_spirit did.
+static std::string legacy_read_str(const std::string& json)
+{
+    UniValue v;
+    BOOST_CHECK(v.read(json, 2));
+    BOOST_CHECK(v.isArray());
+    BOOST_CHECK_EQUAL(v.size(), 1);
+    return v[0].get_str();
+}
+
+static bool legacy_read_ok(const char *raw, size_t len)
+{
+    UniValue v;
+    return v.read(raw, len, 2);
+}
+
+BOOST_AUTO_TEST_CASE(univalue_legacy_read)
+{
+    // \u0000-\u00FF are single bytes, as json_spirit wrote them: binary and UTF-8 bytes round-trip
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\u00e9\"]"), "\xe9");
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\u00D0\\u00B0\"]"), "\xd0\xb0");
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\x41\\u0000z\"]"), std::string("A\0z", 3));
+    std::string binary;
+    for (int c = 0; c < 256; c++)
+        binary += (char)c;
+    UniValue arr(UniValue::VARR);
+    arr.push_back(binary);
+    BOOST_CHECK_EQUAL(legacy_read_str(arr.write(0, 0, true)), binary);
+
+    // raw UTF-8 passes through
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\xd0\xb0\"]"), "\xd0\xb0");
+
+    // escapes above \u00FF are text from a standard JSON encoder: UTF-8, not their low byte
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\u0430\\u0431\"]"), "\xd0\xb0\xd0\xb1");
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\u20AC\"]"), "\xe2\x82\xac");
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"\\uD83D\\uDE00\"]"), "\xf0\x9f\x98\x80");
+    BOOST_CHECK_EQUAL(legacy_read_str("[\"a\\u0430\\\"b\"]"), "a\xd0\xb0\"b");
+
+    // a surrogate without its pair is an error, not data
+    UniValue v;
+    BOOST_CHECK(!v.read(std::string("[\"\\uD83D\"]"), 2));
+    BOOST_CHECK(!v.read(std::string("[\"\\uD83Dx\"]"), 2));
+    BOOST_CHECK(!v.read(std::string("[\"\\uD83D\\u0041\"]"), 2));
+    BOOST_CHECK(!v.read(std::string("[\"\\uDE00\"]"), 2));
+
+    // the string must end inside the buffer (the bytes after len are not part of it)
+    BOOST_CHECK(legacy_read_ok("\"abc\"", 5));
+    BOOST_CHECK(!legacy_read_ok("\"abc\"", 4));
+    BOOST_CHECK(!legacy_read_ok("\"ab\\\"\"", 4));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 int main (int argc, char *argv[])
@@ -403,6 +454,7 @@ int main (int argc, char *argv[])
     univalue_array();
     univalue_object();
     univalue_readwrite();
+    univalue_legacy_read();
     return 0;
 }
 

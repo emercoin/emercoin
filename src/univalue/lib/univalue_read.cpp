@@ -185,11 +185,14 @@ enum jtokentype getJsonToken(std::string& tokenVal, unsigned int& consumed,
         JSONUTF8StringFilter writer(valStr);
 
         while (true) {
-            if ((raw >= end || (unsigned char)*raw < 0x20) && mode == 0)
+            // modes 1 and 2 allow control characters, but the string must still end before `end`
+            if (raw >= end || ((unsigned char)*raw < 0x20 && mode == 0))
                 return JTOK_ERR;
 
             else if (*raw == '\\') {
                 if (mode == 2) {  // write 2 bytes
+                    if (raw + 1 >= end)
+                        return JTOK_ERR;
                     valStr += *raw; raw++; valStr += *raw; raw++;
                 } else {
                 raw++;                        // skip backslash
@@ -242,7 +245,10 @@ enum jtokentype getJsonToken(std::string& tokenVal, unsigned int& consumed,
 
         if (mode == 2)  // read string as json_spirit output
         {
-            valStr = substitute_esc_chars< std::string >( valStr.begin(), valStr.end() );
+            std::string unescaped;
+            if (!substitute_esc_chars< std::string >( valStr.cbegin(), valStr.cend(), unescaped ))
+                return JTOK_ERR;
+            valStr = unescaped;
         }
 
         if (!writer.finalize())

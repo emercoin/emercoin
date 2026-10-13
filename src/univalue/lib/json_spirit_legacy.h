@@ -135,7 +135,37 @@ Char_type unicode_str_to_char( Iter_type& begin )
 }
 
 template< class String_type >
-void append_esc_char_and_incr_iter( String_type& s,
+void append_utf8( String_type& s, unsigned int cp )
+{
+    typedef typename String_type::value_type Char_type;
+
+    if( cp < 0x80 )
+    {
+        s += static_cast< Char_type >( cp );
+    }
+    else if( cp < 0x800 )
+    {
+        s += static_cast< Char_type >( 0xC0 | ( cp >> 6 ) );
+        s += static_cast< Char_type >( 0x80 | ( cp & 0x3F ) );
+    }
+    else if( cp < 0x10000 )
+    {
+        s += static_cast< Char_type >( 0xE0 | ( cp >> 12 ) );
+        s += static_cast< Char_type >( 0x80 | ( ( cp >> 6 ) & 0x3F ) );
+        s += static_cast< Char_type >( 0x80 | ( cp & 0x3F ) );
+    }
+    else
+    {
+        s += static_cast< Char_type >( 0xF0 | ( cp >> 18 ) );
+        s += static_cast< Char_type >( 0x80 | ( ( cp >> 12 ) & 0x3F ) );
+        s += static_cast< Char_type >( 0x80 | ( ( cp >> 6 ) & 0x3F ) );
+        s += static_cast< Char_type >( 0x80 | ( cp & 0x3F ) );
+    }
+}
+
+// Returns false for an escape that cannot be decoded (a surrogate without its pair).
+template< class String_type >
+bool append_esc_char_and_incr_iter( String_type& s,
                                     typename String_type::const_iterator& begin,
                                     typename String_type::const_iterator end )
 {
@@ -165,22 +195,56 @@ void append_esc_char_and_incr_iter( String_type& s,
         {
             if( end - begin >= 5 )  //  expecting "uHHHH..."
             {
-                s += unicode_str_to_char< Char_type >( begin );
+                // emercoin: json_spirit kept only the low byte of every \uHHHH. \u0000-\u00FF
+                // stay single bytes: that is how the legacy writer escapes every non-ASCII byte,
+                // and legacy clients send binary values back that way. Higher escapes only come
+                // from standard JSON encoders (Python's json.dumps("\u0430") sends "\u0430"),
+                // and the low byte silently corrupted that text ("0"), so they are decoded to UTF-8.
+                const unsigned int cp = unicode_str_to_char< unsigned int >( begin );
+
+                if( cp < 0x100 )
+                {
+                    s += static_cast< Char_type >( cp );
+                }
+                else if( cp >= 0xD800 && cp < 0xDC00 )  //  high surrogate, expecting "\uDC00-\uDFFF" next
+                {
+                    if( end - begin < 7 || *( begin + 1 ) != '\\' || *( begin + 2 ) != 'u' ) return false;
+                    begin += 2;
+                    const unsigned int low = unicode_str_to_char< unsigned int >( begin );
+                    if( low < 0xDC00 || low >= 0xE000 ) return false;
+                    append_utf8( s, 0x10000 + ( ( cp - 0xD800 ) << 10 ) + ( low - 0xDC00 ) );
+                }
+                else if( cp >= 0xDC00 && cp < 0xE000 )  //  low surrogate without a high one
+                {
+                    return false;
+                }
+                else
+                {
+                    append_utf8( s, cp );
+                }
             }
             break;
         }
     }
+
+    return true;
 }
 
+// Returns false if the string has an escape that cannot be decoded.
 template< class String_type >
-String_type substitute_esc_chars( typename String_type::const_iterator begin,
-                               typename String_type::const_iterator end )
+bool substitute_esc_chars( typename String_type::const_iterator begin,
+                           typename String_type::const_iterator end,
+                           String_type& result )
 {
     typedef typename String_type::const_iterator Iter_type;
 
-    if( end - begin < 2 ) return String_type( begin, end );
+    result.clear();
 
-    String_type result;
+    if( end - begin < 2 )
+    {
+        result.assign( begin, end );
+        return true;
+    }
 
     result.reserve( end - begin );
 
@@ -197,7 +261,7 @@ String_type substitute_esc_chars( typename String_type::const_iterator begin,
 
             ++i;  // skip the '\'
 
-            append_esc_char_and_incr_iter( result, i, end );
+            if( !append_esc_char_and_incr_iter( result, i, end ) ) return false;
 
             substr_start = i + 1;
         }
@@ -205,7 +269,7 @@ String_type substitute_esc_chars( typename String_type::const_iterator begin,
 
     result.append( substr_start, end );
 
-    return result;
+    return true;
 }
 
 #endif // JSON_SPIRIT_LEGACY_H
