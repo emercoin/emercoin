@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <chainparams.h>
 #include <wallet/wallet.h>
 
 #include <memory>
@@ -70,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup)
         BOOST_CHECK(result.last_failed_block.IsNull());
         BOOST_CHECK_EQUAL(result.last_scanned_block, newTip->GetBlockHash());
         BOOST_CHECK_EQUAL(*result.last_scanned_height, newTip->nHeight);
-        BOOST_CHECK_EQUAL(wallet.GetBalance().m_mine_immature, 100 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetBalance().m_mine_immature, 2 * m_coinbase_txns.back()->vout[0].nValue);
     }
 
     // Prune the older block file.
@@ -89,7 +90,7 @@ BOOST_FIXTURE_TEST_CASE(scan_for_wallet_transactions, TestChain100Setup)
         BOOST_CHECK_EQUAL(result.last_failed_block, oldTip->GetBlockHash());
         BOOST_CHECK_EQUAL(result.last_scanned_block, newTip->GetBlockHash());
         BOOST_CHECK_EQUAL(*result.last_scanned_height, newTip->nHeight);
-        BOOST_CHECK_EQUAL(wallet.GetBalance().m_mine_immature, 50 * COIN);
+        BOOST_CHECK_EQUAL(wallet.GetBalance().m_mine_immature, m_coinbase_txns.back()->vout[0].nValue);
     }
 
     // Prune the remaining block file.
@@ -221,10 +222,12 @@ BOOST_FIXTURE_TEST_CASE(importwallet_rescan, TestChain100Setup)
 
         LOCK(wallet->cs_wallet);
         BOOST_CHECK_EQUAL(wallet->mapWallet.size(), 3U);
-        BOOST_CHECK_EQUAL(m_coinbase_txns.size(), 103U);
+        // emercoin: the setup chain is nCoinbaseMaturity (32) blocks long, not 100
+        const size_t setup_blocks = Params().GetConsensus().nCoinbaseMaturity;
+        BOOST_CHECK_EQUAL(m_coinbase_txns.size(), setup_blocks + 3);
         for (size_t i = 0; i < m_coinbase_txns.size(); ++i) {
             bool found = wallet->GetWalletTx(m_coinbase_txns[i]->GetHash());
-            bool expected = i >= 100;
+            bool expected = i >= setup_blocks;
             BOOST_CHECK_EQUAL(found, expected);
         }
     }
@@ -259,13 +262,14 @@ BOOST_FIXTURE_TEST_CASE(coin_mark_dirty_immature_credit, TestChain100Setup)
     // credit amount is calculated.
     wtx.MarkDirty();
     wallet.AddKeyPubKey(coinbaseKey, coinbaseKey.GetPubKey());
-    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(*locked_chain), 50*COIN);
+    BOOST_CHECK_EQUAL(wtx.GetImmatureCredit(*locked_chain), m_coinbase_txns.back()->vout[0].nValue);
 }
 
 static int64_t AddTx(CWallet& wallet, uint32_t lockTime, int64_t mockTime, int64_t blockTime)
 {
     CMutableTransaction tx;
     tx.nLockTime = lockTime;
+    tx.nTime = lockTime; // emercoin: nTime is part of the txid; keep it independent of the mock time
     SetMockTime(mockTime);
     CBlockIndex* block = nullptr;
     if (blockTime > 0) {
@@ -411,7 +415,7 @@ BOOST_FIXTURE_TEST_CASE(ListCoins, ListCoinsTestingSetup)
     BOOST_CHECK_EQUAL(list.begin()->second.size(), 1U);
 
     // Check initial balance from one mature coinbase transaction.
-    BOOST_CHECK_EQUAL(50 * COIN, wallet->GetAvailableBalance());
+    BOOST_CHECK_EQUAL(m_coinbase_txns[0]->vout[0].nValue, wallet->GetAvailableBalance());
 
     // Add a transaction creating a change address, and confirm ListCoins still
     // returns the coin associated with the change address underneath the

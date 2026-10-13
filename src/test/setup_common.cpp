@@ -17,6 +17,7 @@
 #include <pow.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
+#include <script/standard.h>
 #include <script/sigcache.h>
 #include <streams.h>
 #include <txdb.h>
@@ -123,10 +124,9 @@ TestingSetup::~TestingSetup()
 
 TestChain100Setup::TestChain100Setup() : TestingSetup(CBaseChainParams::REGTEST)
 {
-    // CreateAndProcessBlock() does not support building SegWit blocks, so don't activate in these tests.
-    // TODO: fix the code to support SegWit blocks.
-    gArgs.ForceSetArg("-segwitheight", "432");
-    SelectParams(CBaseChainParams::REGTEST);
+    // emercoin: segwit (V7) stays active from genesis as on regtest: before V7 the 0-value witness
+    // commitment that CreateNewBlock always adds breaks the minimum output rule for the coinbase.
+    // CreateAndProcessBlock() regenerates the commitment for the transactions it is given.
 
     // Generate a 100-block chain:
     coinbaseKey.MakeNewKey(true);
@@ -155,14 +155,44 @@ TestChain100Setup::CreateAndProcessBlock(const std::vector<CMutableTransaction>&
     block.vtx.resize(1);
     for (const CMutableTransaction& tx : txns)
         block.vtx.push_back(MakeTransactionRef(tx));
-    // IncrementExtraNonce creates a valid coinbase and merkleRoot
+    // emercoin: the block is signed by the key of the first P2PK coinbase output; if the coinbase
+    // does not pay to coinbaseKey as P2PK, a dust P2PK output to it is added for signing.
+    {
+        CMutableTransaction coinbase(*block.vtx[0]);
+        const CScript signing_script = GetScriptForRawPubKey(coinbaseKey.GetPubKey());
+        bool has_p2pk = false;
+        for (const CTxOut& out : coinbase.vout) {
+            std::vector<std::vector<unsigned char>> solutions;
+            if (Solver(out.scriptPubKey, solutions) == TX_PUBKEY) {
+                has_p2pk = true;
+                break;
+            }
+        }
+        if (!has_p2pk) {
+            coinbase.vout[0].nValue -= MIN_TXOUT_AMOUNT;
+            coinbase.vout.emplace_back(MIN_TXOUT_AMOUNT, signing_script);
+        }
+        // the witness commitment was computed for the mempool selection, not for txns
+        const int commitpos = GetWitnessCommitmentIndex(block);
+        if (commitpos != -1)
+            coinbase.vout.erase(coinbase.vout.begin() + commitpos);
+        block.vtx[0] = MakeTransactionRef(std::move(coinbase));
+    }
     {
         LOCK(cs_main);
+        GenerateCoinbaseCommitment(block, ::ChainActive().Tip(), chainparams.GetConsensus());
+        // IncrementExtraNonce creates a valid coinbase and merkleRoot
         unsigned int extraNonce = 0;
         IncrementExtraNonce(&block, ::ChainActive().Tip(), extraNonce);
     }
 
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) ++block.nNonce;
+    // emercoin: GetHash() caches the header hash, drop it after changing the nonce
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) {
+        ++block.nNonce;
+        block.hashMyself.SetNull();
+    }
+    bool signed_ok = coinbaseKey.Sign(block.GetHash(), block.vchBlockSig, 0);
+    assert(signed_ok);
 
     std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
     ProcessNewBlock(chainparams, shared_pblock, true, nullptr);

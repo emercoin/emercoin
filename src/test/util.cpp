@@ -58,6 +58,7 @@ CTxIn MineBlock(const CScript& coinbase_scriptPubKey)
 
     while (!CheckProofOfWork(block->GetHash(), block->nBits, Params().GetConsensus())) {
         ++block->nNonce;
+        block->hashMyself.SetNull(); // emercoin: GetHash() caches the header hash
         assert(block->nNonce);
     }
 

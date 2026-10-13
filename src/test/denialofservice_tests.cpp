@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction)
     {
         LOCK(cs_main);
         BOOST_CHECK(::ChainActive().Tip() != nullptr);
-        BOOST_CHECK(::ChainActive().Tip()->nChainWork > 0);
+        BOOST_CHECK(::ChainActive().Tip()->nChainTrust > 0);
     }
 
     // Test starts here
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management)
         BOOST_CHECK(node->fDisconnect == false);
     }
 
-    SetMockTime(GetTime() + 3*consensusParams.nPowTargetSpacing + 1);
+    SetMockTime(GetTime() + 3*consensusParams.nTargetSpacing + 1);
 
     // Now tip should definitely be stale, and we should look for an extra
     // outbound peer

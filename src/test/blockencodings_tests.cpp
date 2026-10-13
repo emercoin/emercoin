@@ -49,7 +49,7 @@ static CBlock BuildBlockTestCase() {
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) { ++block.nNonce; block.hashMyself.SetNull(); }
     return block;
 }
 
@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
         BOOST_CHECK_EQUAL(pool.mapTx.find(block.vtx[2]->GetHash())->GetSharedTx().use_count(), SHARED_TX_OFFSET + 1);
 
         size_t poolSize = pool.size();
-        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::REPLACED);
+        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::CONFLICT);
         BOOST_CHECK_EQUAL(pool.size(), poolSize - 1);
 
         CBlock block2;
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) { ++block.nNonce; block.hashMyself.SetNull(); }
 
     // Test simple header round-trip with only coinbase
     {

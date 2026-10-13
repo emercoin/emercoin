@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <auxpow.h> // emercoin: defines the auxpow serialization used by CBlockHeader
 #include <bloom.h>
 
 #include <clientversion.h>
