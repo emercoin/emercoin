@@ -351,7 +351,6 @@ bitcoin_test_clean : FORCE
 # emercoin: suites that still fail, with the reason. They are built but `make check` does not
 # run them; run one with test/test_emercoin --run_test=<suite>. Drop an entry once it passes.
 EMERCOIN_TODO_TESTS =
-EMERCOIN_TODO_TESTS += test/blockencodings_tests.cpp      # compact block round trips fail: investigate (block signature)
 EMERCOIN_TODO_TESTS += test/blockfilter_tests.cpp         # blockfilters.json: Bitcoin blocks
 EMERCOIN_TODO_TESTS += test/bloom_tests.cpp               # Bitcoin tx/block hex vectors (no tx nTime)
 EMERCOIN_TODO_TESTS += test/coins_tests.cpp               # ccoins_serialization: Bitcoin coin vectors (Emercoin adds coinstake, nTime)
