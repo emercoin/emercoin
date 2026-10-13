@@ -351,11 +351,13 @@ public:
         consensus.BIP34Hash = uint256();
         consensus.BIP65Height = 0; // BIP65 activated on regtest (Used in rpc activation tests)
         consensus.BIP66Height = 0; // BIP66 activated on regtest (Used in rpc activation tests)
-        consensus.CSVHeight = 0; // CSV activated on regtest (Used in rpc activation tests)
+        consensus.CSVHeight = 1; // CSV active from block 1; 0 trips assert(pindexPrev) in ContextualCheckBlock for genesis on -reindex
         consensus.SegwitHeight = 0; // SEGWIT is always activated on regtest unless overridden
         consensus.MMHeight = 0;
         consensus.powLimit = uint256S("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.bnInitialHashTarget = uint256S("00000007ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"); //~uint256(0) >> 29;
+        // regtest: the first blocks use bnInitialHashTarget; keep it at powLimit so blocks can be
+        // mined instantly (the testnet value needs ~2^29 hashes per block).
+        consensus.bnInitialHashTarget = consensus.powLimit;
         consensus.nTargetTimespan = 7 * 24 * 60 * 60; // one week
         consensus.nTargetSpacing = 10 * 60;
 
