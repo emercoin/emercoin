@@ -147,7 +147,8 @@ public:
                       bool legacy = false) const;
 
     bool read(const char *raw, size_t len, int mode = 0);
-    bool read(const char *raw, int mode = 0) { return read(raw, strlen(raw)); }
+    // No mode here: with one, read(buf, len) picked this overload and took len for the mode.
+    bool read(const char *raw) { return read(raw, strlen(raw)); }
     bool read(const std::string& rawStr, int mode = 0) {
         return read(rawStr.data(), rawStr.size(), mode);
     }
