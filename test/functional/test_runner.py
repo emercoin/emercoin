@@ -162,6 +162,7 @@ BASE_SCRIPTS = [
     'feature_auxpow.py',
     'feature_emcdns.py',
     'rpc_getinfo.py',
+    'interface_rpc_utf8.py',
     'wallet_txn_doublespend.py',
     'wallet_txn_clone.py --mineblock',
     'feature_notifications.py',
