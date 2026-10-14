@@ -16,7 +16,7 @@
   \\u0000-\\u00FF, which stay single bytes.
 """
 
-from test_framework.blocktools import create_block, create_coinbase
+from test_framework.blocktools import add_witness_commitment, create_block, create_coinbase
 from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut, FromHex, ToHex
 from test_framework.script import CScript, OP_2DROP, OP_DROP
 from test_framework.test_framework import BitcoinTestFramework
@@ -156,7 +156,7 @@ class NamesTest(BitcoinTestFramework):
         block_time = max(tip["time"] + 1, tx.nTime)  # no tx may be younger than its block
         block = create_block(int(tip["hash"], 16), create_coinbase(tip["height"] + 1), block_time)
         block.vtx.append(tx)
-        block.hashMerkleRoot = block.calc_merkle_root()
+        add_witness_commitment(block)  # the wallet may have funded the tx from a segwit output
         block.solve()
         assert_equal(node0.submitblock(ToHex(block)), None)
         self.sync_all()
