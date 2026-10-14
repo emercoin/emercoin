@@ -21,6 +21,10 @@ public:
 	uint32_t next; // ~0 = EMPTY, END = m_mask + 1
     };
 
+    // emercoin: a deleted cell keeps its link, marked with 0x80000000, while it is in the list;
+    // once the head has moved past it, it is UNLINKED (also deleted for Search()).
+    static const uint32_t UNLINKED = 0xc0000000;
+
    uint256HashMap() : m_randseed((uint32_t)GetRand(1 << 30)), m_data(NULL) {};
   ~uint256HashMap() { Set(0); };
 
@@ -94,9 +98,13 @@ public:
      if((cur->next & 0x80000000) == 0) {
        cur->next |= 0x80000000;
        m_deleted++;
-       // emercoin: stop at END, which is reached once every cell from the head on is deleted
-       while(m_head <= m_mask && (m_data[m_head].next & 0x80000000))
-         m_head = m_data[m_head].next ^ 0x80000000;
+       // emercoin: stop at END, which is reached once every cell from the head on is deleted.
+       // The cells left behind are out of the list: Insert() links them again if it reuses one.
+       while(m_head <= m_mask && (m_data[m_head].next & 0x80000000)) {
+         uint32_t cell = m_head;
+         m_head = m_data[cell].next ^ 0x80000000;
+         m_data[cell].next = UNLINKED;
+       }
        if(m_head > m_mask)
          m_tail = m_head;
      }
@@ -126,20 +134,18 @@ public:
       rehashed.m_data = p; // release current buffer
     } // reahsh
 
-    Data *p = Lookup(key, 1 << 29);
-    if(p->next == (uint32_t)~0) { // empty cell
-      m_used++;
-      p->next = m_mask + 1;
-      if(m_head > m_mask)
-         m_head = m_tail = p - m_data;
-      else {
-        m_data[m_tail].next = p - m_data;
-        m_tail = p - m_data;
-      }
-    }
-    if(p->next & 0x80000000) {
-      p->next ^= 0x80000000; // Clear MarkDel
-      m_deleted--; // Reused deleted cell
+    // emercoin: a key already present is updated in place, not added a second time
+    Data *p = Search(key);
+    if(p == NULL) {
+      p = Lookup(key, 1 << 29); // an empty or a deleted cell
+      if(p->next == (uint32_t)~0)
+        m_used++;
+      else
+        m_deleted--; // Reused deleted cell
+      if(p->next == (uint32_t)~0 || p->next == UNLINKED)
+        Link(p);
+      else
+        p->next ^= 0x80000000; // Clear MarkDel: the cell is still in the list
     }
     p->key   = key;
     p->value = value;
@@ -147,6 +153,19 @@ public:
   } // Insert
 
 private:
+
+  // Append a cell to the list
+  void Link(Data *p) {
+    uint32_t cell = p - m_data;
+    p->next = m_mask + 1; // END
+    if(m_head > m_mask)
+      m_head = m_tail = cell;
+    else {
+      // emercoin: the tail may be a deleted cell; keep its mark
+      m_data[m_tail].next = (m_data[m_tail].next & 0x80000000) | cell;
+      m_tail = cell;
+    }
+  }
 
   // Return pointer to the found cell, or to an empty cell
   Data *Lookup(const uint256 &key, uint32_t stop) const {
