@@ -161,6 +161,7 @@ BASE_SCRIPTS = [
     'feature_pos_minting.py',
     'feature_auxpow.py',
     'feature_emcdns.py',
+    'rpc_getinfo.py',
     'wallet_txn_doublespend.py',
     'wallet_txn_clone.py --mineblock',
     'feature_notifications.py',
