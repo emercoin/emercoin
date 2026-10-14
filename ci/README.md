@@ -23,6 +23,12 @@ pull request; after a push to `develop` whose tests pass, they replace the `nigh
 pre-release on GitHub, with `SHA256SUMS` and build provenance attestations
 (`gh attestation verify <file> -R emercoin/emercoin`).
 
+A version tag (`v0.8.6emc`, or `v0.8.6rc1emc` for a release candidate) runs the same tests and
+packages, named after the tag (`emercoin-0.8.6-x86_64-linux-gnu.tar.gz`, ...), checks the tag
+against the `_EMERCOIN_VERSION_*` numbers in `configure.ac`, and puts the packages with
+`SHA256SUMS` and attestations into a draft release (a pre-release for an `rc` tag). A maintainer
+writes the release notes and publishes it.
+
 The build happens in the source tree; use one checkout per host. Functional tests listed in `test/functional/test_runner.py`
 as not applicable or todo, and unit test suites in `EMERCOIN_TODO_TESTS`
 (`src/Makefile.test.include`), are not part of the run.
