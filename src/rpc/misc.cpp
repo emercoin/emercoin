@@ -674,7 +674,9 @@ UniValue getinfo(const JSONRPCRequest& request)
     if (request.fHelp)
         throw std::runtime_error(
             RPCHelpMan{"getinfo",
-                "\nDEPRECATED. Returns an object containing various state info.\n",
+                "\nDEPRECATED. Returns an object containing various state info.\n"
+                "The wallet fields (walletversion, balance, keypool..., paytxfee, encrypted, mintonly, ...)\n"
+                "are present only when a wallet is loaded.\n",
                 {},
                 RPCResult{
                     "{\n"
@@ -745,12 +747,17 @@ UniValue getinfo(const JSONRPCRequest& request)
     if (wallet && wallet->IsCrypted()) {
         obj.pushKV("unlocked_until", wallet->nRelockTime);
     }
-    obj.pushKV("paytxfee",      ValueFromAmount(wallet->m_pay_tx_fee.GetFeePerK()));
+    if (wallet)
+        obj.pushKV("paytxfee",      ValueFromAmount(wallet->m_pay_tx_fee.GetFeePerK()));
 #endif
     obj.pushKV("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK()));
     // emercoin
-    obj.pushKV("encrypted",     wallet->IsCrypted());
-    obj.pushKV("mintonly",      fWalletUnlockMintOnly);
+#ifdef ENABLE_WALLET
+    if (wallet) {
+        obj.pushKV("encrypted",     wallet->IsCrypted());
+        obj.pushKV("mintonly",      fWalletUnlockMintOnly);
+    }
+#endif
     obj.pushKV("errors",        GetWarnings("statusbar"));
     return obj;
 }
