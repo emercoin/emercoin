@@ -1,7 +1,8 @@
 # Build and test on every push and pull request to develop and master, and package the
-# headless binaries for Linux x86_64, Linux aarch64 and Windows x86_64. After a push to
-# develop whose tests pass, the packages replace the "nightly" pre-release; for a version
-# tag (v0.8.6emc, v0.8.6rc1emc) they go into a draft release for a maintainer to publish.
+# binaries with the Qt wallet for Linux x86_64, Linux aarch64 and Windows x86_64 (also as an
+# installer). After a push to develop whose tests pass, the packages replace the "nightly"
+# pre-release; for a version tag (v0.8.6emc, v0.8.6rc1emc) they go into a draft release for
+# a maintainer to publish.
 # The steps are ci/build.sh stages run in the ci/Dockerfile image (see ci/README.md),
 # so a failure can be reproduced locally with the same commands.
 name: CI
@@ -89,6 +90,7 @@ jobs:
             host: x86_64-w64-mingw32
     env:
       HOST: ${{ matrix.host }}
+      GUI: 1
       IMAGE: emercoin-ci:bionic
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -106,7 +108,7 @@ jobs:
             depends/built
             depends/sources
             depends/${{ env.HOST }}
-          key: depends-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
+          key: depends-qt-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
 
       - name: Depends
         run: ci/docker.sh depends
@@ -169,7 +171,7 @@ jobs:
           cat > notes.md <<EOF
           Development build of \`develop\` at ${GITHUB_SHA::10}, $(date -u +%Y-%m-%d), from [this CI run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}). The unit and functional tests passed for this commit.
 
-          **Not a release.** For testing, preferably on testnet. Headless binaries: emercoind, emercoin-cli, emercoin-tx, emercoin-wallet.
+          **Not a release.** For testing, preferably on testnet. Each archive has the wallet (emercoin-qt), emercoind, emercoin-cli, emercoin-tx and emercoin-wallet; \`emercoin-nightly-win64-setup.exe\` installs them on Windows (unsigned, so Windows asks before running it).
 
           Check a download with \`sha256sum -c SHA256SUMS --ignore-missing\`, and that it was built here from this commit with \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`.
           EOF
@@ -239,7 +241,7 @@ jobs:
 
           **Before publishing:** replace this text with the release notes and check the files.
 
-          Headless binaries: emercoind, emercoin-cli, emercoin-tx, emercoin-wallet. Check a download with \`sha256sum -c SHA256SUMS --ignore-missing\`, and that it was built here from this tag with \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`.
+          Each archive has the wallet (emercoin-qt), emercoind, emercoin-cli, emercoin-tx and emercoin-wallet; \`emercoin-${VERSION}-win64-setup.exe\` installs them on Windows (unsigned). Check a download with \`sha256sum -c SHA256SUMS --ignore-missing\`, and that it was built here from this tag with \`gh attestation verify <file> -R ${GITHUB_REPOSITORY}\`.
           EOF
           gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag "${prerelease[@]}" \
               --title "Emercoin ${VERSION}" --notes-file notes.md

@@ -12,15 +12,17 @@ repeated locally with Docker:
     ci/docker.sh functional   # functional tests, without network access
 
 Release packages, built the way `contrib/gitian-descriptors` builds releases (flags, security
-and symbol checks, layout), headless for now:
+and symbol checks, layout), with the Qt wallet (`GUI=1`; depends then include Qt):
 
+    export GUI=1
     HOST=x86_64-linux-gnu  ci/docker.sh depends && HOST=x86_64-linux-gnu  ci/docker.sh package
     HOST=aarch64-linux-gnu ci/docker.sh depends && HOST=aarch64-linux-gnu ci/docker.sh package
     HOST=x86_64-w64-mingw32 ci/docker.sh depends && HOST=x86_64-w64-mingw32 ci/docker.sh package
 
-The archive lands in `dist/` (`DISTNAME` sets its name). CI builds all three for every push and
-pull request; after a push to `develop` whose tests pass, they replace the `nightly`
-pre-release on GitHub, with `SHA256SUMS` and build provenance attestations
+The archive lands in `dist/` (`DISTNAME` sets its name), for Windows also an installer
+(`make deploy`, NSIS; unsigned). Without `GUI=1` the package is headless. CI builds all three
+for every push and pull request; after a push to `develop` whose tests pass, they replace the
+`nightly` pre-release on GitHub, with `SHA256SUMS` and build provenance attestations
 (`gh attestation verify <file> -R emercoin/emercoin`).
 
 A version tag (`v0.8.6emc`, or `v0.8.6rc1emc` for a release candidate) runs the same tests and

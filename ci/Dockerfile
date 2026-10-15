@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive TZ=UTC LC_ALL=C.UTF-8 LANG=C.UTF-8
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential gcc-8 g++-8 libtool autotools-dev automake autoconf \
         pkg-config bsdmainutils curl ca-certificates git python3 python3-zmq \
-        patch xz-utils zip \
+        patch xz-utils zip nsis \
         g++-8-aarch64-linux-gnu gcc-8-aarch64-linux-gnu binutils-aarch64-linux-gnu \
         g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 \
     && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 \

@@ -6,24 +6,29 @@
 # Build and test stages, run from the source root inside the ci/Dockerfile image
 # (ci/docker.sh does that):
 #
-#   ci/build.sh depends      # depends/ for $HOST, without Qt
+#   ci/build.sh depends      # depends/ for $HOST, with Qt if GUI=1
 #   ci/build.sh build        # configure + make: daemon, cli, tx, wallet tool, unit tests
 #   ci/build.sh check        # unit tests (make check)
 #   ci/build.sh functional   # functional tests (test/functional/test_runner.py)
 #   ci/build.sh package      # release build for $HOST, archived in dist/
 #
 # Environment: HOST (default x86_64-linux-gnu; also aarch64-linux-gnu, x86_64-w64-mingw32),
-# JOBS (default: nproc), FUNC_JOBS (default: 2 x nproc, the tests mostly wait), TEST_TIMEOUT
-# (seconds per functional test, default 600), TMPDIR_PREFIX (functional test data and logs,
-# default /tmp/functional), DISTNAME (package name, default emercoin-<version>).
+# GUI (1: the package includes emercoin-qt and, for Windows, an installer; depends need it
+# too; default 0), JOBS (default: nproc), FUNC_JOBS (default: 2 x nproc, the tests mostly
+# wait), TEST_TIMEOUT (seconds per functional test, default 600), TMPDIR_PREFIX (functional
+# test data and logs, default /tmp/functional), DISTNAME (package name, default
+# emercoin-<version>).
 set -euo pipefail
 
 HOST="${HOST:-x86_64-linux-gnu}"
+GUI="${GUI:-0}"
 JOBS="${JOBS:-$(nproc)}"
 
 case "${1:-}" in
 depends)
-    make -C depends -j"$JOBS" HOST="$HOST" NO_QT=1
+    qt=(NO_QT=1)
+    [ "$GUI" = 1 ] && qt=()
+    make -C depends -j"$JOBS" HOST="$HOST" "${qt[@]}"
     ;;
 build)
     ./autogen.sh
@@ -54,16 +59,19 @@ functional)
     ;;
 package)
     # The release build of contrib/gitian-descriptors (flags, security and symbol checks,
-    # layout), headless for now: dist/$DISTNAME-$HOST.tar.gz, on Windows dist/$DISTNAME-win64.zip.
+    # layout): dist/$DISTNAME-$HOST.tar.gz, on Windows dist/$DISTNAME-win64.zip and, with
+    # GUI=1, the installer dist/$DISTNAME-win64-setup.exe (unsigned).
     # No libemercoinconsensus, as in the released packages: it does not link on its own yet
     # (consensus/tx_check.cpp uses randpaytx, defined in coins.cpp).
     case "$HOST" in
     *-mingw32) extra=(); ldflags=""; strip=(-s) ;;
     *)         extra=(--enable-glibc-back-compat); ldflags="-static-libstdc++"; strip=(--strip-debug) ;;
     esac
+    gui=(--without-gui)
+    [ "$GUI" = 1 ] && gui=(--with-gui=qt5)
     ./autogen.sh
     CONFIG_SITE="$PWD/depends/$HOST/share/config.site" ./configure --prefix=/ \
-        --disable-ccache --disable-maintainer-mode --without-gui --disable-bench --disable-gui-tests \
+        --disable-ccache --disable-maintainer-mode "${gui[@]}" --disable-bench --disable-gui-tests \
         --enable-reduce-exports --enable-util-tx --without-libs "${extra[@]}" \
         CFLAGS="-O2 -g" CXXFLAGS="-O2 -g" LDFLAGS="$ldflags"
     make -j"$JOBS"
@@ -73,6 +81,12 @@ package)
     distname="${DISTNAME:-emercoin-$(sed -n 's/^PACKAGE_VERSION = //p' Makefile)}"
     epoch="$(git log -1 --format=%ct)"
     rm -rf dist
+    if [[ $HOST == *-mingw32 && $GUI = 1 ]]; then
+        rm -f emercoin-*-win64-setup.exe
+        make deploy
+        mkdir -p dist
+        mv emercoin-*-win64-setup.exe "dist/$distname-win64-setup.exe"
+    fi
     make install DESTDIR="$PWD/dist/install/$distname"
     cp doc/README.md "dist/install/$distname/"
     cd dist/install
