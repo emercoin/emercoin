@@ -23,8 +23,10 @@
 #include <sync.h>
 #include <uint256.h>
 #include <threadinterrupt.h>
+#include <util/time.h>
 
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <stdint.h>
 #include <thread>
@@ -600,6 +602,8 @@ public:
     mapMsgCmdSize mapRecvBytesPerMsgCmd;
     NetPermissionFlags m_permissionFlags;
     bool m_legacyWhitelisted;
+    uint64_t m_addr_processed;
+    uint64_t m_addr_rate_limited;
     double dPingTime;
     double dPingWait;
     double dMinPing;
@@ -736,6 +740,15 @@ public:
     std::vector<CAddress> vAddrToSend;
     CRollingBloomFilter addrKnown;
     bool fGetAddr{false};
+    /** Number of addr messages that can be processed from this peer. Start at 1 to
+     *  permit self-announcement. Used by the message handler thread only. */
+    double m_addr_token_bucket{1.0};
+    /** When m_addr_token_bucket was last updated */
+    std::chrono::microseconds m_addr_token_timestamp{GetTime<std::chrono::microseconds>()};
+    /** Total number of addresses that were dropped due to rate limiting. */
+    std::atomic<uint64_t> m_addr_rate_limited{0};
+    /** Total number of addresses that were processed (excludes rate limited ones). */
+    std::atomic<uint64_t> m_addr_processed{0};
     std::set<uint256> setKnown;
     int64_t nNextAddrSend GUARDED_BY(cs_sendProcessing){0};
     int64_t nNextLocalAddrSend GUARDED_BY(cs_sendProcessing){0};

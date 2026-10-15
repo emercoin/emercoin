@@ -467,7 +467,8 @@ void SetupServerArgs()
         "noban (do not ban for misbehavior), "
         "forcerelay (relay even non-standard transactions), "
         "relay (relay even in -blocksonly mode), "
-        "and mempool (allow requesting BIP35 mempool contents). "
+        "mempool (allow requesting BIP35 mempool contents) "
+        "and addr (process any number of addresses from the peer, without rate limiting). "
         "Specify multiple permissions separated by commas (default: noban,mempool,relay). Can be specified multiple times.", ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     gArgs.AddArg("-whitelist=<[permissions@]IP address or network>", "Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) or "

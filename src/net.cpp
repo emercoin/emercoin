@@ -533,6 +533,8 @@ void CNode::copyStats(CNodeStats &stats)
     }
     X(m_legacyWhitelisted);
     X(m_permissionFlags);
+    stats.m_addr_processed = m_addr_processed.load();
+    stats.m_addr_rate_limited = m_addr_rate_limited.load();
     if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_feeFilter);
         stats.minFeeFilter = m_tx_relay->minFeeFilter;

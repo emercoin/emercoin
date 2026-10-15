@@ -167,6 +167,7 @@ BASE_SCRIPTS = [
     'p2p_block_header_checks.py',
     'p2p_getdata.py',
     'p2p_inv_getheaders.py',
+    'p2p_addr_ratelimit.py',
     'wallet_txn_doublespend.py',
     'wallet_txn_clone.py --mineblock',
     'feature_notifications.py',
