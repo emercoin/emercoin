@@ -3,6 +3,7 @@
 
 #include <qt/nametablemodel.h>
 #include <qt/walletmodel.h>
+#include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/QNameCoin.h>
 #include <qt/NameCoinStrings.h>
@@ -15,6 +16,7 @@
 
 #include <namecoin.h>
 #include <ui_interface.h>
+#include <util/system.h>
 #include <validation.h>
 #include <key_io.h>
 #include <univalue.h>
@@ -149,6 +151,16 @@ ManageNamesPage::ManageNamesPage(QWidget *parent) :
     ui->valueFilter->installEventFilter(this);
     ui->addressFilter->installEventFilter(this);
 	ui->btnInfoCard->setVisible(false);
+
+    // emercoin: the name services buttons are shown with -nameservices
+    if (!gArgs.GetBoolArg("-nameservices", DEFAULT_NAMESERVICES)) {
+        ui->labelPrepareRecords->setVisible(false);
+        ui->btnManageDomains->setVisible(false);
+        ui->btnDpo->setVisible(false);
+        ui->btnTrustedDiploma->setVisible(false);
+        ui->btnSsl->setVisible(false);
+        ui->hSpacerToolbar->changeSize(0, 0);
+    }
 
     ui->registerName->setMaxLength(MAX_NAME_LENGTH);
 

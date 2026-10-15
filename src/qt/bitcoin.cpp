@@ -405,6 +405,7 @@ static void SetupUIArgs()
     gArgs.AddArg("-choosedatadir", strprintf("Choose data directory on startup (default: %u)", DEFAULT_CHOOSE_DATADIR), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
     gArgs.AddArg("-lang=<lang>", "Set language, for example \"de_DE\" (default: system locale)", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
     gArgs.AddArg("-min", "Start minimized", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
+    gArgs.AddArg("-nameservices", strprintf("Show the name services buttons (DNS, DPO, Trusted Diploma, SSL) on the Names page (default: %u)", DEFAULT_NAMESERVICES), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
     gArgs.AddArg("-resetguisettings", "Reset all settings changed in the GUI", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
     gArgs.AddArg("-rootcertificates=<file>", "Set SSL root certificates for payment request (default: -system-)", ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
     gArgs.AddArg("-splash", strprintf("Show splash screen on startup (default: %u)", DEFAULT_SPLASHSCREEN), ArgsManager::ALLOW_ANY, OptionsCategory::GUI);
