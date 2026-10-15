@@ -285,6 +285,12 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest)
         BOOST_CHECK_EQUAL(block.hashMerkleRoot.ToString(), BlockMerkleRoot(block2, &mutated).ToString());
         BOOST_CHECK(!mutated);
 
+        // A filled block cannot be filled again, an initialised one cannot be initialised again
+        CBlock block_again;
+        BOOST_CHECK(partialBlock.FillBlock(block_again, {}) == READ_STATUS_INVALID);
+        BOOST_CHECK(!partialBlock.IsTxAvailable(0));
+        BOOST_CHECK(partialBlockCopy.InitData(shortIDs2, extra_txn) == READ_STATUS_INVALID);
+
         txhash = block.vtx[1]->GetHash();
         block.vtx.clear();
         block2.vtx.clear();
