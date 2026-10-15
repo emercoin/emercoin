@@ -3,7 +3,6 @@
 #include <QTabWidget>
 #include <QDialog>
 
-class CheckDiplomaWidget;
 class RegisterUniversityWidget;
 class RegisterDiplomaWidget;
 class WalletModel;
@@ -16,7 +15,6 @@ class DiplomaWidget: public QDialog {
 		QString value()const;
 	protected:
 		QTabWidget* _tab = nullptr;
-		CheckDiplomaWidget* _CheckDiplomaWidget = nullptr;
 		RegisterUniversityWidget* _RegisterUniversityWidget = nullptr;
 		RegisterDiplomaWidget* _RegisterDiplomaWidget = nullptr;
     private:

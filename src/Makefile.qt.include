@@ -151,7 +151,6 @@ BITCOIN_QT_H = \
   qt/ShellImitation.h \
   qt/TableView.h \
   qt/NameCoinStrings.h \
-  qt/CheckDiplomaWidget.h \
   qt/DiplomaWidget.h \
   qt/RegisterDiplomaWidget.h \
   qt/RegisterUniversityWidget.h \
@@ -361,7 +360,6 @@ BITCOIN_QT_WALLET_CPP = \
   qt/ManageDnsPage.cpp \
   qt/ConfigFile.cpp \
   qt/Settings.cpp \
-  qt/CheckDiplomaWidget.cpp \
   qt/DiplomaWidget.cpp \
   qt/QNameCoin.cpp \
   qt/NameCoinStrings.cpp \
