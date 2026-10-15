@@ -22,7 +22,6 @@
 
 #include <QApplication>
 #include <QClipboard>
-#include <QStandardItemModel>
 
 SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *parent) :
     QStackedWidget(parent),
@@ -58,13 +57,6 @@ SendCoinsEntry::SendCoinsEntry(const PlatformStyle *_platformStyle, QWidget *par
     connect(ui->useAvailableBalanceButton, &QPushButton::clicked, this, &SendCoinsEntry::useAvailableBalanceClicked);
 
     ui->payTo->setValidator(0);  // emercoin: disable validator so that we can type names
-    ui->payAmountExch->setValidator( new QDoubleValidator(0, 1e20, 8, this) );
-    qsExchInfo = "<html><head/><body><p><span style=\" font-weight:600;\">"+
-            tr("WARNING: You're using external service! Emercoin is not responsible for functionality and correct behavior of this service.")+"</span><br/>"+
-            tr("Usage: Enter amount, currency type and address. Press Request Payment and select desired exchange service.")+"<br/>"+
-            tr("After creating transaction you can view details by double clicking that transaction in transaction list tab.")+"</p></body></html>";
-    ui->infoExchLabel->setText(qsExchInfo);
-    ui->exchWidget->setVisible(false);
 }
 
 SendCoinsEntry::~SendCoinsEntry()
@@ -104,34 +96,6 @@ void SendCoinsEntry::setModel(WalletModel *_model)
         connect(_model->getOptionsModel(), &OptionsModel::displayUnitChanged, this, &SendCoinsEntry::updateDisplayUnit);
 
     clear();
-
-// Exchange box control - exchange EMCs to other patments through external services
-#if 1
-    // emercoin: initialize exchange box
-    // initialize with refund address:
-    if (this->model) {
-        auto pwallet = this->model->wallet().getWallet();
-        OutputType output_type = pwallet->m_default_change_type != OutputType::CHANGE_AUTO ? pwallet->m_default_change_type : pwallet->m_default_address_type;
-        CTxDestination dest;
-        std::string error;
-
-        if (pwallet->GetNewChangeDestination(output_type, dest, error))
-            this->eBox.Reset(EncodeDestination(dest));
-        else
-        {
-            ui->checkBoxExch->setDisabled(true);
-            ui->exchWidget->setVisible(false);
-            ui->exchWidget->setDisabled(true);
-        }
-    }
-#else
-    // emercoin: disabled in this version
-    ui->checkBoxExch->setVisible(false);
-    ui->toggleExchLabel->setVisible(false);
-    ui->checkBoxExch->setDisabled(true);
-    ui->toggleExchLabel->setDisabled(true);
-#endif
-
 }
 
 void SendCoinsEntry::clear()
@@ -351,174 +315,3 @@ void SendCoinsEntry::on_payTo_editingFinished()
         ui->payTo->setText(qstrAddress);
 }
 
-void SendCoinsEntry::on_checkBoxExch_toggled(bool checked)
-{
-    this->comment = "";
-    this->commentto = "";
-    ui->exchWidget->setVisible(checked);
-}
-
-void SendCoinsEntry::on_requestPaymentButton_clicked()
-{
-    this->comment = "";
-    this->commentto = "";
-
-    if (eBox.m_v_exch.empty())
-        return;
-
-    double dPay = 0;
-    bool ok = false;
-    dPay = ui->payAmountExch->text().toDouble(&ok);
-    if (!ok)
-    {
-        QMessageBox::warning(this, tr("Incorrect pay amount."), tr("Please enter valid positive number as pay amount."));
-        return;
-    }
-
-    if (ui->payTypeExch->text().isEmpty())
-    {
-        QMessageBox::warning(this, tr("Empty currency name."), tr("Please enter currency short name (like BTC)."));
-        return;
-    }
-
-    if (ui->payToExch->text().isEmpty())
-    {
-        QMessageBox::warning(this, tr("Empty address."), tr("Please enter valid %1 address.").arg(ui->payTypeExch->text().toLower()));
-        return;
-    }
-
-    // loop over exchanges to populate combobox
-    multimap<double, pair<Exch *, bool> > mapExch;   // double: emc per 1 btc
-    bool validExist = false;
-    for (Exch* exch : eBox.m_v_exch)
-    {
-        string err(exch->MarketInfo(ui->payTypeExch->text().toStdString(), dPay));
-        if (!err.empty())
-            continue;
-
-        bool valid = exch->m_min <= dPay && exch->m_limit >= dPay;
-        if (valid)
-            validExist = true;
-
-        mapExch.insert(pair<double, pair<Exch *, bool> >(exch->EstimatedEMC(dPay), pair<Exch *, bool>(exch, valid)));
-    }
-
-    ui->exchComboBox->clear();
-    if (validExist)
-        ui->exchComboBox->addItem(tr("Select exchange here:"));
-    else
-        ui->exchComboBox->addItem(tr("No exchange can make your request: try different currency/amount/address."));
-
-    // http://stackoverflow.com/a/21740341/1199550
-    for (const auto& p : mapExch)
-    {
-        QString qsEntry;
-        bool valid = p.second.second;
-        if (valid)
-            qsEntry = QString::number(p.first)+"emc ["+QString::fromStdString(p.second.first->Name())+"]";
-        else
-            qsEntry = tr("%1 out of bounds: min=%2, max=%3 [%4]").arg(ui->payTypeExch->text()).arg(p.second.first->m_min).arg(p.second.first->m_limit).arg(QString::fromStdString(p.second.first->Name()));
-        ui->exchComboBox->addItem(qsEntry, qVariantFromValue((void *) p.second.first));
-
-        // disable added item if not valid
-        if (!valid)
-        {
-            const QStandardItemModel* imodel = qobject_cast<const QStandardItemModel*>(ui->exchComboBox->model());
-            QStandardItem* item = imodel->item(imodel->rowCount()-1);
-
-            item->setFlags(item->flags() & ~(Qt::ItemIsSelectable|Qt::ItemIsEnabled));
-            // visually disable by greying out - works only if combobox has been painted already and palette returns the wanted color
-            item->setData(ui->exchComboBox->palette().color(QPalette::Disabled, QPalette::Text), Qt::TextColorRole);
-        }
-    }
-}
-
-void SendCoinsEntry::on_payAmountExch_editingFinished()
-{
-    CAmount val;
-    BitcoinUnits::parse(BitcoinUnits::BTC, ui->payAmountExch->text(), &val);
-    ui->payAmountExch->setText(BitcoinUnits::format(BitcoinUnits::BTC, val, false, BitcoinUnits::separatorAlways));
-}
-
-#include "sendcoinsdialog.h"
-
-void SendCoinsEntry::on_exchComboBox_currentIndexChanged(int index)
-{
-    this->comment = "";
-    this->commentto = "";
-
-    if (index <= 0)
-        return;
-
-    double dPay = 0;
-    bool ok = false;
-    dPay = ui->payAmountExch->text().toDouble(&ok);
-    if (!ok)
-    {
-        QMessageBox::warning(this, tr("Incorrect pay amount."), tr("Please enter valid positive number as pay amount."));
-        return;
-    }
-
-    QVariant data = ui->exchComboBox->itemData(index);
-    Exch *exch = (Exch *) data.value<void *>();
-    QString qsHost = QString::fromStdString(exch->Name());
-
-    // remove previous request and clear info label
-	exch->CancelTX("");
-    ui->infoExchLabel->setText(qsExchInfo);
-
-    string err = exch->Send(ui->payToExch->text().toStdString(), dPay);
-    if (!err.empty())
-    {
-        ui->infoExchLabel->setText(tr("Error: Send request to %1 failed:\n%2").arg(qsHost, QString::fromStdString(err)));
-        return;
-    }
-    LogPrintf("Exchange.Send() : m_depAddr=%s, m_outAddr=%s m_depAmo=%lf m_outAmo=%lf m_txKey=%s\n",
-        exch->m_depAddr, exch->m_outAddr, exch->m_depAmo, exch->m_outAmo, exch->m_txKey);
-
-    if (exch->m_outAddr != ui->payToExch->text().toStdString())
-    {
-        ui->infoExchLabel->setText(tr("Error: Send request to %1 failed:\nAddress returned from exchange does not match requested address").arg(qsHost));
-		exch->CancelTX(exch->m_txKey);
-        return;
-    }
-
-    int ttl = exch->Remain(exch->m_txKey);
-    if (ttl <= 0)
-    {
-        ui->infoExchLabel->setText(tr("Error: payment time is expired for %1").arg(qsHost));
-        return;
-    }
-
-    QMessageBox msgBox;
-    msgBox.setStyleSheet("QLabel{min-width: 650px;}");
-    msgBox.setWindowTitle(tr("Payment confirmation."));
-    char depAmo_str[20];
-    sprintf(depAmo_str, "%.6lf", exch->m_depAmo);
-    QString depAmo(depAmo_str);
-    // QString depAmo(QString::number(exch->m_depAmo, 'g', 6));
-    msgBox.setText(tr("%1 will send %2%3 to %4\n").arg(qsHost, QString::number(exch->m_outAmo), ui->payTypeExch->text().toLower(), QString::fromStdString(exch->m_outAddr))+
-                   tr("You will need to send %1 emc to %2\n").arg(depAmo, QString::fromStdString(exch->m_depAddr))+
-                   tr("Payment id: %1\n").arg(QString::fromStdString(exch->m_txKey))+
-                   tr("Time to complete: %1 minutes").arg(ttl / 60));
-    QAbstractButton* pButtonSend = msgBox.addButton(tr("Send Now"), QMessageBox::YesRole);
-    QAbstractButton* pButtonCopy = msgBox.addButton(tr("Copy to GUI"), QMessageBox::YesRole);
-    QAbstractButton* pButtonCancel = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
-    msgBox.exec();
-
-    if (msgBox.clickedButton() == pButtonSend || msgBox.clickedButton() == pButtonCopy)
-    {
-        ui->payTo->setText(QString::fromStdString(exch->m_depAddr));
-        ui->payAmount->setDisplayUnit(BitcoinUnits::BTC);
-        ui->payAmount->setString(depAmo);
-        this->comment = exch->m_txKey;
-        this->commentto = exch->Name();
-        ui->infoExchLabel->setText(tr("Payment id: %1, Time to complete: %2 minutes").arg(QString::fromStdString(exch->m_txKey), QString::number(ttl/60)));
-        if (msgBox.clickedButton() == pButtonSend)
-            Q_EMIT sendNow();
-    }
-    else if (msgBox.clickedButton() == pButtonCancel)
-    {
-		exch->CancelTX(exch->m_txKey);
-    }
-}

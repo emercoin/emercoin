@@ -6,7 +6,6 @@
 #define BITCOIN_QT_SENDCOINSENTRY_H
 
 #include <qt/walletmodel.h>
-#include <qt/exch.h>
 
 #include <QStackedWidget>
 
@@ -27,8 +26,8 @@ class SendCoinsEntry : public QStackedWidget
     Q_OBJECT
 
 public:
-    string comment;
-    string commentto;
+    std::string comment;
+    std::string commentto;
 
     explicit SendCoinsEntry(const PlatformStyle *platformStyle, QWidget *parent = nullptr);
     ~SendCoinsEntry();
@@ -60,7 +59,6 @@ Q_SIGNALS:
     void useAvailableBalance(SendCoinsEntry* entry);
     void payAmountChanged();
     void subtractFeeFromAmountChanged();
-    void sendNow();
 
 private Q_SLOTS:
     void deleteClicked();
@@ -71,18 +69,12 @@ private Q_SLOTS:
     void updateDisplayUnit();
     // emercoin GUI slots
     void on_payTo_editingFinished();
-    void on_checkBoxExch_toggled(bool checked);
-    void on_requestPaymentButton_clicked();
-    void on_payAmountExch_editingFinished();
-    void on_exchComboBox_currentIndexChanged(int index);
 
 private:
     SendCoinsRecipient recipient;
     Ui::SendCoinsEntry *ui;
     WalletModel *model;
     const PlatformStyle *platformStyle;
-    ExchBox eBox;
-    QString qsExchInfo;
 
     bool updateLabel(const QString &address);
 };

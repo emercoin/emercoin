@@ -395,8 +395,6 @@ WId BitcoinApplication::getMainWinId() const
     return window->winId();
 }
 
-void exch_test();
-
 static void SetupUIArgs()
 {
 #if defined(ENABLE_WALLET) && defined(ENABLE_BIP70)
@@ -588,10 +586,6 @@ int GuiMain(int argc, char* argv[])
 
     if (gArgs.GetBoolArg("-splash", DEFAULT_SPLASHSCREEN) && !gArgs.GetBoolArg("-min", false))
         app.createSplashScreen(networkStyle.data());
-
-    if(gArgs.GetBoolArg("-exchtest", false)) {
-		exch_test();// DEBUG from olegarch - exchange test
-	}
 
     int rv = EXIT_SUCCESS;
     try

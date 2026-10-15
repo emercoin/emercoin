@@ -23,7 +23,6 @@
 #include <policy/policy.h>
 #include <wallet/ismine.h>
 
-#include <qt/exch.h>
 #include <univalue.h>
 
 #include <stdint.h>
@@ -326,36 +325,6 @@ QString TransactionDesc::toHTML(interfaces::Node& node, interfaces::Wallet& wall
         strHTML += "<br>" + tr("Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
     if (wtx.is_coinstake)
         strHTML += "<br>" + tr("Staked coins must mature %1 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, it will change to \"not accepted\" and not be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
-
-    // emercoin: show TxStat for exchanges
-    while (true)
-    {
-        if (wtx.value_map["to"].empty() || wtx.value_map["comment"].empty())
-            break;
-
-        std::vector<std::string> vTo;
-        std::vector<std::string> vComment;
-        boost::split(vTo, wtx.value_map["to"], boost::is_any_of("\n"));
-        boost::split(vComment, wtx.value_map["comment"], boost::is_any_of("\n"));
-
-        if (vTo.size() != vComment.size())
-            break;
-
-        ExchBox eBox;
-        eBox.Reset("blankaddress");
-
-        strHTML += "<hr><br>Exchange.TxStat:<br>";
-        for (const auto& key : vComment)
-            for (auto* exch : eBox.m_v_exch)
-            {
-                UniValue ret(UniValue::VOBJ);
-                string err = exch->TxStat(key, ret);
-                if (err == "-")
-                    continue;
-                strHTML += QString::fromStdString(ret.write(2))+"<br>";
-            }
-        break;
-    }
 
     //
     // Debug view

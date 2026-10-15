@@ -580,7 +580,6 @@ void SetupServerArgs()
     gArgs.AddArg("-nameaddress", "Enable address->names index (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nameindexchainsize", strprintf("Number of updates per each name to memorize on disk (default: %u)", NAMEINDEX_CHAIN_SIZE), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-stunsrcport", "Port for STUN system to identify your own ip (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-exchtest", "Enable exchange testing (for code debugging only) (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-randkeymapsz", "Debug parameter (default: 16)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-sortir", "Debug parameter (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-maxdp", "Maximal table size for DP TX optimizer (default: 128 * 1024 * 1024 i.e. max DP-selected amount is 13,421 EMC)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
