@@ -165,6 +165,7 @@ BASE_SCRIPTS = [
     'interface_rpc_utf8.py',
     'feature_stun.py',
     'p2p_block_header_checks.py',
+    'p2p_getdata.py',
     'wallet_txn_doublespend.py',
     'wallet_txn_clone.py --mineblock',
     'feature_notifications.py',
