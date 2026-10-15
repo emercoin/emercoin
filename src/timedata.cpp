@@ -16,6 +16,7 @@
 #include <warnings.h>
 
 #include <atomic>
+#include <limits>
 
 static CCriticalSection cs_nTimeOffset;
 
@@ -40,9 +41,13 @@ int64_t GetAdjustedTime()
     return GetTime() + GetTimeOffset();
 }
 
-static int64_t abs64(int64_t n)
+int64_t TimeOffsetSample(int64_t peer_time, int64_t now)
 {
-    return (n >= 0 ? n : -n);
+    // The limit is far beyond any -maxtimeadjustment, and saturation keeps the order of the
+    // samples, so the median is the same; it also keeps the sum of two samples below from overflowing.
+    static constexpr int64_t LIMIT = std::numeric_limits<int64_t>::max() / 4;
+    const auto clamp = [](int64_t v) { return std::max(-LIMIT, std::min(LIMIT, v)); };
+    return clamp(clamp(peer_time) - clamp(now));
 }
 
 #define BITCOIN_TIMEDATA_MAX_SAMPLES 200
@@ -90,7 +95,8 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
         int64_t nMedian = (vSorted[midpoint] + vSorted[midpoint - (~vlen & 1)]) >> 1;
 
         // Only let other nodes change our time by so much
-        if (abs64(nMedian) > std::max<int64_t>(0, gArgs.GetArg("-maxtimeadjustment", DEFAULT_MAX_TIME_ADJUSTMENT))) {
+        const int64_t max_adjustment = std::max<int64_t>(0, gArgs.GetArg("-maxtimeadjustment", DEFAULT_MAX_TIME_ADJUSTMENT));
+        if (nMedian < -max_adjustment || nMedian > max_adjustment) {
             nMedian = 0;
 
             static bool fDone;
@@ -99,7 +105,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nOffsetSample)
                 // If nobody has a time different than ours but within 5 minutes of ours, give a warning
                 bool fMatch = false;
                 for (const int64_t nOffset : vSorted)
-                    if (nOffset != 0 && abs64(nOffset) < 5 * 60)
+                    if (nOffset != 0 && nOffset > -5 * 60 && nOffset < 5 * 60)
                         fMatch = true;
 
                 if (!fMatch)

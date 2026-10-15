@@ -9,6 +9,7 @@
 #include <timedata.h>
 #include <warnings.h>
 
+#include <limits>
 #include <string>
 
 #include <boost/test/unit_test.hpp>
@@ -38,6 +39,19 @@ BOOST_AUTO_TEST_CASE(util_MedianFilter)
 
     filter.input(0); // [0 3 7 18 30]
     BOOST_CHECK_EQUAL(filter.median(), 7);
+}
+
+BOOST_AUTO_TEST_CASE(time_offset_sample)
+{
+    const int64_t now = 1700000000;
+    const int64_t limit = std::numeric_limits<int64_t>::max() / 4;
+    BOOST_CHECK_EQUAL(TimeOffsetSample(now + 4200, now), 4200);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(now - 4200, now), -4200);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(0, now), -now);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(std::numeric_limits<int64_t>::max(), now), limit - now);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(std::numeric_limits<int64_t>::min(), now), -limit);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()), -limit);
+    BOOST_CHECK_EQUAL(TimeOffsetSample(std::numeric_limits<int64_t>::max(), std::numeric_limits<int64_t>::min()), limit);
 }
 
 static void MultiAddTimeData(int n, int64_t offset)

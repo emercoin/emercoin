@@ -2121,7 +2121,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                   pfrom->nStartingHeight, addrMe.ToString(), pfrom->GetId(),
                   remoteAddr);
 
-        int64_t nTimeOffset = nTime - GetTime();
+        int64_t nTimeOffset = TimeOffsetSample(nTime, GetTime());
         pfrom->nTimeOffset = nTimeOffset;
         AddTimeData(pfrom->addr, nTimeOffset);
 
