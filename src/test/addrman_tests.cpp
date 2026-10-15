@@ -215,8 +215,10 @@ BOOST_AUTO_TEST_CASE(addrman_select)
     BOOST_CHECK_EQUAL(addrman.size(), 7U);
 
     // Test: Select pulls from new and tried regardless of port number.
+    // emercoin: FastRandomContext::randbits draws from RC4OK, not from the deterministic seed, so
+    // the selection differs from run to run: draw until all three ports have come up.
     std::set<uint16_t> ports;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1000 && ports.size() < 3; ++i) {
         ports.insert(addrman.Select().GetPort());
     }
     BOOST_CHECK_EQUAL(ports.size(), 3U);
