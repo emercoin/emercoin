@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <net.h>
 #include <net_processing.h>
+#include <netbase.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
@@ -270,6 +271,52 @@ BOOST_AUTO_TEST_CASE(DoS_banning)
     bool dummy;
     peerLogic->FinalizeNode(dummyNode1.GetId(), dummy);
     peerLogic->FinalizeNode(dummyNode2.GetId(), dummy);
+}
+
+BOOST_AUTO_TEST_CASE(banman_lookup_and_cap)
+{
+    auto banman = MakeUnique<BanMan>(GetDataDir() / "banlist_cap.dat", nullptr, DEFAULT_MISBEHAVING_BANTIME);
+    banman->ClearBanned();
+    const int64_t start = GetTime();
+    SetMockTime(start);
+
+    // A subnet ban covers the addresses in it, a single-address ban only that address
+    CNetAddr in_range, out_of_range;
+    CSubNet range;
+    BOOST_CHECK(LookupHost("10.0.1.5", in_range, false));
+    BOOST_CHECK(LookupHost("10.0.2.5", out_of_range, false));
+    BOOST_CHECK(LookupSubNet("10.0.1.0/24", range));
+    BOOST_CHECK(!range.IsSingleIP());
+    BOOST_CHECK(CSubNet(in_range).IsSingleIP());
+    banman->Ban(range, BanReasonManuallyAdded);
+    BOOST_CHECK(banman->IsBanned(in_range));
+    BOOST_CHECK(!banman->IsBanned(out_of_range));
+    BOOST_CHECK_EQUAL(banman->IsBannedLevel(in_range), 2);
+    banman->Ban(out_of_range, BanReasonNodeMisbehaving);
+    BOOST_CHECK(banman->IsBanned(out_of_range));
+    BOOST_CHECK_EQUAL(banman->IsBannedLevel(out_of_range), 1);
+    BOOST_CHECK(banman->Unban(range));
+    BOOST_CHECK(!banman->IsBanned(in_range));
+    BOOST_CHECK(banman->IsBanned(out_of_range));
+
+    // Beyond MAX_BANNED_ENTRIES a misbehaviour ban replaces the oldest one; manual bans stay
+    banman->ClearBanned();
+    banman->Ban(in_range, BanReasonManuallyAdded);
+    for (uint32_t i = 0; i < MAX_BANNED_ENTRIES + 10; ++i) {
+        SetMockTime(start + i);
+        banman->Ban(ip(0xc0000000 + i), BanReasonNodeMisbehaving);
+    }
+    banmap_t banmap;
+    banman->GetBanned(banmap);
+    BOOST_CHECK_EQUAL(banmap.size(), MAX_BANNED_ENTRIES);
+    BOOST_CHECK(banman->IsBanned(in_range));
+    BOOST_CHECK(!banman->IsBanned(ip(0xc0000000)));
+    BOOST_CHECK(!banman->IsBanned(ip(0xc0000000 + 10)));
+    BOOST_CHECK(banman->IsBanned(ip(0xc0000000 + 11)));
+    BOOST_CHECK(banman->IsBanned(ip(0xc0000000 + MAX_BANNED_ENTRIES + 9)));
+
+    banman->ClearBanned();
+    SetMockTime(0);
 }
 
 BOOST_AUTO_TEST_CASE(DoS_banscore)

@@ -121,6 +121,8 @@ class CSubNet
 
         std::string ToString() const;
         bool IsValid() const;
+        //! Whether the subnet is a single address (<ipv4>/32 or <ipv6>/128)
+        bool IsSingleIP() const;
 
         friend bool operator==(const CSubNet& a, const CSubNet& b);
         friend bool operator!=(const CSubNet& a, const CSubNet& b) { return !(a == b); }
