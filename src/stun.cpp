@@ -49,7 +49,11 @@
 #include "ministun.h"
 #include "shutdown.h"
 
+#define USE_RACSS 1
 /*---------------------------------------------------------------------*/
+#if USE_RACSS
+#include "gen-stun-list.racss"
+#else
 struct StunSrv {
   char     name[46];
   uint16_t port;
@@ -61,7 +65,7 @@ static struct StunSrv StunSrvList[] = {
 };
 
 static const int StunSrvListQty = sizeof(StunSrvList) / sizeof(StunSrv);
-
+#endif
 /*---------------------------------------------------------------------*/
 /* wrapper to send an STUN message */
 static int stun_send(int s, struct sockaddr_in *dst, struct stun_header *resp)
@@ -265,6 +269,105 @@ static int StunRequest(const char *host, uint16_t port, struct sockaddr_in *mapp
 // Retval:
 // bits 0-7 = STUN tokens set, 8-32 = attempt number
 // Negative return - unable to figure out IP address
+
+#if USE_RACSS
+/* ---------------------------------------------------------------------------
+ * Deterministic logical->physical index permutation.
+ *
+ * The physical index is obtained by multiplicative permutation modulo
+ * total number of dictionary entries. The multiplier S_mul is chosen
+ * coprime with the dictionary size, which guarantees a strict bijection
+ * (no collisions, full coverage of [0..N) ).
+ *
+ * This permutation is used to decorrelate logical token order from
+ * physical storage layout.
+ * --------------------------------------------------------------------------- */
+
+inline static uint32_t log2phy(uint32_t tok_no) {
+    return
+        (tok_no * RACSS_MUL) % (RACSS_NUM_LINES + RACSS_NUM_REFS);
+} // log2phy
+
+/* ---------------------------------------------------------------------------
+ * Calculate data offset for a given line using predicted + correction
+ * --------------------------------------------------------------------------- */
+inline static int64_t getDataOffset(uint32_t line_no) {
+    const uint8_t *p_diff = RACSS_diff_table + (line_no * RACSS_IDX_DIFF_LEN);
+    const uint8_t *p_diff_end = p_diff + RACSS_IDX_DIFF_LEN;
+    int64_t diff = 0;
+    while(p_diff < p_diff_end)
+        diff = (diff << 8) | *p_diff++;
+    return diff + line_no * RACSS_AVG_ENTRY_LEN;
+} // getDiff
+
+/* ---------------------------------------------------------------------------
+ * Recursively unpack and print a single line (original or dictionary entry)
+ * --------------------------------------------------------------------------- */
+void recursor(int64_t line_no, char **p_out) {
+    line_no = log2phy(line_no);
+    const uint8_t *line_beg, *line_end;
+    if(RACSS_IDX_DIFF_LEN == 0) {
+        line_beg = RACSS_data + line_no * RACSS_AVG_ENTRY_LEN;
+        line_end = line_beg + RACSS_AVG_ENTRY_LEN;
+    } else {
+        line_end = RACSS_data + getDataOffset(line_no) - RACSS_IMBALANCE;
+        line_beg = RACSS_data;
+        if(line_no)
+                line_beg += getDataOffset(line_no - 1) - RACSS_IMBALANCE;
+    }
+    uint8_t c_utf = 0; // tracks current UTF/ref token state
+    while(line_beg < line_end) {
+        uint8_t c = *line_beg++;
+        if(c_utf >= 0300)
+            c_utf <<= 1; // Continue current UTF-8
+        else
+        if(c >= 0300)
+            c_utf = c;
+        else
+        if(c >= 0200) {
+            // This is reference to dictionary
+            uint64_t ref = c & 077;
+            for(int i = RACSS_REFLEN; --i > 0; )
+                ref = (ref << 8) | *line_beg++;
+            recursor(ref + RACSS_NUM_LINES, p_out);
+            continue;
+        }
+        **p_out = c;
+        (*p_out)++;
+    } // while
+} // recursor
+
+
+int GetExternalIPbySTUN(struct sockaddr_in *mapped, const char **srv, uint16_t src_port) {
+  uint32_t pos, rnd;
+  int attempt = 0; // runs in 8 bits offset, for keep flags in low byte
+  static char buf[RACSS_LINEBUF_LEN]; // static to print within caller
+
+  GetRandBytes((uint8_t *)&rnd, sizeof(rnd));
+  pos = rnd >> 16;
+  rnd |= 1; // Odd step
+  *srv = buf;
+
+  do {
+    pos = (pos + rnd) & RACSS_NUM_LINES_MASK;
+    if(pos >= RACSS_NUM_LINES)
+      continue;
+    if(ShutdownRequested())
+      break;
+    attempt += 256;
+    char *p = buf;
+    recursor(pos, &p);
+    p = strchr(buf, ':');
+    *p = 0;
+    int rc = StunRequest(buf, atoi(p + 1), mapped, src_port);
+    *p = ':';
+    if(rc > 0)
+      return attempt | rc;
+  } while(attempt < 64 * 256);
+  return -1;
+}
+
+#else
 int GetExternalIPbySTUN(struct sockaddr_in *mapped, const char **srv, uint16_t src_port) {
   uint32_t rnd;
   GetRandBytes((uint8_t *)&rnd, sizeof(rnd));
@@ -292,7 +395,7 @@ int GetExternalIPbySTUN(struct sockaddr_in *mapped, const char **srv, uint16_t s
   }
   return -1;
 }
-
+#endif
 /*---------------------------------------------------------------------*/
 
 
