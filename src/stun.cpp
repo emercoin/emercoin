@@ -357,10 +357,11 @@ int GetExternalIPbySTUN(struct sockaddr_in *mapped, const char **srv, uint16_t s
     attempt += 256;
     char *p = buf;
     recursor(pos, &p);
+    *p = 0; // Set EOLN
     p = strchr(buf, ':');
-    *p = 0;
+    *p = 0; // Temporary cut port suffix
     int rc = StunRequest(buf, atoi(p + 1), mapped, src_port);
-    *p = ':';
+    *p = ':'; // Restore port suffix
     if(rc > 0)
       return attempt | rc;
   } while(attempt < 64 * 256);
