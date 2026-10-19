@@ -315,15 +315,8 @@ void recursor(int64_t line_no, char **p_out) {
         if(line_no)
                 line_beg += getDataOffset(line_no - 1) - RACSS_IMBALANCE;
     }
-    uint8_t c_utf = 0; // tracks current UTF/ref token state
     while(line_beg < line_end) {
         uint8_t c = *line_beg++;
-        if(c_utf >= 0300)
-            c_utf <<= 1; // Continue current UTF-8
-        else
-        if(c >= 0300)
-            c_utf = c;
-        else
         if(c >= 0200) {
             // This is reference to dictionary
             uint64_t ref = c & 077;
@@ -361,9 +354,10 @@ int GetExternalIPbySTUN(struct sockaddr_in *mapped, const char **srv, uint16_t s
     p = strchr(buf, ':');
     *p = 0; // Temporary cut port suffix
     int rc = StunRequest(buf, atoi(p + 1), mapped, src_port);
+    if(rc <= 0)
+      continue;
     *p = ':'; // Restore port suffix
-    if(rc > 0)
-      return attempt | rc;
+    return attempt | rc;
   } while(attempt < 64 * 256);
   return -1;
 }
