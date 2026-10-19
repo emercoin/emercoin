@@ -291,35 +291,35 @@ inline static uint32_t log2phy(uint32_t tok_no) {
 /* ---------------------------------------------------------------------------
  * Calculate data offset for a given line using predicted + correction
  * --------------------------------------------------------------------------- */
-inline static int64_t getDataOffset(uint32_t line_no) {
+static int32_t getDataOffset(uint32_t line_no) {
     const uint8_t *p_diff = RACSS_diff_table + (line_no * RACSS_IDX_DIFF_LEN);
     const uint8_t *p_diff_end = p_diff + RACSS_IDX_DIFF_LEN;
-    int64_t diff = 0;
+    int32_t diff = 0;
     while(p_diff < p_diff_end)
         diff = (diff << 8) | *p_diff++;
-    return diff + line_no * RACSS_AVG_ENTRY_LEN;
+    return diff + line_no * RACSS_AVG_ENTRY_LEN - RACSS_IMBALANCE;
 } // getDiff
 
 /* ---------------------------------------------------------------------------
  * Recursively unpack and print a single line (original or dictionary entry)
  * --------------------------------------------------------------------------- */
-void recursor(int64_t line_no, char **p_out) {
+void recursor(int32_t line_no, char **p_out) {
     line_no = log2phy(line_no);
     const uint8_t *line_beg, *line_end;
     if(RACSS_IDX_DIFF_LEN == 0) {
         line_beg = RACSS_data + line_no * RACSS_AVG_ENTRY_LEN;
         line_end = line_beg + RACSS_AVG_ENTRY_LEN;
     } else {
-        line_end = RACSS_data + getDataOffset(line_no) - RACSS_IMBALANCE;
+        line_end = RACSS_data + getDataOffset(line_no);
         line_beg = RACSS_data;
         if(line_no)
-                line_beg += getDataOffset(line_no - 1) - RACSS_IMBALANCE;
+                line_beg += getDataOffset(line_no - 1);
     }
     while(line_beg < line_end) {
         uint8_t c = *line_beg++;
         if(c >= 0200) {
             // This is reference to dictionary
-            uint64_t ref = c & 077;
+            uint32_t ref = c & 077;
             for(int i = RACSS_REFLEN; --i > 0; )
                 ref = (ref << 8) | *line_beg++;
             recursor(ref + RACSS_NUM_LINES, p_out);
