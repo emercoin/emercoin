@@ -200,7 +200,6 @@
 {"stun.iserv.eu",	3478},
 {"stun.it1.hr",	3478},
 {"stun.jabbim.cz",	3478},
-{"stun.jensbouma.com",	3478},
 {"stun.jerichosystems.co.za",	3478},
 {"stun.jrnetservices.de",	3478},
 {"stun.jumblo.com",	3478},
