@@ -6,6 +6,7 @@
 #include <consensus/merkle.h>
 #include <chainparams.h>
 #include <pow.h>
+#include <script/standard.h>
 #include <streams.h>
 
 #include <test/setup_common.h>
@@ -20,6 +21,14 @@ struct RegtestingSetup : public TestingSetup {
 
 BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegtestingSetup)
 
+// emercoin: a block is signed by the key of a P2PK coinbase output (CheckBlock checks it)
+static const CKey& SigningKey()
+{
+    static CKey key;
+    if (!key.IsValid()) key.MakeNewKey(true);
+    return key;
+}
+
 static CBlock BuildBlockTestCase() {
     CBlock block;
     CMutableTransaction tx;
@@ -27,6 +36,8 @@ static CBlock BuildBlockTestCase() {
     tx.vin[0].scriptSig.resize(10);
     tx.vout.resize(1);
     tx.vout[0].nValue = 42;
+    tx.vout[0].scriptPubKey = GetScriptForRawPubKey(SigningKey().GetPubKey());
+    block.nTime = tx.nTime; // emercoin: no transaction may be younger than its block
 
     block.vtx.resize(3);
     block.vtx[0] = MakeTransactionRef(tx);
@@ -49,7 +60,9 @@ static CBlock BuildBlockTestCase() {
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) { ++block.nNonce; block.hashMyself.SetNull(); }
+    bool signed_ok = SigningKey().Sign(block.GetHash(), block.vchBlockSig, 0);
+    assert(signed_ok);
     return block;
 }
 
@@ -86,7 +99,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
         BOOST_CHECK_EQUAL(pool.mapTx.find(block.vtx[2]->GetHash())->GetSharedTx().use_count(), SHARED_TX_OFFSET + 1);
 
         size_t poolSize = pool.size();
-        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::REPLACED);
+        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::CONFLICT);
         BOOST_CHECK_EQUAL(pool.size(), poolSize - 1);
 
         CBlock block2;
@@ -118,6 +131,7 @@ class TestHeaderAndShortIDs {
 public:
     CBlockHeader header;
     uint64_t nonce;
+    std::vector<unsigned char> vchBlockSig; // emercoin: cmpctblock carries the block signature
     std::vector<uint64_t> shorttxids;
     std::vector<PrefilledTransaction> prefilledtxn;
 
@@ -143,6 +157,7 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         READWRITE(header);
         READWRITE(nonce);
+        READWRITE(vchBlockSig);
         size_t shorttxids_size = shorttxids.size();
         READWRITE(VARINT(shorttxids_size));
         shorttxids.resize(shorttxids_size);
@@ -270,6 +285,12 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest)
         BOOST_CHECK_EQUAL(block.hashMerkleRoot.ToString(), BlockMerkleRoot(block2, &mutated).ToString());
         BOOST_CHECK(!mutated);
 
+        // A filled block cannot be filled again, an initialised one cannot be initialised again
+        CBlock block_again;
+        BOOST_CHECK(partialBlock.FillBlock(block_again, {}) == READ_STATUS_INVALID);
+        BOOST_CHECK(!partialBlock.IsTxAvailable(0));
+        BOOST_CHECK(partialBlockCopy.InitData(shortIDs2, extra_txn) == READ_STATUS_INVALID);
+
         txhash = block.vtx[1]->GetHash();
         block.vtx.clear();
         block2.vtx.clear();
@@ -286,8 +307,10 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     coinbase.vin[0].scriptSig.resize(10);
     coinbase.vout.resize(1);
     coinbase.vout[0].nValue = 42;
+    coinbase.vout[0].scriptPubKey = GetScriptForRawPubKey(SigningKey().GetPubKey());
 
     CBlock block;
+    block.nTime = coinbase.nTime;
     block.vtx.resize(1);
     block.vtx[0] = MakeTransactionRef(std::move(coinbase));
     block.nVersion = 42;
@@ -298,7 +321,9 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     block.hashMyself.SetNull(); // emercoin: Clear cache
     assert(!mutated);
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) { ++block.nNonce; block.hashMyself.SetNull(); }
+    bool signed_ok = SigningKey().Sign(block.GetHash(), block.vchBlockSig, 0);
+    assert(signed_ok);
 
     // Test simple header round-trip with only coinbase
     {

@@ -147,7 +147,7 @@ void DoCheck(const std::string& prv, const std::string& pub, int flags, const st
             // For each of the produced scripts, verify solvability, and when possible, try to sign a transaction spending it.
             for (size_t n = 0; n < spks.size(); ++n) {
                 BOOST_CHECK_EQUAL(ref[n], HexStr(spks[n].begin(), spks[n].end()));
-                BOOST_CHECK_EQUAL(IsSolvable(Merge(key_provider, script_provider), spks[n]), (flags & UNSOLVABLE) == 0);
+                BOOST_CHECK_EQUAL(IsSolvable(Merge(key_provider, script_provider), spks[n], CTransaction::CURRENT_VERSION), (flags & UNSOLVABLE) == 0);
 
                 if (flags & SIGNABLE) {
                     CMutableTransaction spend;
@@ -164,7 +164,7 @@ void DoCheck(const std::string& prv, const std::string& pub, int flags, const st
                 BOOST_CHECK(inferred->Expand(0, provider_inferred, spks_inferred, provider_inferred));
                 BOOST_CHECK_EQUAL(spks_inferred.size(), 1);
                 BOOST_CHECK(spks_inferred[0] == spks[n]);
-                BOOST_CHECK_EQUAL(IsSolvable(provider_inferred, spks_inferred[0]), !(flags & UNSOLVABLE));
+                BOOST_CHECK_EQUAL(IsSolvable(provider_inferred, spks_inferred[0], CTransaction::CURRENT_VERSION), !(flags & UNSOLVABLE));
                 BOOST_CHECK(provider_inferred.origins == script_provider.origins);
             }
 

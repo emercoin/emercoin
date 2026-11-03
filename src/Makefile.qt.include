@@ -30,7 +30,6 @@ QT_FORMS_UI = \
   qt/forms/transactiondescdialog.ui
 
 QT_MOC_CPP = \
-  qt/moc_BlockingHttp.cpp \
   qt/moc_addressbookpage.cpp \
   qt/moc_addresstablemodel.cpp \
   qt/moc_askpassphrasedialog.cpp \
@@ -113,8 +112,6 @@ PROTOBUF_PROTO =
 endif
 
 BITCOIN_QT_H = \
-  qt/BlockingHttp.h \
-  qt/exch.h \
   qt/addressbookpage.h \
   qt/addresstablemodel.h \
   qt/askpassphrasedialog.h \
@@ -151,7 +148,6 @@ BITCOIN_QT_H = \
   qt/ShellImitation.h \
   qt/TableView.h \
   qt/NameCoinStrings.h \
-  qt/CheckDiplomaWidget.h \
   qt/DiplomaWidget.h \
   qt/RegisterDiplomaWidget.h \
   qt/RegisterUniversityWidget.h \
@@ -321,8 +317,6 @@ RES_ICONS = \
 
 
 BITCOIN_QT_BASE_CPP = \
-  qt/BlockingHttp.cpp \
-  qt/exch.cpp \
   qt/bantablemodel.cpp \
   qt/bitcoin.cpp \
   qt/bitcoinaddressvalidator.cpp \
@@ -361,7 +355,6 @@ BITCOIN_QT_WALLET_CPP = \
   qt/ManageDnsPage.cpp \
   qt/ConfigFile.cpp \
   qt/Settings.cpp \
-  qt/CheckDiplomaWidget.cpp \
   qt/DiplomaWidget.cpp \
   qt/QNameCoin.cpp \
   qt/NameCoinStrings.cpp \

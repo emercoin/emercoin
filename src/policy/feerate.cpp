@@ -5,6 +5,7 @@
 
 #include <policy/feerate.h>
 
+#include <primitives/transaction.h>
 #include <tinyformat.h>
 
 const std::string CURRENCY_UNIT = "EMC";
@@ -18,17 +19,6 @@ CFeeRate::CFeeRate(const CAmount& nFeePaid, size_t nBytes_)
         nSatoshisPerK = nFeePaid * 1000 / nSize;
     else
         nSatoshisPerK = 0;
-}
-
-CAmount GetMinFee(size_t nBytes)
-{
-    // Base fee is either MIN_TX_FEE or MIN_RELAY_TX_FEE
-    CAmount nBaseFee = MIN_TX_FEE;
-    CAmount nMinFee = (1 + nBytes / (10 * 1024)) * nBaseFee; // 1 subcent per 10 kb of data
-
-    if (!MoneyRange(nMinFee))
-        nMinFee = MAX_MONEY;
-    return nMinFee;
 }
 
 CAmount CFeeRate::GetFee(size_t nBytes_) const

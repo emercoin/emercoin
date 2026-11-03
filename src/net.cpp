@@ -533,6 +533,8 @@ void CNode::copyStats(CNodeStats &stats)
     }
     X(m_legacyWhitelisted);
     X(m_permissionFlags);
+    stats.m_addr_processed = m_addr_processed.load();
+    stats.m_addr_rate_limited = m_addr_rate_limited.load();
     if (m_tx_relay != nullptr) {
         LOCK(m_tx_relay->cs_feeFilter);
         stats.minFeeFilter = m_tx_relay->minFeeFilter;
@@ -2169,6 +2171,12 @@ static const char *stun_rc_txt[] = {
 };
 
 void ThreadGetMyExternalIP_STUN() {
+  // STUN is address discovery over IPv4: it follows -discover (off by default with -proxy,
+  // -externalip or -listen=0) and needs IPv4 to be reachable (see -onlynet).
+  if (!fDiscover || !IsReachable(NET_IPV4)) {
+    LogPrint(BCLog::NET, "STUN not used: -discover is off or IPv4 is not reachable\n");
+    return;
+  }
   struct sockaddr_in mapped;
   const char *srv;
   int src_port = gArgs.GetArg("-stunsrcport", 0);

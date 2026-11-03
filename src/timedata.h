@@ -73,6 +73,8 @@ public:
 /** Functions to keep track of adjusted P2P time */
 int64_t GetTimeOffset();
 int64_t GetAdjustedTime();
+/** peer_time - now for AddTimeData, saturated: a peer's time comes from the network. */
+int64_t TimeOffsetSample(int64_t peer_time, int64_t now);
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
 
 #endif // BITCOIN_TIMEDATA_H

@@ -1,31 +1,36 @@
-## ci scripts
+## Continuous integration
 
-This directory contains scripts for each build step in each build stage.
+`.github/workflows/ci.yml` builds and tests every push and pull request to `develop` and
+`master` on GitHub Actions. Each step is a stage of `ci/build.sh`, run in the image built from
+`ci/Dockerfile` (Ubuntu 18.04 + gcc 8, the toolchain of the release builds), so a CI run can be
+repeated locally with Docker:
 
-Currently three stages `lint`, `extended_lint` and `test` are defined. Each stage has its own lifecycle, similar to the
-[Travis CI lifecycle](https://docs.travis-ci.com/user/job-lifecycle#the-job-lifecycle). Every script in here is named
-and numbered according to which stage and lifecycle step it belongs to.
+    docker build -t emercoin-ci:bionic ci
+    ci/docker.sh depends      # depends/ without Qt; slow the first time
+    ci/docker.sh build        # emercoind, emercoin-cli, emercoin-tx, emercoin-wallet, unit tests
+    ci/docker.sh check        # unit tests
+    ci/docker.sh functional   # functional tests, without network access
 
-### Running a stage locally
+Release packages, built the way `contrib/gitian-descriptors` builds releases (flags, security
+and symbol checks, layout), with the Qt wallet (`GUI=1`; depends then include Qt):
 
-To allow for a wide range of tested environments, but also ensure reproducibility to some extent, the test stage
-requires `docker` to be installed. To install all requirements on Ubuntu, run
+    export GUI=1
+    HOST=x86_64-linux-gnu  ci/docker.sh depends && HOST=x86_64-linux-gnu  ci/docker.sh package
+    HOST=aarch64-linux-gnu ci/docker.sh depends && HOST=aarch64-linux-gnu ci/docker.sh package
+    HOST=x86_64-w64-mingw32 ci/docker.sh depends && HOST=x86_64-w64-mingw32 ci/docker.sh package
 
-```
-sudo apt install docker.io ccache bash git
-```
+The archive lands in `dist/` (`DISTNAME` sets its name), for Windows also an installer
+(`make deploy`, NSIS; unsigned). Without `GUI=1` the package is headless. CI builds all three
+for every push and pull request; after a push to `develop` whose tests pass, they replace the
+`nightly` pre-release on GitHub, with `SHA256SUMS` and build provenance attestations
+(`gh attestation verify <file> -R emercoin/emercoin`).
 
-To run the default test stage,
+A version tag (`v0.8.6emc`, or `v0.8.6rc1emc` for a release candidate) runs the same tests and
+packages, named after the tag (`emercoin-0.8.6-x86_64-linux-gnu.tar.gz`, ...), checks the tag
+against the `_EMERCOIN_VERSION_*` numbers in `configure.ac`, and puts the packages with
+`SHA256SUMS` and attestations into a draft release (a pre-release for an `rc` tag). A maintainer
+writes the release notes and publishes it.
 
-```
-./ci/test_run_all.sh
-```
-
-To run the test stage with a specific configuration,
-
-```
-FILE_ENV="./ci/test/00_setup_env_arm.sh" ./ci/test_run_all.sh
-```
-
-Be aware that the tests will be build and run in-place, so please run at your own risk.
-If the repository is not a fresh git clone, you might have to clean files from previous builds or test runs first.
+The build happens in the source tree; use one checkout per host. Functional tests listed in `test/functional/test_runner.py`
+as not applicable or todo, and unit test suites in `EMERCOIN_TODO_TESTS`
+(`src/Makefile.test.include`), are not part of the run.

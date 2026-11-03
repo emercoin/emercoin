@@ -2,7 +2,6 @@
 #include "RegisterUniversityWidget.h"
 #include "EmailLineEdit.h"
 #include "PhoneNumberLineEdit.h"
-#include "CheckDiplomaWidget.h"
 #include "SelectableLineEdit.h"
 #include "NameEqValueTextEdit.h"
 #include <QVBoxLayout>
@@ -58,11 +57,6 @@ RegisterUniversityWidget::RegisterUniversityWidget(WalletModel* model) : model(m
 	_editOther->setPlaceholderText("Format: key=value (like 'country=UK'), each 'name=value' pair on a new line");
 	connect(_editOther, &QPlainTextEdit::textChanged, this, &RegisterUniversityWidget::recalcValue);
 	form->addRow(_editOther);
-	{
-		_hrefForSite = addLineEdit(form, {}, tr("Hyperlink for your site (?)"),
-			tr("You can place this hyperlink to your site, so visitors can check verified diplomas by it."), true);
-		_hrefForSite->setPlaceholderText(tr("This field will contain web address to check your university diplomas"));
-	}
 	lay->addWidget(_NVPair);
 	_NVPair->hide();
     lay->addStretch();
@@ -71,10 +65,8 @@ void RegisterUniversityWidget::recalcValue() {
 	const QString name = _editName->text().trimmed();
     if(name.isEmpty()) {
         _NVPair->setName(QString());//to display placeholderText
-		_hrefForSite->setText({});
 	} else {
         _NVPair->setName("dpo:" + name);
-		_hrefForSite->setText(CheckDiplomaWidget::s_checkUniversity.arg(name));
 	}
 
 	QStringList parts;

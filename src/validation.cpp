@@ -133,6 +133,7 @@ uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 
 uint256 hashAssumeValid;
+bool fVerifyAllScripts = false;
 arith_uint256 nMinimumChainTrust;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
@@ -573,10 +574,10 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
 
     // Allow to mempool only for 24h in future TXes
     if(tx.nTime > nAcceptTime + 24 * 3600)
-        return error("MemPoolAccept::PreChecks: tx.nTime is far in future, rejected");
+        return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_NONSTANDARD, "tx-time-too-new", "transaction nTime is more than 24h in the future");
 
     if (!CheckMinTxOut(ptx))
-        return error("MemPoolAccept::PreChecks: CheckMinTxOut failed");
+        return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_NONSTANDARD, "txout-too-low", "txout.nValue below minimum");
 
     // Coinbase is only valid in a block, not as a loose transaction
     if (tx.IsCoinBase() || tx.IsCoinStake())
@@ -586,6 +587,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs& args, Workspace& ws)
     bool isNameTx = tx.nVersion == NAMECOIN_TX_VERSION;
     if (isNameTx && !hooks->CheckPendingNames(ptx))
         return state.Invalid(ValidationInvalidReason::TX_PREMATURE_SPEND, false, REJECT_NONSTANDARD, "name-op-on-pending-name");
+    // emercoin: refuse name operations that the next block would ignore
+    if (isNameTx && !hooks->CheckNameTxForMempool(ptx))
+        return state.Invalid(ValidationInvalidReason::TX_NOT_STANDARD, false, REJECT_NONSTANDARD, "bad-name-op");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     std::string reason;
@@ -1169,7 +1173,9 @@ bool CChainState::IsInitialBlockDownload() const
     const int     nBlocksPerSec = 600000 / (5 * 60); // Optimistic assume, 5min for 600K chain
     const int64_t nUsecInSec    = 1000000LL;
     int64_t now = GetTimeMicros();
-    if(now < nextChecktime)
+    // regtest: no back-off; a fresh chain starts at a years-old genesis, which would keep the
+    // node in IBD (ignoring getheaders) for minutes after it has mined recent blocks
+    if(now < nextChecktime && Params().NetworkIDString() != "regtest")
         return true; // timio is not elapsed from previous full check
     nextChecktime = now;
     do {
@@ -1992,7 +1998,8 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     // hard checkpoint. If current block will be invalid, then entire descendant chain for
     // this block will have other hashes, and download for this branch will be blocked by
     // a next hard checkpoint.
-    bool fScriptChecks = pindex->nHeight >= GetLastHardCheckpointHeight();
+    // That only holds while checkpoints are enforced, and -assumevalid=0 asks to verify everything.
+    bool fScriptChecks = fVerifyAllScripts || !fCheckpointsEnabled || pindex->nHeight >= GetLastHardCheckpointHeight();
 
 #if 0
     // Ugly and slow Bitcoin code - just commented out
@@ -2134,6 +2141,11 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
 
     CBlockUndo blockundo;
 
+    // Declared before `control`, so that on every return path control's destructor waits for
+    // the script check threads while the PrecomputedTransactionData they point to still exists.
+    std::vector<PrecomputedTransactionData> txdata;
+    txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
+
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : nullptr);
 
     std::vector<int> prevheights;
@@ -2144,8 +2156,6 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     std::vector<std::pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vtx.size());
     blockundo.vtxundo.reserve(block.vtx.size() - 1);
-    std::vector<PrecomputedTransactionData> txdata;
-    txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
 
     // emercoin: variables for name fees check, nMoneySupply calculation and trustHeight option
     CAmount nValueIn = 0;
@@ -3857,8 +3867,11 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     CheckBlockIndex(chainparams.GetConsensus());
 
     if (!accepted_header) {
-        pindex->nStatus |= BLOCK_FAILED_VALID;
-        setDirtyBlockIndex.insert(pindex);
+        // pindex stays null when the header was refused before it got into the block index
+        if (pindex) {
+            pindex->nStatus |= BLOCK_FAILED_VALID;
+            setDirtyBlockIndex.insert(pindex);
+        }
         return false;
     }
 

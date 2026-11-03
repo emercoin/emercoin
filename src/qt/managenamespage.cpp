@@ -3,6 +3,7 @@
 
 #include <qt/nametablemodel.h>
 #include <qt/walletmodel.h>
+#include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/QNameCoin.h>
 #include <qt/NameCoinStrings.h>
@@ -15,6 +16,7 @@
 
 #include <namecoin.h>
 #include <ui_interface.h>
+#include <util/system.h>
 #include <validation.h>
 #include <key_io.h>
 #include <univalue.h>
@@ -93,6 +95,11 @@ bool NameFilterProxyModel::lessThan(const QModelIndex &left, const QModelIndex &
 // ManageNamesPage
 //
 
+// Name period in the form: days or years (the order of txTimeTypeSelector), and their limits
+enum { TIME_UNIT_DAYS = 0, TIME_UNIT_YEARS = 1 };
+const static int MAX_PERIOD_DAYS = 365,
+                 MAX_PERIOD_YEARS = 10;
+
 const static int COLUMN_WIDTH_NAME = 300,
                  COLUMN_WIDTH_ADDRESS = 256,
                  COLUMN_WIDTH_EXPIRES_IN = 100;
@@ -149,6 +156,16 @@ ManageNamesPage::ManageNamesPage(QWidget *parent) :
     ui->valueFilter->installEventFilter(this);
     ui->addressFilter->installEventFilter(this);
 	ui->btnInfoCard->setVisible(false);
+
+    // emercoin: the name services buttons are shown with -nameservices
+    if (!gArgs.GetBoolArg("-nameservices", DEFAULT_NAMESERVICES)) {
+        ui->labelPrepareRecords->setVisible(false);
+        ui->btnManageDomains->setVisible(false);
+        ui->btnDpo->setVisible(false);
+        ui->btnTrustedDiploma->setVisible(false);
+        ui->btnSsl->setVisible(false);
+        ui->hSpacerToolbar->changeSize(0, 0);
+    }
 
     ui->registerName->setMaxLength(MAX_NAME_LENGTH);
 
@@ -311,14 +328,7 @@ void ManageNamesPage::on_submitNameButton_clicked()
         displayValue = QString::fromStdString(stringFromNameVal(value));
     }
 
-	const QString txTimeType = ui->txTimeTypeSelector->currentText();
-    int days = 0;
-    if      (txTimeType == "days")
-        days = ui->registerTimeUnits->text().toInt();
-    else if (txTimeType == "months")
-        days = ui->registerTimeUnits->text().toInt() * 30;
-    else if (txTimeType == "years")
-        days = ui->registerTimeUnits->text().toInt() * 365;
+    const int days = ui->registerTimeUnits->value() * (ui->txTimeTypeSelector->currentIndex() == TIME_UNIT_YEARS ? 365 : 1);
 
 	const QString txType = ui->txTypeSelector->currentText();
 	const QString newAddress = ui->registerAddress->text();
@@ -540,6 +550,11 @@ void ManageNamesPage::exportClicked()
         QMessageBox::critical(this, tr("Error exporting"), tr("Could not write to file %1.").arg(filename),
                               QMessageBox::Abort, QMessageBox::Abort);
     }
+}
+
+void ManageNamesPage::on_txTimeTypeSelector_currentIndexChanged(int index)
+{
+    ui->registerTimeUnits->setMaximum(index == TIME_UNIT_YEARS ? MAX_PERIOD_YEARS : MAX_PERIOD_DAYS);
 }
 
 void ManageNamesPage::on_txTypeSelector_currentIndexChanged(const QString &txType)

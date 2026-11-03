@@ -62,6 +62,7 @@ void BanMan::ClearBanned()
     {
         LOCK(m_cs_banned);
         m_banned.clear();
+        m_banned_ranges.clear();
         m_is_dirty = true;
     }
     DumpBanlist(); //store banlist to disk
@@ -77,12 +78,9 @@ int BanMan::IsBannedLevel(CNetAddr net_addr)
     int level = 0;
     auto current_time = GetTime();
     LOCK(m_cs_banned);
-    for (const auto& it : m_banned) {
-        CSubNet sub_net = it.first;
-        CBanEntry ban_entry = it.second;
-
-        if (current_time < ban_entry.nBanUntil && sub_net.Match(net_addr)) {
-            if (ban_entry.banReason != BanReasonNodeMisbehaving) return 2;
+    for (const CBanEntry* ban_entry : FindBans(net_addr)) {
+        if (current_time < ban_entry->nBanUntil) {
+            if (ban_entry->banReason != BanReasonNodeMisbehaving) return 2;
             level = 1;
         }
     }
@@ -93,15 +91,41 @@ bool BanMan::IsBanned(CNetAddr net_addr)
 {
     auto current_time = GetTime();
     LOCK(m_cs_banned);
-    for (const auto& it : m_banned) {
-        CSubNet sub_net = it.first;
-        CBanEntry ban_entry = it.second;
-
-        if (current_time < ban_entry.nBanUntil && sub_net.Match(net_addr)) {
+    for (const CBanEntry* ban_entry : FindBans(net_addr)) {
+        if (current_time < ban_entry->nBanUntil) {
             return true;
         }
     }
     return false;
+}
+
+std::vector<const CBanEntry*> BanMan::FindBans(const CNetAddr& net_addr)
+{
+    AssertLockHeld(m_cs_banned);
+    std::vector<const CBanEntry*> bans;
+    auto it = m_banned.find(CSubNet(net_addr));
+    if (it != m_banned.end()) bans.push_back(&it->second);
+    for (const CSubNet& sub_net : m_banned_ranges) {
+        if (sub_net.Match(net_addr)) bans.push_back(&m_banned.at(sub_net));
+    }
+    return bans;
+}
+
+void BanMan::EvictOldestMisbehavingBan()
+{
+    AssertLockHeld(m_cs_banned);
+    auto oldest = m_banned.end();
+    for (auto it = m_banned.begin(); it != m_banned.end(); ++it) {
+        if (it->second.banReason == BanReasonNodeMisbehaving &&
+            (oldest == m_banned.end() || it->second.nCreateTime < oldest->second.nCreateTime)) {
+            oldest = it;
+        }
+    }
+    if (oldest == m_banned.end()) return;
+    LogPrint(BCLog::NET, "%s: banlist full, removed %s\n", __func__, oldest->first.ToString());
+    m_banned_ranges.erase(oldest->first);
+    m_banned.erase(oldest);
+    m_is_dirty = true;
 }
 
 bool BanMan::IsBanned(CSubNet sub_net)
@@ -138,11 +162,14 @@ void BanMan::Ban(const CSubNet& sub_net, const BanReason& ban_reason, int64_t ba
 
     {
         LOCK(m_cs_banned);
-        if (m_banned[sub_net].nBanUntil < ban_entry.nBanUntil) {
-            m_banned[sub_net] = ban_entry;
-            m_is_dirty = true;
-        } else
-            return;
+        auto it = m_banned.find(sub_net);
+        if (it != m_banned.end() && it->second.nBanUntil >= ban_entry.nBanUntil) return;
+        if (it == m_banned.end() && ban_reason == BanReasonNodeMisbehaving && m_banned.size() >= MAX_BANNED_ENTRIES) {
+            EvictOldestMisbehavingBan();
+        }
+        m_banned[sub_net] = ban_entry;
+        if (!sub_net.IsSingleIP()) m_banned_ranges.insert(sub_net);
+        m_is_dirty = true;
     }
     if (m_client_interface) m_client_interface->BannedListChanged();
 
@@ -161,6 +188,7 @@ bool BanMan::Unban(const CSubNet& sub_net)
     {
         LOCK(m_cs_banned);
         if (m_banned.erase(sub_net) == 0) return false;
+        m_banned_ranges.erase(sub_net);
         m_is_dirty = true;
     }
     if (m_client_interface) m_client_interface->BannedListChanged();
@@ -180,6 +208,10 @@ void BanMan::SetBanned(const banmap_t& banmap)
 {
     LOCK(m_cs_banned);
     m_banned = banmap;
+    m_banned_ranges.clear();
+    for (const auto& entry : m_banned) {
+        if (!entry.first.IsSingleIP()) m_banned_ranges.insert(entry.first);
+    }
     m_is_dirty = true;
 }
 
@@ -194,6 +226,7 @@ void BanMan::SweepBanned()
             CSubNet sub_net = (*it).first;
             CBanEntry ban_entry = (*it).second;
             if (now > ban_entry.nBanUntil) {
+                m_banned_ranges.erase(sub_net);
                 m_banned.erase(it++);
                 m_is_dirty = true;
                 notify_ui = true;

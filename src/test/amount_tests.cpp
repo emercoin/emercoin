@@ -4,6 +4,7 @@
 
 #include <amount.h>
 #include <policy/feerate.h>
+#include <primitives/transaction.h>
 #include <test/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -23,45 +24,17 @@ BOOST_AUTO_TEST_CASE(GetFeeTest)
 {
     CFeeRate feeRate, altFeeRate;
 
-    feeRate = CFeeRate(0);
-    // Must always return 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e5), CAmount(0));
-
-    feeRate = CFeeRate(1000);
-    // Must always just return the arg
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), CAmount(1));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(121));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(999));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(1e3));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(9e3));
-
-    feeRate = CFeeRate(-1000);
-    // Must always just return -1 * arg
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1), CAmount(-1));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(-121));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(-999));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(-1e3));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(-9e3));
-
-    feeRate = CFeeRate(123);
-    // Truncates the result, if not integer
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), CAmount(1)); // Special case: returns 1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), CAmount(1));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(121), CAmount(14));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(122), CAmount(15));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(999), CAmount(122));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(1e3), CAmount(123));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9e3), CAmount(1107));
-
-    feeRate = CFeeRate(-123);
-    // Truncates the result, if not integer
-    BOOST_CHECK_EQUAL(feeRate.GetFee(0), CAmount(0));
-    BOOST_CHECK_EQUAL(feeRate.GetFee(8), CAmount(-1)); // Special case: returns -1 instead of 0
-    BOOST_CHECK_EQUAL(feeRate.GetFee(9), CAmount(-1));
+    // emercoin: fees are flat, CFeeRate::GetFee() ignores the rate and returns GetMinFee():
+    // MIN_TX_FEE per started 10 KiB
+    for (const CAmount rate : {CAmount(0), CAmount(1000), CAmount(-1000), CAmount(123)}) {
+        feeRate = CFeeRate(rate);
+        BOOST_CHECK_EQUAL(feeRate.GetFee(0), MIN_TX_FEE);
+        BOOST_CHECK_EQUAL(feeRate.GetFee(1), MIN_TX_FEE);
+        BOOST_CHECK_EQUAL(feeRate.GetFee(10239), MIN_TX_FEE);
+        BOOST_CHECK_EQUAL(feeRate.GetFee(10240), 2 * MIN_TX_FEE);
+        BOOST_CHECK_EQUAL(feeRate.GetFee(1e5), 10 * MIN_TX_FEE);
+    }
+    BOOST_CHECK_EQUAL(GetMinFee(std::numeric_limits<size_t>::max()), MAX_MONEY);
 
     // check alternate constructor
     feeRate = CFeeRate(1000);
@@ -107,7 +80,7 @@ BOOST_AUTO_TEST_CASE(ToStringTest)
 {
     CFeeRate feeRate;
     feeRate = CFeeRate(1);
-    BOOST_CHECK_EQUAL(feeRate.ToString(), "0.00000001 BTC/kB");
+    BOOST_CHECK_EQUAL(feeRate.ToString(), "0.000001 EMC/kB");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

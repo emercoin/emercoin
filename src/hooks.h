@@ -31,6 +31,7 @@ public:
     virtual bool ConnectBlock(CBlockIndex* pindex, const std::vector<nameCheckResult> &vName) = 0;
     virtual bool ExtractAddress(const CScript& script, std::string& address) = 0;
     virtual bool CheckPendingNames(const CTransactionRef& tx) = 0;
+    virtual bool CheckNameTxForMempool(const CTransactionRef& tx) = 0;
     virtual void AddToPendingNames(const CTransactionRef& tx) = 0;
     virtual bool getNameValue(const string& sName, string& sValue) = 0;
     virtual bool DumpToTextFile() = 0;

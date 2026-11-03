@@ -1,6 +1,7 @@
 #ifndef EMCDNS_H
 #define EMCDNS_H
 
+#include <atomic>
 #include <string>
 #include <map>
 
@@ -140,6 +141,7 @@ class EmcDns {
     uint8_t   m_allowed_qty;
     uint8_t   m_verbose;	// LAST bzero element
     int8_t    m_status;
+    std::atomic<bool> m_exiting{false}; // set by the destructor before it shuts the socket down
     uint16_t  m_flags;          // runtime flags
     boost::thread m_thread;
     map<string, Verifier> m_verifiers;

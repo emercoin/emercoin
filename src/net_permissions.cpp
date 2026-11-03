@@ -38,6 +38,7 @@ bool TryParsePermissionFlags(const std::string str, NetPermissionFlags& output, 
             else if (permission == "mempool") NetPermissions::AddFlag(flags, PF_MEMPOOL);
             else if (permission == "all") NetPermissions::AddFlag(flags, PF_ALL);
             else if (permission == "relay") NetPermissions::AddFlag(flags, PF_RELAY);
+            else if (permission == "addr") NetPermissions::AddFlag(flags, PF_ADDR);
             else if (permission.length() == 0); // Allow empty entries
             else {
                 error = strprintf(_("Invalid P2P permission: '%s'").translated, permission);
@@ -60,6 +61,7 @@ std::vector<std::string> NetPermissions::ToStrings(NetPermissionFlags flags)
     if (NetPermissions::HasFlag(flags, PF_FORCERELAY)) strings.push_back("forcerelay");
     if (NetPermissions::HasFlag(flags, PF_RELAY)) strings.push_back("relay");
     if (NetPermissions::HasFlag(flags, PF_MEMPOOL)) strings.push_back("mempool");
+    if (NetPermissions::HasFlag(flags, PF_ADDR)) strings.push_back("addr");
     return strings;
 }
 

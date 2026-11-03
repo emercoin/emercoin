@@ -20,7 +20,7 @@ EnumerDialog::EnumerDialog(WalletModel* model) {
 	connect(_antiSquatter, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &EnumerDialog::generateNVPair);
 	_phone->setFocus();
 
-	auto href = new QLabel(tr("<a href=\"https://emercoin.com/en/documentation/blockchain-services/enumer\">ENUMER</a> is a free VoIP system, based on emercoin blockchain"
+	auto href = new QLabel(tr("<a href=\"https://emercoin.com/documentation/blockchain-services/enumer/\">ENUMER</a> is a free VoIP system, based on emercoin blockchain"
 		"<br>\nStep 1: create ENUM record"));
 	href->setOpenExternalLinks(true);
 	lay->addRow(href);

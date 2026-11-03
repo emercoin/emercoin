@@ -8,6 +8,8 @@
 #include <util/strencodings.h>
 #include <tinyformat.h>
 
+#include <algorithm>
+
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
 static const unsigned char pchOnionCat[] = {0xFD,0x87,0xD8,0x7E,0xEB,0x43};
 
@@ -826,6 +828,11 @@ std::string CSubNet::ToString() const
 bool CSubNet::IsValid() const
 {
     return valid;
+}
+
+bool CSubNet::IsSingleIP() const
+{
+    return valid && std::all_of(std::begin(netmask), std::end(netmask), [](uint8_t b) { return b == 0xff; });
 }
 
 bool operator==(const CSubNet& a, const CSubNet& b)

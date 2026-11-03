@@ -139,3 +139,6 @@ dist/
 *.background.tiff
 configure~
 *.~
+
+# Functional test data and logs kept by CI (ci/build.sh, TMPDIR_PREFIX)
+/ci-artifacts/

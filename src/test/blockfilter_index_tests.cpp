@@ -68,9 +68,10 @@ static bool CheckFilterLookups(BlockFilterIndex& filter_index, const CBlockIndex
     return true;
 }
 
+// emercoin: scriptPubKey must be P2PK to `key`, which signs the block
 static CBlock CreateBlock(const CBlockIndex* prev,
                           const std::vector<CMutableTransaction>& txns,
-                          const CScript& scriptPubKey)
+                          const CScript& scriptPubKey, const CKey& key)
 {
     const CChainParams& chainparams = Params();
     std::unique_ptr<CBlockTemplate> pblocktemplate = BlockAssembler(chainparams).CreateNewBlock(scriptPubKey);
@@ -80,6 +81,9 @@ static CBlock CreateBlock(const CBlockIndex* prev,
 
     // Replace mempool-selected txns with just coinbase plus passed-in txns:
     block.vtx.resize(1);
+    CMutableTransaction coinbase(*block.vtx[0]);
+    coinbase.nTime = block.nTime; // emercoin: coinbase time must not be after the block time
+    block.vtx[0] = MakeTransactionRef(std::move(coinbase));
     for (const CMutableTransaction& tx : txns) {
         block.vtx.push_back(MakeTransactionRef(tx));
     }
@@ -87,23 +91,27 @@ static CBlock CreateBlock(const CBlockIndex* prev,
     unsigned int extraNonce = 0;
     IncrementExtraNonce(&block, prev, extraNonce);
 
-    while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) ++block.nNonce;
+    // emercoin: GetHash() caches the header hash, drop it after changing the nonce
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) { ++block.nNonce; block.hashMyself.SetNull(); }
+    bool signed_ok = key.Sign(block.GetHash(), block.vchBlockSig, 0);
+    assert(signed_ok);
 
     return block;
 }
 
-static bool BuildChain(const CBlockIndex* pindex, const CScript& coinbase_script_pub_key,
+static bool BuildChain(const CBlockIndex* pindex, const CScript& coinbase_script_pub_key, const CKey& key,
                        size_t length, std::vector<std::shared_ptr<CBlock>>& chain)
 {
     std::vector<CMutableTransaction> no_txns;
 
     chain.resize(length);
     for (auto& block : chain) {
-        block = std::make_shared<CBlock>(CreateBlock(pindex, no_txns, coinbase_script_pub_key));
+        block = std::make_shared<CBlock>(CreateBlock(pindex, no_txns, coinbase_script_pub_key, key));
         CBlockHeader header = block->GetBlockHeader();
 
         CValidationState state;
-        if (!ProcessNewBlockHeaders({header}, state, Params(), &pindex, nullptr)) {
+        TokBucketPoS scam_bucket;
+        if (!ProcessNewBlockHeaders(&scam_bucket, {header}, state, Params(), &pindex, nullptr)) {
             return false;
         }
     }
@@ -167,10 +175,10 @@ BOOST_FIXTURE_TEST_CASE(blockfilter_index_initial_sync, TestChain100Setup)
         LOCK(cs_main);
         tip = ::ChainActive().Tip();
     }
-    CScript coinbase_script_pub_key = GetScriptForDestination(PKHash(coinbaseKey.GetPubKey()));
+    CScript coinbase_script_pub_key = GetScriptForRawPubKey(coinbaseKey.GetPubKey()); // emercoin: P2PK signs the block
     std::vector<std::shared_ptr<CBlock>> chainA, chainB;
-    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, 10, chainA));
-    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, 10, chainB));
+    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, coinbaseKey, 10, chainA));
+    BOOST_REQUIRE(BuildChain(tip, coinbase_script_pub_key, coinbaseKey, 10, chainB));
 
     // Check that new blocks on chain A get indexed.
     uint256 chainA_last_header = last_header;

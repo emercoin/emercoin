@@ -18,7 +18,7 @@ DocNotarWidget::DocNotarWidget(WalletModel* model, QWidget*parent) : model(model
 
 	auto lay = new QVBoxLayout(this);
     auto description = new QLabel(tr(
-		R"STR(DPO is <a href="https://emercoin.com/en/emerdpo">Digital Proof of Ownership</a>)STR"
+		R"STR(DPO is <a href="https://emercoin.com/documentation/blockchain-services/emerdpo/emerdpo-introduction/">Digital Proof of Ownership</a>)STR"
 		));
     description->setOpenExternalLinks(true);
     lay->addWidget(description);

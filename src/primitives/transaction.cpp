@@ -10,7 +10,6 @@
 #include <util/strencodings.h>
 
 #include <timedata.h>
-#include <policy/feerate.h>
 
 std::string COutPoint::ToString() const
 {
@@ -121,6 +120,17 @@ std::string CTransaction::ToString() const
 
 const uint256 CTransaction::GetBtcHash() const {
     return SerializeHash(*this, SER_GETHASH | SER_BTC_TX, SERIALIZE_TRANSACTION_NO_WITNESS);
+}
+
+CAmount GetMinFee(size_t nBytes)
+{
+    // Base fee is either MIN_TX_FEE or MIN_RELAY_TX_FEE
+    CAmount nBaseFee = MIN_TX_FEE;
+    CAmount nMinFee = (1 + nBytes / (10 * 1024)) * nBaseFee; // 1 subcent per 10 kb of data
+
+    if (!MoneyRange(nMinFee))
+        nMinFee = MAX_MONEY;
+    return nMinFee;
 }
 
 CAmount CTransaction::GetMinFee() const {

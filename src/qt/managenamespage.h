@@ -75,6 +75,7 @@ private Q_SLOTS:
     void onCopyAllAction();
     void onSaveValueAsBinaryAction();
 
+    void on_txTimeTypeSelector_currentIndexChanged(int index);
     void on_txTypeSelector_currentIndexChanged(const QString &txType);
     void on_cbMyNames_stateChanged(int arg1);
     void on_cbOtherNames_stateChanged(int arg1);

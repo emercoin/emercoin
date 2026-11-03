@@ -364,8 +364,8 @@ std::string JSONRPCExecBatch(const JSONRPCRequest& jreq, const UniValue& vReq)
     for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
         ret.push_back(JSONRPCExecOne(jreq, vReq[reqIdx]));
 
-    static bool legacy = gArgs.GetBoolArg("-legacyrpc", true);
-    return ret.write(0, 0, legacy) + "\n";
+    // emercoin: UTF-8, as a single reply (JSONRPCReply); -legacyrpc only changes how requests are read
+    return ret.write() + "\n";
 }
 
 /**

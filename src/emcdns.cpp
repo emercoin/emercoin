@@ -28,6 +28,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
+#include <ws2tcpip.h>
 // for MinGW build
 #ifndef MSG_NOSIGNAL
 # define MSG_NOSIGNAL 0
@@ -49,8 +50,8 @@
 #include <util/validation.h>
 #include <wallet/wallet.h>
 
-#ifdef _MSC_VER
-    #include <malloc.h>  // for alloca on MSVC
+#ifdef _WIN32
+    #include <malloc.h>  // for alloca on Windows (MSVC, mingw-w64)
 #elif !defined(__FreeBSD__) && !defined(__APPLE__)
     #include <alloca.h>  // Linux, GNU systems
 #endif
@@ -88,47 +89,8 @@
 /*---------------------------------------------------*/
 
 #ifdef WIN32
-int inet_pton(int af, const char *src, void *dst)
-{
-  struct sockaddr_storage ss;
-  int size = sizeof(ss);
-  char src_copy[INET6_ADDRSTRLEN+1];
-
-  ZeroMemory(&ss, sizeof(ss));
-  /* stupid non-const API */
-  strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
-  src_copy[INET6_ADDRSTRLEN] = 0;
-
-  if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
-    switch(af) {
-      case AF_INET:
-    *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
-    return 1;
-      case AF_INET6:
-    *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
-    return 1;
-    }
-  }
-  return 0;
-}
-
-const char *inet_ntop(int af, const void *src, char *dst, socklen_t size) {
-    const char *bytes = (const char *)src;
-    switch(af) {
-        case AF_INET:
-            snprintf(dst, size, "%u.%u.%u.%u", bytes[0], bytes[1], bytes[2], bytes[3]);
-            return dst;
-        case AF_INET6:
-            snprintf(dst, size,
-                    "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:",
-                    bytes[0], bytes[1],   bytes[2],  bytes[3]
-                    bytes[4], bytes[5],   bytes[6],  bytes[7]
-                    bytes[8], bytes[9],   bytes[10], bytes[11]
-                    bytes[12], bytes[13], bytes[14], bytes[15]
-                    );
-            return dst;
-    }
-}
+// emercoin: inet_pton() and inet_ntop() come from ws2tcpip.h (Windows Vista and later; the
+// build targets Windows 7, _WIN32_WINNT=0x0601)
 
 char *strsep(char **s, const char *ct)
 {
@@ -200,17 +162,20 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         sin.sin_family = AF_INET;
         int yes = 1;
 #ifdef WIN32
-        if( (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (char *)&yes, sizeof(yes)) < 0)
-         || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEPORT,  (char *)&yes, sizeof(yes)) < 0))
+        // emercoin: Windows has no SO_REUSEPORT; its SO_REUSEADDR already allows the shared bind
+        if(setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (char *)&yes, sizeof(yes)) < 0)
 #else
         if( (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (void *)&yes, sizeof(yes)) < 0)
          || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEPORT,  (void *)&yes, sizeof(yes)) < 0))
 #endif
             throw runtime_error("EmcDns::EmcDns: Cannot SO_REUSEADDR|SO_REUSEPORT for IPv4 socket to IPV4 socket");
 
-        if(*bind_ip == 0 || inet_pton(AF_INET, bind_ip, &sin.sin_addr) != 1) {
+        if(*bind_ip == 0) {
             sin.sin_addr.s_addr = INADDR_ANY;
             bind_ip = NULL;
+        } else if(inet_pton(AF_INET, bind_ip, &sin.sin_addr) != 1) {
+            // emercoin: an address that does not parse is an error
+            throw runtime_error(std::string("EmcDns::EmcDns: invalid IPv4 address -emcdnsbindip=") + bind_ip);
         }
 
         char buf[INET6_ADDRSTRLEN];
@@ -229,16 +194,28 @@ EmcDns::EmcDns(const char *bind_ip, uint16_t port_no,
         sin6.sin6_port = htons(port_no);
         sin6.sin6_family = AF_INET6;
 
-        if(*bind_ip == 0 || inet_pton(AF_INET6, bind_ip, &sin6.sin6_addr) != 1) {
-            sin6.sin6_addr = in6addr_any;
+        if(*bind_ip == 0) {
+            // emercoin: IN6ADDR_ANY_INIT rather than glibc's in6addr_any, as in net.cpp: the
+            // variable would be copied into and exported by the executable (check-symbols)
+            struct in6_addr inaddr6_any = IN6ADDR_ANY_INIT;
+            sin6.sin6_addr = inaddr6_any;
             bind_ip = NULL;
+        } else if(inet_pton(AF_INET6, bind_ip, &sin6.sin6_addr) != 1) {
+            // emercoin: on this dual-stack socket an IPv4 address (e.g. -emcdnsbindip=127.0.0.1)
+            // is bound as the IPv4-mapped address ::ffff:a.b.c.d
+            struct in_addr addr4;
+            if(inet_pton(AF_INET, bind_ip, &addr4) != 1)
+                throw runtime_error(std::string("EmcDns::EmcDns: invalid address -emcdnsbindip=") + bind_ip);
+            memset(&sin6.sin6_addr, 0, sizeof(sin6.sin6_addr));
+            sin6.sin6_addr.s6_addr[10] = 0xff;
+            sin6.sin6_addr.s6_addr[11] = 0xff;
+            memcpy(&sin6.sin6_addr.s6_addr[12], &addr4, sizeof(addr4));
         }
         int no  = 0;
         int yes = 1;
 #ifdef WIN32
         if( (setsockopt(m_sockfd, IPPROTO_IPV6, IPV6_V6ONLY, (char *)&no,  sizeof(no))  < 0)
-         || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (char *)&yes, sizeof(yes)) < 0)
-         || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEPORT,  (char *)&yes, sizeof(yes)) < 0))
+         || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (char *)&yes, sizeof(yes)) < 0))
 #else
         if( (setsockopt(m_sockfd, IPPROTO_IPV6, IPV6_V6ONLY, (void *)&no,  sizeof(no))  < 0)
          || (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR,  (void *)&yes, sizeof(yes)) < 0)
@@ -483,6 +460,7 @@ void EmcDns::AddTF(char *tf_tok) {
 
 EmcDns::~EmcDns() {
     // reset current object to initial state
+    m_exiting = true; // Run() stops on the next empty read
 #ifndef WIN32
     shutdown(m_sockfd, SHUT_RDWR);
 #endif
@@ -517,8 +495,14 @@ void EmcDns::Run() {
      m_rcvlen = recvfrom(m_sockfd, (char *)m_buf, BUF_SIZE, 0,
              (struct sockaddr *)&ss, &sslen);
 
-     if(m_rcvlen <= 0)
-         break;
+     if(m_rcvlen <= 0) {
+         // emercoin: recvfrom() returns 0 for an empty datagram too: skip it, stop only on shutdown
+         if(m_exiting)
+             break;
+         if(m_rcvlen < 0)
+             MilliSleep(10); // socket error: retry, without spinning
+         continue;
+     }
 
     if(m_dap_ht) {
       uint32_t now = time(NULL);
@@ -545,7 +529,7 @@ void EmcDns::Run() {
 
     if(m_verbose > 4)
         LogPrintf(" *** EmcDns::Run: Got packet_len=%d from: %s\n", m_rcvlen,
-                inet_ntop(ss.ss_family, addr_ptr, ip_str, INET6_ADDRSTRLEN));
+                inet_ntop(ss.ss_family, (void *)addr_ptr, ip_str, INET6_ADDRSTRLEN)); // mingw-w64: non-const src
 
     if(CheckDAP(addr_ptr, addr_len, m_rcvlen >> 5)) {
       m_buf[BUF_SIZE] = 0; // Set terminal for infinity QNAME
@@ -1422,7 +1406,7 @@ bool EmcDns::CheckDAP(const void *key, int len, uint16_t inctemp) {
   if(m_verbose > 5 || (!rc && m_verbose > 3)) {
     char buf[INET6_ADDRSTRLEN], outbuf[120 + INET6_ADDRSTRLEN];
     snprintf(outbuf, sizeof(outbuf), "EmcDns::CheckDAP: IP=[%s] inctemp=%u, mintemp=%u dap_treshold=%u rc=%d\n",
-		    len < 0? (const char *)key : inet_ntop(len == 4? AF_INET : AF_INET6, key, buf, INET6_ADDRSTRLEN),
+		    len < 0? (const char *)key : inet_ntop(len == 4? AF_INET : AF_INET6, (void *)key, buf, INET6_ADDRSTRLEN),
                     inctemp, mintemp, m_dap_treshold, rc);
     LogPrintf(outbuf);
   }

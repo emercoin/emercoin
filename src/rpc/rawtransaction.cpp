@@ -834,7 +834,7 @@ static UniValue sendrawtransaction(const JSONRPCRequest& request)
     CAmount max_raw_tx_fee = DEFAULT_MAX_RAW_TX_FEE;
     // TODO: temporary migration code for old clients. Remove in v0.20
     if (request.params[1].isBool()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfee) and no longer supports a boolean. To allow a transaction with high fees, set maxfeerate to 0.");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfee) and no longer supports a boolean. To allow a transaction with high fees, set maxfee to 0.");
     } else if (!request.params[1].isNull()) {
         max_raw_tx_fee = AmountFromValue(request.params[1]);
     }
@@ -905,7 +905,7 @@ static UniValue testmempoolaccept(const JSONRPCRequest& request)
     CAmount max_raw_tx_fee = DEFAULT_MAX_RAW_TX_FEE;
     // TODO: temporary migration code for old clients. Remove in v0.20
     if (request.params[1].isBool()) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfee) and no longer supports a boolean. To allow a transaction with high fees, set maxfeerate to 0.");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Second argument must be numeric (maxfee) and no longer supports a boolean. To allow a transaction with high fees, set maxfee to 0.");
     } else if (!request.params[1].isNull()) {
         max_raw_tx_fee = AmountFromValue(request.params[1]);
     }

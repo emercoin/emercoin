@@ -11,7 +11,7 @@ from .util import hex_str_to_bytes
 
 from . import segwit_addr
 
-ADDRESS_BCRT1_UNSPENDABLE = 'bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq3xueyj'
+ADDRESS_BCRT1_UNSPENDABLE = 'emrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq7c5hut'  # emercoin regtest (hrp emrt)
 
 
 class AddressType(enum.Enum):
@@ -69,7 +69,7 @@ def program_to_witness(version, program, main = False):
     assert 0 <= version <= 16
     assert 2 <= len(program) <= 40
     assert version > 0 or len(program) in [20, 32]
-    return segwit_addr.encode("bc" if main else "bcrt", version, program)
+    return segwit_addr.encode("em" if main else "emrt", version, program)  # emercoin bech32 hrp
 
 def script_to_p2wsh(script, main = False):
     script = check_script(script)

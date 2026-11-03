@@ -111,6 +111,8 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
             "       ...\n"
             "    ],\n"
             "    \"whitelisted\": true|false, (boolean) Whether the peer is whitelisted\n"
+            "    \"addr_processed\": n,       (numeric) The total number of addresses processed, excluding those dropped due to rate limiting\n"
+            "    \"addr_rate_limited\": n,    (numeric) The total number of addresses dropped due to rate limiting\n"
             "    \"minfeefilter\": n,         (numeric) The minimum fee rate for transactions this peer accepts\n"
             "    \"bytessent_per_msg\": {\n"
             "       \"msg\": n,               (numeric) The total bytes sent aggregated by message type\n"
@@ -191,6 +193,8 @@ static UniValue getpeerinfo(const JSONRPCRequest& request)
             permissions.push_back(permission);
         }
         obj.pushKV("permissions", permissions);
+        obj.pushKV("addr_processed", stats.m_addr_processed);
+        obj.pushKV("addr_rate_limited", stats.m_addr_rate_limited);
         obj.pushKV("minfeefilter", ValueFromAmount(stats.minFeeFilter));
 
         UniValue sendPerMsgCmd(UniValue::VOBJ);

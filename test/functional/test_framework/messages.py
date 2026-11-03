@@ -38,7 +38,9 @@ MY_RELAY = 1 # from version 70001 onwards, fRelay should be appended to version 
 MAX_LOCATOR_SZ = 101
 MAX_BLOCK_BASE_SIZE = 1000000
 
-COIN = 100000000  # 1 btc in satoshis
+COIN = 1000000  # 1 EMC in base units (emercoin has 6 decimals)
+MAX_MONEY = 10000000000 * COIN
+BLOCK_VERSION_AUXPOW = 1 << 8  # emercoin: merged-mining flag in nVersion
 
 BIP125_SEQUENCE_NUMBER = 0xfffffffd  # Sequence number that is BIP 125 opt-in and BIP 68-opt-out
 
@@ -413,12 +415,13 @@ class CTxWitness:
 
 
 class CTransaction:
-    __slots__ = ("hash", "nLockTime", "nVersion", "sha256", "vin", "vout",
+    __slots__ = ("hash", "nLockTime", "nTime", "nVersion", "sha256", "vin", "vout",
                  "wit")
 
     def __init__(self, tx=None):
         if tx is None:
             self.nVersion = 1
+            self.nTime = int(time.time())  # emercoin: ppcoin transaction timestamp
             self.vin = []
             self.vout = []
             self.wit = CTxWitness()
@@ -427,6 +430,7 @@ class CTransaction:
             self.hash = None
         else:
             self.nVersion = tx.nVersion
+            self.nTime = tx.nTime
             self.vin = copy.deepcopy(tx.vin)
             self.vout = copy.deepcopy(tx.vout)
             self.nLockTime = tx.nLockTime
@@ -436,6 +440,7 @@ class CTransaction:
 
     def deserialize(self, f):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
+        self.nTime = struct.unpack("<I", f.read(4))[0]
         self.vin = deser_vector(f, CTxIn)
         flags = 0
         if len(self.vin) == 0:
@@ -459,6 +464,7 @@ class CTransaction:
     def serialize_without_witness(self):
         r = b""
         r += struct.pack("<i", self.nVersion)
+        r += struct.pack("<I", self.nTime)
         r += ser_vector(self.vin)
         r += ser_vector(self.vout)
         r += struct.pack("<I", self.nLockTime)
@@ -471,6 +477,7 @@ class CTransaction:
             flags |= 1
         r = b""
         r += struct.pack("<i", self.nVersion)
+        r += struct.pack("<I", self.nTime)
         if flags:
             dummy = []
             r += ser_vector(dummy)
@@ -512,18 +519,18 @@ class CTransaction:
     def is_valid(self):
         self.calc_sha256()
         for tout in self.vout:
-            if tout.nValue < 0 or tout.nValue > 21000000 * COIN:
+            if tout.nValue < 0 or tout.nValue > MAX_MONEY:
                 return False
         return True
 
     def __repr__(self):
-        return "CTransaction(nVersion=%i vin=%s vout=%s wit=%s nLockTime=%i)" \
-            % (self.nVersion, repr(self.vin), repr(self.vout), repr(self.wit), self.nLockTime)
+        return "CTransaction(nVersion=%i nTime=%i vin=%s vout=%s wit=%s nLockTime=%i)" \
+            % (self.nVersion, self.nTime, repr(self.vin), repr(self.vout), repr(self.wit), self.nLockTime)
 
 
 class CBlockHeader:
-    __slots__ = ("hash", "hashMerkleRoot", "hashPrevBlock", "nBits", "nNonce",
-                 "nTime", "nVersion", "sha256")
+    __slots__ = ("auxpow", "hash", "hashMerkleRoot", "hashPrevBlock", "nBits", "nFlags",
+                 "nNonce", "nTime", "nVersion", "sha256")
 
     def __init__(self, header=None):
         if header is None:
@@ -535,6 +542,8 @@ class CBlockHeader:
             self.nTime = header.nTime
             self.nBits = header.nBits
             self.nNonce = header.nNonce
+            self.nFlags = header.nFlags
+            self.auxpow = header.auxpow
             self.sha256 = header.sha256
             self.hash = header.hash
             self.calc_sha256()
@@ -546,20 +555,32 @@ class CBlockHeader:
         self.nTime = 0
         self.nBits = 0
         self.nNonce = 0
+        self.nFlags = 0
+        self.auxpow = None
         self.sha256 = None
         self.hash = None
 
-    def deserialize(self, f):
+    # emercoin: P2P messages carry the header with auxpow (if BLOCK_VERSION_AUXPOW is set)
+    # and nFlags (SER_POSMARKER); RPC/REST hex has auxpow but no nFlags. The block hash is
+    # always over the plain 80-byte header.
+    def deserialize(self, f, posmarker=False):
         self.nVersion = struct.unpack("<i", f.read(4))[0]
         self.hashPrevBlock = deser_uint256(f)
         self.hashMerkleRoot = deser_uint256(f)
         self.nTime = struct.unpack("<I", f.read(4))[0]
         self.nBits = struct.unpack("<I", f.read(4))[0]
         self.nNonce = struct.unpack("<I", f.read(4))[0]
+        if self.nVersion & BLOCK_VERSION_AUXPOW:
+            self.auxpow = CAuxPow()
+            self.auxpow.deserialize(f, posmarker)
+        else:
+            self.auxpow = None
+        if posmarker:
+            self.nFlags = struct.unpack("<i", f.read(4))[0]
         self.sha256 = None
         self.hash = None
 
-    def serialize(self):
+    def serialize_header(self):
         r = b""
         r += struct.pack("<i", self.nVersion)
         r += ser_uint256(self.hashPrevBlock)
@@ -569,15 +590,18 @@ class CBlockHeader:
         r += struct.pack("<I", self.nNonce)
         return r
 
+    def serialize(self, posmarker=False):
+        r = self.serialize_header()
+        if self.nVersion & BLOCK_VERSION_AUXPOW:
+            assert self.auxpow is not None, "BLOCK_VERSION_AUXPOW set without auxpow"
+            r += self.auxpow.serialize(posmarker)
+        if posmarker:
+            r += struct.pack("<i", self.nFlags)
+        return r
+
     def calc_sha256(self):
         if self.sha256 is None:
-            r = b""
-            r += struct.pack("<i", self.nVersion)
-            r += ser_uint256(self.hashPrevBlock)
-            r += ser_uint256(self.hashMerkleRoot)
-            r += struct.pack("<I", self.nTime)
-            r += struct.pack("<I", self.nBits)
-            r += struct.pack("<I", self.nNonce)
+            r = self.serialize_header()
             self.sha256 = uint256_from_str(hash256(r))
             self.hash = encode(hash256(r)[::-1], 'hex_codec').decode('ascii')
 
@@ -594,25 +618,104 @@ class CBlockHeader:
 BLOCK_HEADER_SIZE = len(CBlockHeader().serialize())
 assert_equal(BLOCK_HEADER_SIZE, 80)
 
+
+class CAuxPow:
+    """emercoin: merged-mining proof (src/auxpow.h). The parent coinbase is carried in
+    emercoin tx format (with nTime) and hashed without it."""
+    __slots__ = ("hashBlock", "nChainIndex", "nIndex", "parentBlockHeader", "tx",
+                 "vChainMerkleBranch", "vMerkleBranch")
+
+    def __init__(self):
+        self.tx = CTransaction()
+        self.hashBlock = 0
+        self.vMerkleBranch = []
+        self.nIndex = -1
+        self.vChainMerkleBranch = []
+        self.nChainIndex = 0
+        self.parentBlockHeader = CBlockHeader()
+
+    def deserialize(self, f, posmarker=False):
+        self.tx.deserialize(f)
+        self.hashBlock = deser_uint256(f)
+        self.vMerkleBranch = deser_uint256_vector(f)
+        self.nIndex = struct.unpack("<i", f.read(4))[0]
+        self.vChainMerkleBranch = deser_uint256_vector(f)
+        self.nChainIndex = struct.unpack("<I", f.read(4))[0]
+        self.parentBlockHeader.deserialize(f, posmarker)
+
+    def serialize(self, posmarker=False):
+        r = b""
+        r += self.tx.serialize_with_witness()
+        r += ser_uint256(self.hashBlock)
+        r += ser_uint256_vector(self.vMerkleBranch)
+        r += struct.pack("<i", self.nIndex)
+        r += ser_uint256_vector(self.vChainMerkleBranch)
+        r += struct.pack("<I", self.nChainIndex)
+        r += self.parentBlockHeader.serialize(posmarker)
+        return r
+
+    def __repr__(self):
+        return "CAuxPow(nIndex=%i nChainIndex=%i parentBlockHeader=%s)" \
+            % (self.nIndex, self.nChainIndex, repr(self.parentBlockHeader))
+
+
+# emercoin: every block except genesis carries a signature by the key of the first P2PK
+# coinbase output. Tests register the keys they mine to; CBlock.solve() signs with them.
+BLOCK_SIGNING_KEYS = {}
+
+
+def register_block_signing_key(key):
+    """Register an ECKey so blocks whose coinbase pays to its pubkey get signed."""
+    BLOCK_SIGNING_KEYS[key.get_pubkey().get_bytes()] = key
+
+
+def get_p2pk_pubkey(script):
+    """Return the pubkey of a pay-to-pubkey script, or None."""
+    script = bytes(script)
+    if len(script) in (35, 67) and script[0] == len(script) - 2 and script[-1] == 0xac:
+        return script[1:-1]
+    return None
+
 class CBlock(CBlockHeader):
-    __slots__ = ("vtx",)
+    __slots__ = ("vchBlockSig", "vtx")
 
     def __init__(self, header=None):
         super(CBlock, self).__init__(header)
         self.vtx = []
+        self.vchBlockSig = b""
 
-    def deserialize(self, f):
-        super(CBlock, self).deserialize(f)
+    def deserialize(self, f, posmarker=False):
+        super(CBlock, self).deserialize(f, posmarker)
         self.vtx = deser_vector(f, CTransaction)
+        self.vchBlockSig = deser_string(f)
 
-    def serialize(self, with_witness=True):
+    def serialize(self, with_witness=True, posmarker=False):
         r = b""
-        r += super(CBlock, self).serialize()
+        r += super(CBlock, self).serialize(posmarker)
         if with_witness:
             r += ser_vector(self.vtx, "serialize_with_witness")
         else:
             r += ser_vector(self.vtx, "serialize_without_witness")
+        r += ser_string(self.vchBlockSig)
         return r
+
+    def get_signing_pubkey(self):
+        """Pubkey that must sign a PoW block: first P2PK output of the coinbase."""
+        if not self.vtx:
+            return None
+        for txout in self.vtx[0].vout:
+            pubkey = get_p2pk_pubkey(txout.scriptPubKey)
+            if pubkey is not None:
+                return pubkey
+        return None
+
+    def sign(self, key=None):
+        """Sign the block hash with key, or with the registered key of its coinbase pubkey.
+        Leaves the block unsigned if no key is available."""
+        self.rehash()
+        if key is None:
+            key = BLOCK_SIGNING_KEYS.get(self.get_signing_pubkey())
+        self.vchBlockSig = key.sign_ecdsa(ser_uint256(self.sha256)) if key is not None else b""
 
     # Calculate the merkle root given a vector of transaction hashes
     @classmethod
@@ -661,11 +764,12 @@ class CBlock(CBlockHeader):
         while self.sha256 > target:
             self.nNonce += 1
             self.rehash()
+        self.sign()
 
     def __repr__(self):
-        return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s)" \
+        return "CBlock(nVersion=%i hashPrevBlock=%064x hashMerkleRoot=%064x nTime=%s nBits=%08x nNonce=%08x vtx=%s vchBlockSig=%s)" \
             % (self.nVersion, self.hashPrevBlock, self.hashMerkleRoot,
-               time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx))
+               time.ctime(self.nTime), self.nBits, self.nNonce, repr(self.vtx), self.vchBlockSig.hex())
 
 
 class PrefilledTransaction:
@@ -702,19 +806,21 @@ class PrefilledTransaction:
 # This is what we send on the wire, in a cmpctblock message.
 class P2PHeaderAndShortIDs:
     __slots__ = ("header", "nonce", "prefilled_txn", "prefilled_txn_length",
-                 "shortids", "shortids_length")
+                 "shortids", "shortids_length", "vchBlockSig")
 
     def __init__(self):
         self.header = CBlockHeader()
         self.nonce = 0
+        self.vchBlockSig = b""
         self.shortids_length = 0
         self.shortids = []
         self.prefilled_txn_length = 0
         self.prefilled_txn = []
 
     def deserialize(self, f):
-        self.header.deserialize(f)
+        self.header.deserialize(f, posmarker=True)
         self.nonce = struct.unpack("<Q", f.read(8))[0]
+        self.vchBlockSig = deser_string(f)
         self.shortids_length = deser_compact_size(f)
         for i in range(self.shortids_length):
             # shortids are defined to be 6 bytes in the spec, so append
@@ -726,8 +832,9 @@ class P2PHeaderAndShortIDs:
     # When using version 2 compact blocks, we must serialize with_witness.
     def serialize(self, with_witness=False):
         r = b""
-        r += self.header.serialize()
+        r += self.header.serialize(posmarker=True)
         r += struct.pack("<Q", self.nonce)
+        r += ser_string(self.vchBlockSig)
         r += ser_compact_size(self.shortids_length)
         for x in self.shortids:
             # We only want the first 6 bytes
@@ -759,7 +866,7 @@ def calculate_shortid(k0, k1, tx_hash):
 # This version gets rid of the array lengths, and reinterprets the differential
 # encoding into indices that can be used for lookup.
 class HeaderAndShortIDs:
-    __slots__ = ("header", "nonce", "prefilled_txn", "shortids", "use_witness")
+    __slots__ = ("header", "nonce", "prefilled_txn", "shortids", "use_witness", "vchBlockSig")
 
     def __init__(self, p2pheaders_and_shortids = None):
         self.header = CBlockHeader()
@@ -767,10 +874,12 @@ class HeaderAndShortIDs:
         self.shortids = []
         self.prefilled_txn = []
         self.use_witness = False
+        self.vchBlockSig = b""
 
         if p2pheaders_and_shortids is not None:
             self.header = p2pheaders_and_shortids.header
             self.nonce = p2pheaders_and_shortids.nonce
+            self.vchBlockSig = p2pheaders_and_shortids.vchBlockSig
             self.shortids = p2pheaders_and_shortids.shortids
             last_index = -1
             for x in p2pheaders_and_shortids.prefilled_txn:
@@ -784,6 +893,7 @@ class HeaderAndShortIDs:
             ret = P2PHeaderAndShortIDs()
         ret.header = self.header
         ret.nonce = self.nonce
+        ret.vchBlockSig = self.vchBlockSig
         ret.shortids_length = len(self.shortids)
         ret.shortids = self.shortids
         ret.prefilled_txn_length = len(self.prefilled_txn)
@@ -808,6 +918,7 @@ class HeaderAndShortIDs:
             prefill_list = [0]
         self.header = CBlockHeader(block)
         self.nonce = nonce
+        self.vchBlockSig = block.vchBlockSig
         self.prefilled_txn = [ PrefilledTransaction(i, block.vtx[i]) for i in prefill_list ]
         self.shortids = []
         self.use_witness = use_witness
@@ -1129,10 +1240,10 @@ class msg_block:
             self.block = block
 
     def deserialize(self, f):
-        self.block.deserialize(f)
+        self.block.deserialize(f, posmarker=True)
 
     def serialize(self):
-        return self.block.serialize()
+        return self.block.serialize(posmarker=True)
 
     def __repr__(self):
         return "msg_block(block=%s)" % (repr(self.block))
@@ -1157,7 +1268,7 @@ class msg_generic:
 class msg_no_witness_block(msg_block):
     __slots__ = ()
     def serialize(self):
-        return self.block.serialize(with_witness=False)
+        return self.block.serialize(with_witness=False, posmarker=True)
 
 
 class msg_getaddr:
@@ -1305,13 +1416,15 @@ class msg_headers:
 
     def deserialize(self, f):
         # comment in bitcoind indicates these should be deserialized as blocks
-        blocks = deser_vector(f, CBlock)
-        for x in blocks:
-            self.headers.append(CBlockHeader(x))
+        # (emercoin: header with nFlags, empty vtx, empty vchBlockSig)
+        for _ in range(deser_compact_size(f)):
+            block = CBlock()
+            block.deserialize(f, posmarker=True)
+            self.headers.append(CBlockHeader(block))
 
     def serialize(self):
         blocks = [CBlock(x) for x in self.headers]
-        return ser_vector(blocks)
+        return ser_compact_size(len(blocks)) + b"".join(b.serialize(posmarker=True) for b in blocks)
 
     def __repr__(self):
         return "msg_headers(headers=%s)" % repr(self.headers)

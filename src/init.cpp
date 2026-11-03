@@ -374,7 +374,7 @@ void SetupServerArgs()
     std::vector<std::string> hidden_args = {
         "-dbcrashratio", "-forcecompactdb",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
-        "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>", "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash", "-uiplatform"};
+        "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>", "-min", "-nameservices", "-resetguisettings", "-rootcertificates=<file>", "-splash", "-uiplatform"};
 
     gArgs.AddArg("-version", "Print version and exit", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #if HAVE_SYSTEM
@@ -382,7 +382,7 @@ void SetupServerArgs()
     gArgs.AddArg("-alertnotify=<cmd>", "Execute command when a relevant alert is received or we see a really long fork (%s in cmd is replaced by message)", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-alertpubkey=<hex>", "Set alert public key. 0 - disable, 1 - default key, hex string - custom key", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #endif
-    gArgs.AddArg("-assumevalid=<hex>", strprintf("If this block is in the chain assume that it and its ancestors are valid and potentially skip their script verification (0 to verify all, default: %s, testnet: %s)", defaultChainParams->GetConsensus().defaultAssumeValid.GetHex(), testnetChainParams->GetConsensus().defaultAssumeValid.GetHex()), ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    gArgs.AddArg("-assumevalid=<hex>", "Scripts of blocks below the last hard checkpoint are not verified (the checkpoints pin that history). 0 verifies all scripts; a block hash has no effect", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-checkpointpubkey=<hex>", "Set checkpoint public key. 0 - disable, 1 - default key, hex string - custom key", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     gArgs.AddArg("-blocksdir=<dir>", "Specify directory to hold blocks subdirectory for *.dat files (default: <datadir>)", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
 #if HAVE_SYSTEM
@@ -467,7 +467,8 @@ void SetupServerArgs()
         "noban (do not ban for misbehavior), "
         "forcerelay (relay even non-standard transactions), "
         "relay (relay even in -blocksonly mode), "
-        "and mempool (allow requesting BIP35 mempool contents). "
+        "mempool (allow requesting BIP35 mempool contents) "
+        "and addr (process any number of addresses from the peer, without rate limiting). "
         "Specify multiple permissions separated by commas (default: noban,mempool,relay). Can be specified multiple times.", ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     gArgs.AddArg("-whitelist=<[permissions@]IP address or network>", "Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) or "
@@ -563,6 +564,7 @@ void SetupServerArgs()
     gArgs.AddArg("-rpcuser=<user>", "Username for JSON-RPC connections", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-rpcworkqueue=<n>", strprintf("Set the depth of the work queue to service RPC calls (default: %d)", DEFAULT_HTTP_WORKQUEUE), ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY, OptionsCategory::RPC);
     gArgs.AddArg("-server", "Accept command line and JSON-RPC commands", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-legacyrpc", "Read JSON-RPC requests the way json_spirit did: \\u0000-\\u00FF escapes are single bytes, so send non-ASCII text as raw UTF-8. Replies are UTF-8 either way (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
 #if HAVE_DECL_DAEMON
     gArgs.AddArg("-daemon", "Run in the background as a daemon and accept commands", ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
@@ -579,7 +581,6 @@ void SetupServerArgs()
     gArgs.AddArg("-nameaddress", "Enable address->names index (default: false)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nameindexchainsize", strprintf("Number of updates per each name to memorize on disk (default: %u)", NAMEINDEX_CHAIN_SIZE), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-stunsrcport", "Port for STUN system to identify your own ip (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-exchtest", "Enable exchange testing (for code debugging only) (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-randkeymapsz", "Debug parameter (default: 16)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-sortir", "Debug parameter (default: 0)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-maxdp", "Maximal table size for DP TX optimizer (default: 128 * 1024 * 1024 i.e. max DP-selected amount is 13,421 EMC)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
@@ -602,7 +603,7 @@ void SetupServerArgs()
     gArgs.AddArg("-checkpointnode", "Number of currenct checkpoint node [0..checkpointslots)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-printcoinstake", "Print to debug log coinstake kernel processing", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-nametxoutamount", "Amount for attach to NameUTXO. By default, MIN_TX_AMOUNT=0.0001EMC", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-stuntimio", "Initial timeout for discover external IP by STUN, secs. -1=disabled; 0=request once at start; by default, 900s (15m)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-stuntimio", "Initial timeout for discover external IP by STUN, secs. -1=disabled; 0=request once at start; by default, 900s (15m). STUN is used only with -discover and when IPv4 is reachable", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-quantprotection", "Maximal random amount for P2PK UTXO in coinstake/coinbase TX; neg=fixed value", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
 
     // emcdns stuff
@@ -610,7 +611,7 @@ void SetupServerArgs()
     gArgs.AddArg("-emcdnsport", strprintf("emcdns port (default: %u)", EMCDNS_PORT), ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnsverbose", "emcdns verbose debug log (default: true)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnssuffix", "emcdns suffix (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
-    gArgs.AddArg("-emcdnsbindip", "emcdns bindip (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
+    gArgs.AddArg("-emcdnsbindip", "emcdns: IPv4 or IPv6 address to listen on; a leading dot (.1.2.3.4) forces an IPv4-only socket (default: all interfaces)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnsallowed", "emcdns allowed (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-emcdnslocalcf", "emcdns localcf (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
     gArgs.AddArg("-enumtrust", "emcdns enum trust (default: empty)", ArgsManager::ALLOW_ANY, OptionsCategory::RPC);
@@ -1111,10 +1112,13 @@ bool AppInitParameterInteraction()
     fCheckpointsEnabled = gArgs.GetBoolArg("-checkpoints", DEFAULT_CHECKPOINTS_ENABLED);
 
     hashAssumeValid = uint256S(gArgs.GetArg("-assumevalid", chainparams.GetConsensus().defaultAssumeValid.GetHex()));
-    if (!hashAssumeValid.IsNull())
-        LogPrintf("Assuming ancestors of block %s have valid signatures.\n", hashAssumeValid.GetHex());
-    else
+    // emercoin: ConnectBlock skips script checks below the last hard checkpoint rather than below
+    // hashAssumeValid; only an explicit -assumevalid=0 changes that (Bitcoin's "0 to verify all").
+    fVerifyAllScripts = gArgs.IsArgSet("-assumevalid") && hashAssumeValid.IsNull();
+    if (fVerifyAllScripts || !fCheckpointsEnabled)
         LogPrintf("Validating signatures for all blocks.\n");
+    else
+        LogPrintf("Not validating signatures below the last hard checkpoint (-assumevalid=0 validates all).\n");
 
     if (gArgs.IsArgSet("-minimumchainwork")) {
         const std::string minChainTrustStr = gArgs.GetArg("-minimumchainwork", "");
@@ -1438,7 +1442,7 @@ bool AppInitMain(InitInterfaces& interfaces)
             return InitError(strprintf(_("User Agent comment (%s) contains unsafe characters.").translated, cmt));
         uacomments.push_back(cmt);
     }
-    strSubVersion = FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, uacomments);
+    strSubVersion = FormatSubVersion(CLIENT_NAME, EMERCOIN_VERSION, uacomments);
     if (strSubVersion.size() > MAX_SUBVERSION_LENGTH) {
         return InitError(strprintf(_("Total length of network version string (%i) exceeds maximum length (%i). Reduce the number or size of uacomments.").translated,
             strSubVersion.size(), MAX_SUBVERSION_LENGTH));

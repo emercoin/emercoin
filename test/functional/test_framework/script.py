@@ -691,6 +691,7 @@ def SegwitVersion1SignatureHash(script, txTo, inIdx, hashtype, amount):
 
     ss = bytes()
     ss += struct.pack("<i", txTo.nVersion)
+    ss += struct.pack("<I", txTo.nTime)  # emercoin
     ss += ser_uint256(hashPrevouts)
     ss += ser_uint256(hashSequence)
     ss += txTo.vin[inIdx].prevout.serialize()

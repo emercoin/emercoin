@@ -7,6 +7,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <set>
+#include <vector>
 
 #include <addrdb.h>
 #include <fs.h>
@@ -14,6 +16,8 @@
 
 // NOTE: When adjusting this, update rpcnet:setban's help ("24h")
 static constexpr unsigned int DEFAULT_MISBEHAVING_BANTIME = 60 * 60 * 24; // Default 24-hour ban
+// emercoin: with this many entries in the banlist, a new misbehaviour ban replaces the oldest one
+static constexpr size_t MAX_BANNED_ENTRIES = 50000;
 
 class CClientUIInterface;
 class CNetAddr;
@@ -57,9 +61,15 @@ private:
     void SetBannedSetDirty(bool dirty = true);
     //!clean unused entries (if bantime has expired)
     void SweepBanned();
+    //! The entries that apply to net_addr: its own single-address ban and any subnet ban covering it
+    std::vector<const CBanEntry*> FindBans(const CNetAddr& net_addr) EXCLUSIVE_LOCKS_REQUIRED(m_cs_banned);
+    //! Drop the misbehaviour ban created first (see MAX_BANNED_ENTRIES)
+    void EvictOldestMisbehavingBan() EXCLUSIVE_LOCKS_REQUIRED(m_cs_banned);
 
     CCriticalSection m_cs_banned;
     banmap_t m_banned GUARDED_BY(m_cs_banned);
+    //! The entries of m_banned that cover more than one address; the rest is found by key
+    std::set<CSubNet> m_banned_ranges GUARDED_BY(m_cs_banned);
     bool m_is_dirty GUARDED_BY(m_cs_banned);
     CClientUIInterface* m_client_interface = nullptr;
     CBanDB m_ban_db;

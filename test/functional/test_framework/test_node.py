@@ -68,7 +68,7 @@ class TestNode():
 
         self.index = i
         self.datadir = datadir
-        self.bitcoinconf = os.path.join(self.datadir, "bitcoin.conf")
+        self.bitcoinconf = os.path.join(self.datadir, "emercoin.conf")
         self.stdout_dir = os.path.join(self.datadir, "stdout")
         self.stderr_dir = os.path.join(self.datadir, "stderr")
         self.chain = chain
@@ -95,6 +95,12 @@ class TestNode():
             "-debugexclude=libevent",
             "-debugexclude=leveldb",
             "-uacomment=testnode%d" % i,
+            # emercoin: the default legacy JSON mode decodes \u0080-\u00FF escapes (Python's json
+            # escapes non-ASCII) to single bytes, not UTF-8; tests use standard JSON
+            "-legacyrpc=0",
+            # emercoin: the PoS minter (on by default) would mint blocks on its own once coins are a day
+            # old in mock time; tests that want minting pass -stakegen=1
+            "-stakegen=0",
         ]
 
         self.cli = TestNodeCLI(bitcoin_cli, self.datadir)

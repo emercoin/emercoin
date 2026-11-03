@@ -28,19 +28,19 @@ public:
         insecure_rand = FastRandomContext(true);
     }
 
-    CAddrInfo* Find(const CNetAddr& addr, int* pnId = nullptr)
+    CAddrInfo* Find(const CNetAddr& addr, nid_type* pnId = nullptr)
     {
         LOCK(cs);
         return CAddrMan::Find(addr, pnId);
     }
 
-    CAddrInfo* Create(const CAddress& addr, const CNetAddr& addrSource, int* pnId = nullptr)
+    CAddrInfo* Create(const CAddress& addr, const CNetAddr& addrSource, nid_type* pnId = nullptr)
     {
         LOCK(cs);
         return CAddrMan::Create(addr, addrSource, pnId);
     }
 
-    void Delete(int nId)
+    void Delete(nid_type nId)
     {
         LOCK(cs);
         CAddrMan::Delete(nId);
@@ -215,8 +215,10 @@ BOOST_AUTO_TEST_CASE(addrman_select)
     BOOST_CHECK_EQUAL(addrman.size(), 7U);
 
     // Test: Select pulls from new and tried regardless of port number.
+    // emercoin: FastRandomContext::randbits draws from RC4OK, not from the deterministic seed, so
+    // the selection differs from run to run: draw until all three ports have come up.
     std::set<uint16_t> ports;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 1000 && ports.size() < 3; ++i) {
         ports.insert(addrman.Select().GetPort());
     }
     BOOST_CHECK_EQUAL(ports.size(), 3U);
@@ -317,7 +319,7 @@ BOOST_AUTO_TEST_CASE(addrman_create)
     CAddress addr1 = CAddress(ResolveService("250.1.2.1", 8333), NODE_NONE);
     CNetAddr source1 = ResolveIP("250.1.2.1");
 
-    int nId;
+    nid_type nId;
     CAddrInfo* pinfo = addrman.Create(addr1, source1, &nId);
 
     // Test: The result should be the same as the input addr.
@@ -337,7 +339,7 @@ BOOST_AUTO_TEST_CASE(addrman_delete)
     CAddress addr1 = CAddress(ResolveService("250.1.2.1", 8333), NODE_NONE);
     CNetAddr source1 = ResolveIP("250.1.2.1");
 
-    int nId;
+    nid_type nId;
     addrman.Create(addr1, source1, &nId);
 
     // Test: Delete should actually delete the addr.

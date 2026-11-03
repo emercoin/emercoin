@@ -52,6 +52,14 @@ struct TestSubscriber : public CValidationInterface {
     }
 };
 
+// emercoin: blocks are signed by the key of a P2PK coinbase output
+static const CKey& SigningKey()
+{
+    static CKey key;
+    if (!key.IsValid()) key.MakeNewKey(true);
+    return key;
+}
+
 std::shared_ptr<CBlock> Block(const uint256& prev_hash)
 {
     static int i = 0;
@@ -72,14 +80,20 @@ std::shared_ptr<CBlock> Block(const uint256& prev_hash)
         pubKey << OP_0 << ToByteVector(witness_program);
     }
 
-    // Make the coinbase transaction with two outputs:
-    // One zero-value one that has a unique pubkey to make sure that blocks at the same height can have a different hash
+    // Make the coinbase transaction with three outputs:
+    // One minimum-value one that has a unique pubkey to make sure that blocks at the same height can have a different hash
+    // (emercoin: outputs below MIN_TXOUT_AMOUNT are invalid)
     // Another one that has the coinbase reward in a P2WSH with OP_TRUE as witness program to make it easy to spend
+    // emercoin: and a minimum-value P2PK one whose key signs the block; coinbase time = block time
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
-    txCoinbase.vout.resize(2);
+    const CAmount reward = txCoinbase.vout[0].nValue;
+    txCoinbase.vout.resize(3);
+    txCoinbase.vout[0].nValue = MIN_TXOUT_AMOUNT;
     txCoinbase.vout[1].scriptPubKey = pubKey;
-    txCoinbase.vout[1].nValue = txCoinbase.vout[0].nValue;
-    txCoinbase.vout[0].nValue = 0;
+    txCoinbase.vout[1].nValue = reward - 2 * MIN_TXOUT_AMOUNT;
+    txCoinbase.vout[2].scriptPubKey = GetScriptForRawPubKey(SigningKey().GetPubKey());
+    txCoinbase.vout[2].nValue = MIN_TXOUT_AMOUNT;
+    txCoinbase.nTime = pblock->nTime;
     txCoinbase.vin[0].scriptWitness.SetNull();
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
 
@@ -96,7 +110,10 @@ std::shared_ptr<CBlock> FinalizeBlock(std::shared_ptr<CBlock> pblock)
 
     while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
         ++(pblock->nNonce);
+        pblock->hashMyself.SetNull(); // emercoin: GetHash() caches the header hash
     }
+    bool signed_ok = SigningKey().Sign(pblock->GetHash(), pblock->vchBlockSig, 0);
+    assert(signed_ok);
 
     return pblock;
 }
@@ -157,7 +174,8 @@ BOOST_AUTO_TEST_CASE(processnewblock_signals_ordering)
     std::transform(blocks.begin(), blocks.end(), std::back_inserter(headers), [](std::shared_ptr<const CBlock> b) { return b->GetBlockHeader(); });
 
     // Process all the headers so we understand the toplogy of the chain
-    BOOST_CHECK(ProcessNewBlockHeaders(headers, state, Params()));
+    TokBucketPoS scam_bucket;
+    BOOST_CHECK(ProcessNewBlockHeaders(&scam_bucket, headers, state, Params()));
 
     // Connect the genesis block and drain any outstanding events
     BOOST_CHECK(ProcessNewBlock(Params(), std::make_shared<CBlock>(Params().GenesisBlock()), true, &ignored));
@@ -260,7 +278,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg)
         }
 
         // Mature the inputs of the txs
-        for (int j = COINBASE_MATURITY; j > 0; --j) {
+        for (int j = Params().GetConsensus().nCoinbaseMaturity; j > 0; --j) {
             last_mined = GoodBlock(last_mined->GetHash());
             BOOST_REQUIRE(ProcessBlock(last_mined));
         }
@@ -271,7 +289,7 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg)
         std::vector<std::shared_ptr<const CBlock>> reorg;
         last_mined = GoodBlock(split_hash);
         reorg.push_back(last_mined);
-        for (size_t j = COINBASE_MATURITY + txs.size() + 1; j > 0; --j) {
+        for (size_t j = Params().GetConsensus().nCoinbaseMaturity + txs.size() + 1; j > 0; --j) {
             last_mined = GoodBlock(last_mined->GetHash());
             reorg.push_back(last_mined);
         }

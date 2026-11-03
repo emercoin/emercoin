@@ -56,7 +56,4 @@ public:
     }
 };
 
-// emercoin:
-CAmount GetMinFee(const size_t nBytes);
-
 #endif //  BITCOIN_POLICY_FEERATE_H
