@@ -19,7 +19,7 @@ static const int STATUSBAR_ICONSIZE = 16;
 static const bool DEFAULT_SPLASHSCREEN = true;
 
 /* Names page: buttons for the name services (DNS, DPO, Trusted Diploma, SSL) */
-static const bool DEFAULT_NAMESERVICES = false;
+static const bool DEFAULT_NAMESERVICES = true;
 
 /* Invalid field background style */
 #define STYLE_INVALID "background:#FF8080"
