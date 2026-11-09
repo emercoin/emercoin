@@ -64,8 +64,8 @@ package)
     # No libemercoinconsensus, as in the released packages: it does not link on its own yet
     # (consensus/tx_check.cpp uses randpaytx, defined in coins.cpp).
     case "$HOST" in
-    *-mingw32) extra=(); ldflags=""; strip=(-s) ;;
-    *)         extra=(--enable-glibc-back-compat); ldflags="-static-libstdc++"; strip=(--strip-debug) ;;
+    *-mingw32) extra=(); ldflags="" ;;
+    *)         extra=(--enable-glibc-back-compat); ldflags="-static-libstdc++" ;;
     esac
     gui=(--without-gui)
     [ "$GUI" = 1 ] && gui=(--with-gui=qt5)
@@ -95,8 +95,9 @@ package)
     if [[ $HOST == *-mingw32 ]]; then
         mv "$distname"/bin/*.dll "$distname/lib/" 2>/dev/null || true
     fi
+    # Fully stripped (no symbol table either), as in Bitcoin Core's release binaries.
     for dir in "$distname/bin" "$distname/lib"; do
-        [ -d "$dir" ] && find "$dir" -type f -exec "$HOST-strip" "${strip[@]}" {} +
+        [ -d "$dir" ] && find "$dir" -type f -exec "$HOST-strip" --strip-all {} +
     done
     find "$distname" -exec touch -h -d "@$epoch" {} +
     if [[ $HOST == *-mingw32 ]]; then
