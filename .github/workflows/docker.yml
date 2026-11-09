@@ -1,0 +1,132 @@
+name: Docker
+
+# Node image emercoin/core (Docker Hub) and ghcr.io/emercoin/core, linux/amd64 + linux/arm64,
+# built from the Linux tarballs of a published release (checked against its SHA256SUMS and
+# the CI build attestations), so the image runs exactly the released binaries.
+# Tags: <version>; also latest when the release is the repository's latest one.
+# Docker Hub is used when the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets are set.
+# Publishing the draft that ci.yml prepares (by a person, not GITHUB_TOKEN) starts this
+# workflow; for an already published release run it by hand with the tag.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, e.g. v0.8.6emc
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: contrib/docker
+          persist-credentials: false
+
+      - name: Get the release binaries
+        run: |
+          if [[ ! $TAG =~ ^v([0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?)emc$ ]]; then
+            echo "::error::$TAG is not a release tag (v<version>emc)"
+            exit 1
+          fi
+          version="${BASH_REMATCH[1]}"
+          if [[ "$(gh release view "$TAG" --json isDraft -q .isDraft)" != false ]]; then
+            echo "::error::release $TAG is not published"
+            exit 1
+          fi
+          mkdir dl
+          gh release download "$TAG" -D dl -p SHA256SUMS \
+              -p "emercoin-$version-x86_64-linux-gnu.tar.gz" -p "emercoin-$version-aarch64-linux-gnu.tar.gz"
+          for arch in amd64:x86_64 arm64:aarch64; do
+              file="emercoin-$version-${arch#*:}-linux-gnu.tar.gz"
+              (cd dl && grep -E "^[0-9a-f]{64}  $file\$" SHA256SUMS | sha256sum -c -)
+              gh attestation verify "dl/$file" -R "$GH_REPO" --source-ref "refs/tags/$TAG"
+              mkdir -p "ctx/${arch%:*}"
+              tar -xzf "dl/$file" -C "ctx/${arch%:*}" --strip-components=2 \
+                  "emercoin-$version/bin/emercoind" "emercoin-$version/bin/emercoin-cli"
+          done
+          ls -lR ctx
+
+          images=(ghcr.io/emercoin/core)
+          [[ -n $DOCKERHUB_USERNAME && -n $DOCKERHUB_TOKEN ]] && images+=(docker.io/emercoin/core)
+          latest="$(gh release view --json tagName -q .tagName)"
+          tags=()
+          for image in "${images[@]}"; do
+              tags+=("$image:$version")
+              [[ $latest == "$TAG" ]] && tags+=("$image:latest")
+          done
+          {
+              echo "VERSION=$version"
+              echo "IMAGE_TAGS=$(IFS=,; echo "${tags[*]}")"
+          } >> "$GITHUB_ENV"
+          printf 'tag: %s\n' "${tags[@]}"
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Log in to GHCR
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Log in to Docker Hub
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ctx
+          file: contrib/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          build-args: VERSION=${{ env.VERSION }}
+          tags: ${{ env.IMAGE_TAGS }}
+          push: true
+          provenance: false
+
+      - name: Smoke test
+        run: |
+          image="ghcr.io/emercoin/core:$VERSION"
+          docker buildx imagetools inspect "$image"
+          docker run --rm --platform linux/amd64 "$image" emercoind -version | head -1
+
+      - name: Attest the GHCR image
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ghcr.io/emercoin/core
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest the Docker Hub image
+        if: env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != ''
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: index.docker.io/emercoin/core
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
