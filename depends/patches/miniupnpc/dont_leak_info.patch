@@ -1,32 +1,26 @@
-commit 8815452257437ba36607d0e2381c01142d1c7bb0
-Author: fanquake <fanquake@gmail.com>
-Date:   Thu Nov 19 10:51:19 2020 +0800
+Don't leak OS and miniupnpc version info in User-Agent
 
-    Don't leak OS and miniupnpc version info in User-Agent
+(Bitcoin Core's patch by fanquake, 2020, redone for miniupnpc 2.3.5.)
 
-diff --git a//minisoap.c b/minisoap.c
-index 7860667..775580b 100644
---- a/minisoap.c
-+++ b/minisoap.c
-@@ -90,7 +90,7 @@ int soapPostSubmit(SOCKET fd,
+--- a/src/minisoap.c
++++ b/src/minisoap.c
+@@ -91,7 +91,7 @@
  	headerssize = snprintf(headerbuf, sizeof(headerbuf),
                         "POST %s HTTP/%s\r\n"
  	                   "Host: %s%s\r\n"
--					   "User-Agent: " OS_STRING ", " UPNP_VERSION_STRING ", MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
+-					   "User-Agent: " OS_STRING " " UPNP_VERSION_STRING " MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
 +					   "User-Agent: " UPNP_VERSION_STRING "\r\n"
  	                   "Content-Length: %d\r\n"
+ #if (UPNP_VERSION_MAJOR == 1) && (UPNP_VERSION_MINOR == 0)
  					   "Content-Type: text/xml\r\n"
- 					   "SOAPAction: \"%s\"\r\n"
-diff --git a/miniwget.c b/miniwget.c
-index d5b7970..05aeb9c 100644
---- a/miniwget.c
-+++ b/miniwget.c
-@@ -444,7 +444,7 @@ miniwget3(const char * host,
+--- a/src/miniwget.c
++++ b/src/miniwget.c
+@@ -462,7 +462,7 @@
                   "GET %s HTTP/%s\r\n"
  			     "Host: %s:%d\r\n"
- 				 "Connection: Close\r\n"
--				 "User-Agent: " OS_STRING ", " UPNP_VERSION_STRING ", MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
+ 				 "Connection: close\r\n"
+-				 "User-Agent: " OS_STRING " " UPNP_VERSION_STRING " MiniUPnPc/" MINIUPNPC_VERSION_STRING "\r\n"
 +				 "User-Agent: " UPNP_VERSION_STRING "\r\n"
- 
  				 "\r\n",
  			   path, httpversion, host, port);
+ 	if ((unsigned int)len >= sizeof(buf))

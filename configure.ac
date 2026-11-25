@@ -5,7 +5,7 @@ define(_CLIENT_VERSION_MINOR, 19)
 define(_CLIENT_VERSION_REVISION, 2)
 define(_EMERCOIN_VERSION_MAJOR, 0)
 define(_EMERCOIN_VERSION_MINOR, 8)
-define(_EMERCOIN_VERSION_REVISION, 6)
+define(_EMERCOIN_VERSION_REVISION, 7)
 define(_CLIENT_VERSION_BUILD, 0)
 define(_CLIENT_VERSION_RC, 0)
 define(_CLIENT_VERSION_IS_RELEASE, true)
@@ -1012,7 +1012,7 @@ else
   BITCOIN_QT_INIT
 
   dnl sets $bitcoin_enable_qt, $bitcoin_enable_qt_test, $bitcoin_enable_qt_dbus
-  BITCOIN_QT_CONFIGURE([$use_pkgconfig])
+  BITCOIN_QT_CONFIGURE([5.11.3])
 fi
 
 if test x$enable_wallet != xno; then
@@ -1664,7 +1664,7 @@ if test x$need_bundled_univalue = xyes; then
   AC_CONFIG_SUBDIRS([src/univalue])
 fi
 
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --enable-benchmark=no --with-bignum=no --enable-module-recovery --disable-jni"
+ac_configure_args="${ac_configure_args} --disable-shared --with-pic --enable-benchmark=no --with-bignum=no --enable-module-recovery --disable-jni --disable-openssl-tests"
 AC_CONFIG_SUBDIRS([src/secp256k1])
 
 AC_OUTPUT

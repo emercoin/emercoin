@@ -1,11 +1,11 @@
 package=qrencode
-$(package)_version=3.4.4
+$(package)_version=4.1.1
 $(package)_download_path=https://fukuchi.org/works/qrencode/
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
-$(package)_sha256_hash=efe5188b1ddbcbf98763b819b146be6a90481aac30cfc8d858ab78a19cde1fa5
+$(package)_file_name=$(package)-$($(package)_version).tar.gz
+$(package)_sha256_hash=da448ed4f52aba6bcb0cd48cac0dd51b8692bccc4cd127431402fca6f8171e8e
 
 define $(package)_set_vars
-$(package)_config_opts=--disable-shared --without-tools --without-tests --disable-sdltest
+$(package)_config_opts=--disable-shared --without-tools --without-tests --without-png
 $(package)_config_opts += --disable-gprof --disable-gcov --disable-mudflap
 $(package)_config_opts_linux=--with-pic
 endef

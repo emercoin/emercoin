@@ -1,0 +1,16 @@
+# CI and build image for the Windows host (x86_64-w64-mingw32, posix threads): Ubuntu 22.04
+# with mingw-w64 gcc 10 and the mingw-w64 8 headers, which Qt 5.15 needs (DXGI 1.3 for its
+# Direct3D 11 backend). This matches the Windows toolchain of Bitcoin Core 24 (Guix).
+# Linux hosts are built in ci/Dockerfile (Ubuntu 18.04), which sets the glibc floor.
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive TZ=UTC LC_ALL=C.UTF-8 LANG=C.UTF-8
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential libtool autotools-dev automake autoconf \
+        pkg-config bsdmainutils curl ca-certificates git python3 \
+        patch xz-utils zip nsis bison \
+        g++-mingw-w64-x86-64-posix gcc-mingw-w64-x86-64-posix binutils-mingw-w64-x86-64 \
+    && update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix \
+    && update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix \
+    && rm -rf /var/lib/apt/lists/*

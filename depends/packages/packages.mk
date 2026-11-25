@@ -5,7 +5,7 @@ protobuf_packages = protobuf
 
 qt_packages = qrencode zlib
 
-qt_linux_packages:=qt expat libxcb xcb_proto libXau xproto freetype fontconfig
+qt_linux_packages:=qt expat libxcb xcb_proto libXau xproto freetype fontconfig libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm
 
 rapidcheck_packages = rapidcheck
 

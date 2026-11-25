@@ -10,6 +10,11 @@ RAPIDCHECK ?=
 NO_WALLET ?=
 NO_ZMQ ?=
 NO_UPNP ?=
+# Sources are fetched from MIRROR_DOWNLOAD_PATH (Emercoin's mirror, by file name) first, then
+# from the package's own download path, then from FALLBACK_DOWNLOAD_PATH. Each download is
+# checked against the package's sha256. contrib/devtools/depends-mirror.sh adds new archives
+# to the mirror.
+MIRROR_DOWNLOAD_PATH ?= https://github.com/emercoin/depends-sources/releases/download/sources
 FALLBACK_DOWNLOAD_PATH ?= https://bitcoincore.org/depends-sources
 
 BUILD = $(shell ./config.guess)
@@ -18,6 +23,8 @@ PATCHES_PATH = $(BASEDIR)/patches
 BASEDIR = $(CURDIR)
 HASH_LENGTH:=11
 DOWNLOAD_CONNECT_TIMEOUT:=30
+# a download slower than 1 KB/s for this many seconds counts as failed (retried, then next source)
+DOWNLOAD_STALL_TIMEOUT:=60
 DOWNLOAD_RETRIES:=3
 HOST_ID_SALT ?= salt
 BUILD_ID_SALT ?= salt
@@ -203,6 +210,10 @@ download-win:
 	@$(MAKE) -s HOST=x86_64-w64-mingw32 download-one
 download: download-osx download-linux download-win
 
+# Source archive file names for HOST, one per line (for contrib/devtools/depends-mirror.sh)
+print-sources:
+	@printf '%s\n' $(foreach package,$(all_packages),$($(package)_all_sources))
+
 $(foreach package,$(all_packages),$(eval $(call ext_add_stages,$(package))))
 
-.PHONY: install cached clean clean-all download-one download-osx download-linux download-win download check-packages check-sources
+.PHONY: install cached clean clean-all download-one download-osx download-linux download-win download print-sources check-packages check-sources

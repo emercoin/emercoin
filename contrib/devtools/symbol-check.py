@@ -28,7 +28,8 @@ import os
 # - libc version 2.11.1 (http://packages.ubuntu.com/search?keywords=libc6&searchon=names&suite=lucid&section=all)
 # - libstdc++ version 4.4.3 (http://packages.ubuntu.com/search?suite=lucid&section=all&arch=any&keywords=libstdc%2B%2B&searchon=names)
 #
-# Taking the minimum of these as our target.
+# Taking the minimum of these as our target, except for glibc: Emercoin requires
+# glibc 2.27 (Ubuntu 18.04, the release build image) since OpenSSL 3.
 #
 # According to GNU ABI document (http://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) this corresponds to:
 #   GCC 4.4.0: GCC_4.4.0
@@ -39,8 +40,9 @@ MAX_VERSIONS = {
 'GCC':       (4,4,0),
 'CXXABI':    (1,3,3),
 'GLIBCXX':   (3,4,13),
-'GLIBC':     (2,11),
-'LIBATOMIC': (1,0)
+'GLIBC':     (2,27),  # Ubuntu 18.04 (glibc 2.27); libstdc++ is linked statically
+'LIBATOMIC': (1,0),
+'V':         (0,5,0),  # xkb (emercoin-qt only)
 }
 # See here for a description of _IO_stdin_used:
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=634261#109
@@ -68,9 +70,23 @@ ALLOWED_LIBRARIES = {
 'ld-linux-riscv64-lp64d.so.1', # 64-bit RISC-V dynamic linker
 # bitcoin-qt only
 'libxcb.so.1', # part of X11
+'libxkbcommon.so.0', # keyboard keymapping
+'libxkbcommon-x11.so.0', # keyboard keymapping
 'libfontconfig.so.1', # font support
 'libfreetype.so.6', # font parsing
-'libdl.so.2' # programming interface to dynamic linker
+'libdl.so.2', # programming interface to dynamic linker
+'libxcb-icccm.so.4',
+'libxcb-image.so.0',
+'libxcb-shm.so.0',
+'libxcb-keysyms.so.1',
+'libxcb-randr.so.0',
+'libxcb-render-util.so.0',
+'libxcb-render.so.0',
+'libxcb-shape.so.0',
+'libxcb-sync.so.1',
+'libxcb-xfixes.so.0',
+'libxcb-xinerama.so.0',
+'libxcb-xkb.so.1',
 }
 ARCH_MIN_GLIBC_VER = {
 '80386':  (2,1),

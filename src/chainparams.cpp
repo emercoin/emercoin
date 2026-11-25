@@ -175,10 +175,10 @@ public:
         consensus.fPowAllowMinDifficultyBlocks = false;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainTrust = uint256S("0x000000000000000000000000000000000000000000000000002ceae94968cea4"); // at block 250 000
+        consensus.nMinimumChainTrust = uint256S("0x000000000000000000000000000000000000000000000000009a40605a67a601"); // at block 800 000
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x3b5b8bb145e5d267b06430582f5efc4a1cbe128a836cdf07ab2000c9caabe550"); // at block 250 000
+        consensus.defaultAssumeValid = uint256S("0xe60a81836de3d055452123fdec5e111a4d4910d1aa7d4b577a71014ff678ec87"); // at block 800 000
 
         consensus.nRejectBlockOutdatedMajority = 850;
         consensus.nToCheckBlockUpgradeMajority = 1000;
@@ -235,15 +235,17 @@ public:
                 {592000, uint256S("0x15fc770188f5ee420830ce5494d4c911be78088533777eecd170857713ce469f")},
                 {620290, uint256S("0xc39b9a8781404324d6f4759ee8f19441148f66c1494916f48be3c23c13d919cc")},
                 {675000, uint256S("0x132346134d09b15744c91a9209e6e12687c02577edbb31d1f1b42d4b5e76990e")},
+                {700000, uint256S("0x81ce13587c405e26d74ed56149caaa19935c2962251afd14611321a5db48a676")},
+                {750000, uint256S("0xbf34db98f7f3ae27df3c09ff7468a3df9c90cd3620a88b39f98d5b5db05339db")},
+                {800000, uint256S("0xe60a81836de3d055452123fdec5e111a4d4910d1aa7d4b577a71014ff678ec87")},
             }
         };
 
         chainTxData = ChainTxData{
-            // Data as of block ???
-            1455207714, // * UNIX timestamp of last known number of transactions
-            365081,     // * total number of transactions between genesis and that timestamp
-                        //   (the tx=... number in the SetBestChain debug.log lines)
-            0.005787037 // * estimated number of transactions per second after that timestamp
+            // Data from RPC: getchaintxstats 4096 e60a81836de3d055452123fdec5e111a4d4910d1aa7d4b577a71014ff678ec87
+            /* nTime    */ 1783918506, // block 800 000
+            /* nTxCount */ 1949896,
+            /* dTxRate  */ 0.00378614275519841,
         };
     }
 };

@@ -17,6 +17,12 @@ and symbol checks, layout), with the Qt wallet (`GUI=1`; depends then include Qt
     export GUI=1
     HOST=x86_64-linux-gnu  ci/docker.sh depends && HOST=x86_64-linux-gnu  ci/docker.sh package
     HOST=aarch64-linux-gnu ci/docker.sh depends && HOST=aarch64-linux-gnu ci/docker.sh package
+
+Windows is built in its own image, `ci/Dockerfile.mingw` (Ubuntu 22.04, mingw-w64 gcc 10, which
+Qt 5.15 needs):
+
+    docker build -t emercoin-ci:mingw -f ci/Dockerfile.mingw ci
+    export IMAGE=emercoin-ci:mingw
     HOST=x86_64-w64-mingw32 ci/docker.sh depends && HOST=x86_64-w64-mingw32 ci/docker.sh package
 
 The archive lands in `dist/` (`DISTNAME` sets its name), for Windows also an installer
