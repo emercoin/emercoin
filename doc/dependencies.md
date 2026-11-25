@@ -16,7 +16,7 @@ These are the dependencies currently used by Bitcoin Core. You can find instruct
 | libevent | [2.1.8-stable](https://github.com/libevent/libevent/releases) | 2.0.22 | No |  |  |
 | libpng |  |  |  |  | [Yes](https://github.com/bitcoin/bitcoin/blob/master/depends/packages/qt.mk) |
 | librsvg | |  |  |  |  |
-| MiniUPnPc | [2.0.20180203](http://miniupnp.free.fr/files) |  | No |  |  |
+| MiniUPnPc | [2.3.5](https://miniupnp.tuxfamily.org/files/) |  | No |  |  |
 | OpenSSL | [3.5.9](https://openssl-library.org/source/) |  | No |  |  |
 | PCRE |  |  |  |  | [Yes](https://github.com/bitcoin/bitcoin/blob/master/depends/packages/qt.mk) |
 | protobuf | [2.6.1](https://github.com/google/protobuf/releases) |  | No |  |  |
