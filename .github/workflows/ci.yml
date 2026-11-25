@@ -3,7 +3,8 @@
 # installer). After a push to develop whose tests pass, the packages replace the "nightly"
 # pre-release; for a version tag (v0.8.6emc, v0.8.6rc1emc) they go into a draft release for
 # a maintainer to publish.
-# The steps are ci/build.sh stages run in the ci/Dockerfile image (see ci/README.md),
+# The steps are ci/build.sh stages run in the ci/Dockerfile image (ci/Dockerfile.mingw for
+# Windows; see ci/README.md),
 # so a failure can be reproduced locally with the same commands.
 name: CI
 
@@ -46,7 +47,7 @@ jobs:
             depends/built
             depends/sources
             depends/${{ env.HOST }}
-          key: depends-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
+          key: depends-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile*', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
 
       - name: Depends
         run: ci/docker.sh depends
@@ -84,14 +85,18 @@ jobs:
         include:
           - name: Linux x86_64
             host: x86_64-linux-gnu
+            image: bionic
           - name: Linux aarch64
             host: aarch64-linux-gnu
+            image: bionic
           - name: Windows x86_64
             host: x86_64-w64-mingw32
+            image: mingw
     env:
       HOST: ${{ matrix.host }}
       GUI: 1
-      IMAGE: emercoin-ci:bionic
+      IMAGE: emercoin-ci:${{ matrix.image }}
+      DOCKERFILE: ${{ matrix.image == 'mingw' && 'ci/Dockerfile.mingw' || 'ci/Dockerfile' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -99,7 +104,7 @@ jobs:
           persist-credentials: false
 
       - name: Build the CI image
-        run: docker build -t "$IMAGE" ci
+        run: docker build -t "$IMAGE" -f "$DOCKERFILE" ci
 
       - name: Restore depends
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -108,7 +113,7 @@ jobs:
             depends/built
             depends/sources
             depends/${{ env.HOST }}
-          key: depends-qt-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
+          key: depends-qt-${{ env.HOST }}-${{ hashFiles('ci/Dockerfile*', 'depends/Makefile', 'depends/funcs.mk', 'depends/builders/**', 'depends/hosts/**', 'depends/packages/**', 'depends/patches/**') }}
 
       - name: Depends
         run: ci/docker.sh depends
