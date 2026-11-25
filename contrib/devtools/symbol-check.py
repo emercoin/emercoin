@@ -28,7 +28,8 @@ import os
 # - libc version 2.11.1 (http://packages.ubuntu.com/search?keywords=libc6&searchon=names&suite=lucid&section=all)
 # - libstdc++ version 4.4.3 (http://packages.ubuntu.com/search?suite=lucid&section=all&arch=any&keywords=libstdc%2B%2B&searchon=names)
 #
-# Taking the minimum of these as our target.
+# Taking the minimum of these as our target, except for glibc: Emercoin requires
+# glibc 2.27 (Ubuntu 18.04, the release build image) since OpenSSL 3.
 #
 # According to GNU ABI document (http://gcc.gnu.org/onlinedocs/libstdc++/manual/abi.html) this corresponds to:
 #   GCC 4.4.0: GCC_4.4.0
@@ -39,7 +40,7 @@ MAX_VERSIONS = {
 'GCC':       (4,4,0),
 'CXXABI':    (1,3,3),
 'GLIBCXX':   (3,4,13),
-'GLIBC':     (2,11),
+'GLIBC':     (2,27),  # Ubuntu 18.04 (glibc 2.27); libstdc++ is linked statically
 'LIBATOMIC': (1,0)
 }
 # See here for a description of _IO_stdin_used:
